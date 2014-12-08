@@ -86,6 +86,4 @@ You can use Formspree via AJAX. This even works cross-origin. The trick is to se
 
 --------
 
-Formspree is a tool made by Brace.io. To contact us send an email to team@brace.io or use the form on the right.
-  SEND
-    
+Formspree is a tool made by Brace.io. To contact us send an email to team@brace.io.
