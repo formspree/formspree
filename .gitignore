@@ -1,0 +1,55 @@
+development.env
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+env
+test_form/
+__pycache__
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Other
+.sass-cache/
+
+.DS_Store
+codekit-config.json
+
+.env
+
+aliases.json
+
+dev.env
+sta.env
+pro.env
+
+celerybeat-schedule.db

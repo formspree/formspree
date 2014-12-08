@@ -1,0 +1,28 @@
+{% extends 'layouts/base.html' %}
+
+{% block base %}
+<div class="container" id="header">
+    <div class="col-1-1 header error">
+        <i class="ion ion-alert-circled"></i>
+    </div>
+</div>
+
+
+
+<div class="container">
+    <div class="col-1-1">
+
+        {% if title %}
+            <h1>{{title}}</h1>
+        {% endif %}
+        
+        {% if text %}
+            <p>{{text|safe}}</p>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block footer %}Service by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more</a>.{% endblock %}

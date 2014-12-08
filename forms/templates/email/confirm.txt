@@ -1,0 +1,16 @@
+Thanks for using {{config.SERVICE_NAME}}. Congrats, you're one step away from making forms on {{host}} functional.
+
+All you have to do is click the link below to confirm your email. To prevent spamming, you'll have to repeat this step for every page where you insert your form. Note that you won't be receiving any emails from the site before you confirm your email.
+
+Link: {{nonce_link}}
+
+We hope you enjoy using {{config.SERVICE_NAME}}. If you have any questions, feel free to shoot an email to {{config.CONTACT_EMAIL}}.
+
+Best,
+Lauri and Cole
+
+----
+
+Why did I receive this email?
+
+Someone (hopefully you?) used your email with the {{config.SERVICE_NAME}} API on {{host}}. If this wasn't you, no worries. This is the only email you'll get.

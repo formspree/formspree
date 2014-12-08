@@ -1,0 +1,63 @@
+body {
+    font-size: 18px;
+    line-height: 1.5em;
+    font-family: 'proxima-nova-soft', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+
+    font-family: 'proxima-nova-soft', sans-serif;
+
+    &:first-child {
+        margin-top: 0;
+    }
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    &>small {
+        font-size: 0.65em;
+        color: #aaa;
+    }
+
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.3em;
+
+    
+    color: $dark-blue;
+
+    &.light {
+        font-weight: 400;
+        color: #444;
+    }
+}
+
+p {
+    line-height: 1.5em;
+    color: #444;
+}
+
+a {
+    color: $green;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+    &:hover{
+        color: $dark-green;
+    }
+}
+
+.center {
+    text-align: center;
+}
+
+.right {
+    text-align: right;
+}
+
+.caps {
+    text-transform: uppercase;
+}

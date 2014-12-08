@@ -1,0 +1,32 @@
+// hint-mixins.scss
+//
+// Place to store common mixins.
+
+
+// Generates border-color rules for all 4 positions
+@mixin arrow-border-color($color, $isInsideSelector: "true") {
+	@each $position in top, bottom, left, right {
+		// if the current mixin is called from within a selector, use a '&'. Otherwise not.
+		@if $isInsideSelector == "true" {
+			&.#{$prefix}#{$position}:before {
+				border-#{$position}-color: $color;
+			}
+		}
+		@else {
+			.#{$prefix}#{$position}:before {
+				border-#{$position}-color: $color;
+			}
+		}
+	}
+}
+
+
+// mixin to set margin on tooltip using translate transform
+@mixin set-margin($property, $transitionDirection) {
+	$value: unquote("#{$property}(#{$transitionDistance * $transitionDirection})");
+	&:after, &:before {
+		-webkit-transform: $value;
+		-moz-transform: $value;
+		transform: $value;
+	}
+}

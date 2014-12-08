@@ -1,0 +1,11 @@
+{% set current_step = 'progress' %}
+
+{% extends 'layouts/progress.html' %}
+
+{% block content %}
+
+    <h1>Confirm your email</h1>
+    <p>We've sent a link to your email. To prevent spam, you'll have to confirm your email before things start working.</p>
+    <p class="small"><strong>Email: </strong> {{email}}, <strong>Site</strong> {{host}}</p>
+
+{% endblock %}

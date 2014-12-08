@@ -1,0 +1,128 @@
+* {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+/* base stuff */
+
+body, html {
+    height: 100%;
+    min-height: 100%;
+}
+
+body {
+    background: $accent-blue;
+    text-align: center;
+    padding: 50px;
+    @media (max-width: 760px) {
+      padding: 10px;
+    }
+}
+
+.container.card {
+    background: #fff;
+    padding: 2em;
+    border: 1px solid $accent;
+    margin-bottom: 1.5em;
+    text-align: center;
+}
+
+#header {
+    margin-bottom: 1.5em;
+    padding-bottom: 1.5em;
+    border-bottom: 1px solid $accent;
+    @media (max-width: 760px) {
+      display: none;
+    }
+}
+
+.header {
+    i {
+        font-size: 3.5em;
+        color: $green;
+    }
+
+    &.info {
+        i {
+            color: $dark-blue;
+        }
+    }
+
+    &.done {
+        //opacity: 0.5;
+        p {
+            text-decoration: line-through;
+        }
+        i {
+            color: $accent-blue;
+        }
+    }
+    &.current {
+        i {
+            color: $dark-green;
+        }
+    }
+
+    &.success {
+        i {
+            color: $dark-green;
+            font-size: 6em;
+        }
+    }
+
+    &.error {
+        i {
+            color: $red;
+            font-size: 3.5em;
+        }
+    }
+}
+
+h1 {
+    font-size: 1.7em;
+}
+
+.animate {
+    display: inline;
+    position: relative;
+    -moz-animation-iteration-count: 1;
+    -moz-animation-timing-function: linear;
+    -moz-animation-duration: 0.4s;
+
+    -webkit-animation-iteration-count: 1;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-duration: 0.4s;
+
+    &.dropIn {
+        -moz-animation-name: dropIn;
+        -webkit-animation-name: dropIn;
+    }
+    
+}
+
+@-webkit-keyframes fadeIn {
+    0% {
+        -webkit-transform: translate3d(0, 0, 0);
+        -moz-transform: translate3d(0, 0, 0);
+        opacity: 0;
+    }
+    100% {
+        -webkit-transform: translate3d(0, 0, 0);
+        -moz-transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes dropIn {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate3d(0, -150px, 0);
+        -moz-transform: translate3d(0, -150px, 0);
+    }
+    100% {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        -moz-transform: translate3d(0, 0, 0);
+    }
+}

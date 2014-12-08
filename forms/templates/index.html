@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+  <title>{{config.SERVICE_NAME}} | Functional HTML forms</title>
+  
+  <link rel="stylesheet" href="/static/css/main.css" />
+
+  <script type="text/javascript" src="//use.typekit.net/bvn3gpz.js"></script>
+  <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+  <meta name="viewport" content="initial-scale=1">
+
+  <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+</head>
+<body> 
+
+  <div class="row section" id="header">
+        <div class="container" id="title">
+            <div class="col-1-1">
+                <img src="/static/img/logo.png" alt="" class="center animate dropIn">
+                <h1 class="center"><span class="caps">{{config.SERVICE_NAME}}</span> <small>by <a href="http://brace.io" style="display: inline-block; font-style: none; cursor: pointer; color:#aaa; margin-bottom: -10px;">Brace</a></small></h1>
+                
+            </div>
+        </div>
+      <div class="container">
+          <div class="col-1-2">
+            <h1 style="font-weight: 900;">Functional HTML forms</h1>
+            <h3 class="light">Just send your form to our URL and we'll forward it to your email. No PHP, Javascript or sign up required &mdash; <em>perfect for static sites!</em></h3>
+            </div>
+            <div class="col-1-2">
+                <p>Example:</p>
+                <p class="card code" style="font-size: small">
+                    &lt;form <span class="tooltip hint--top" data-hint="Use our URL as form's action">action="<span class="attr">{{config.API_ROOT}}/you@email.com</span>"</span>&gt;<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="<span class="attr">text</span>" name="<span class="attr">name</span>"&gt;<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="<span class="attr">email</span>" <span class="tooltip hint--top" data-hint="Use advanced attributes">name="<span class="attr">_replyto</span>"</span>&gt;<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="tooltip hint--bottom" data-hint="When user submits, we'll email data to you">&lt;input type="<span class="attr">submit</span>" value="<span class="attr">Send</span>"&gt;</span><br />
+                    &lt;/form&gt;
+                </p>
+            </div>
+      </div>
+  </div>
+
+  <div class="row section" id="getstarted">
+
+      <div class="container narrow block">
+          <div class="col-1-1">
+              <h2>Setting it up is easy and free. Here's how:</h2>
+              <h3 class="light">You don't even have to register.</h3>
+          </div>
+      </div>
+  
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h3>1. Setup the HTML form</h3>
+                <p>Change your form's <span class="code">action</span>-attribute to this and replace your@email.com with your own email.</p>
+                <p><input type="text" value="http:{{config.API_ROOT}}/your@email.com" /></p>
+            </div>  
+      </div>
+  
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h3>2. Submit the form and confirm your email address</h3>
+                <p>Go to your website and submit the form once. This will send you an email asking to confirm your email address, so that no one can start sending you spam from random websites.</p>
+            </div>
+      </div>
+  
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h3>3. All set, receive emails</h3>
+                <p>From now on, when someone submits that form, we'll forward you the data as email.</p>
+
+            </div>
+      </div>
+
+  </div>
+
+  <div class="row section grey">
+
+      <div class="container block">
+          <div class="col-1-1"><h2>Some questions you might have:</h2></div>
+      </div>
+  
+      <div class="container block">
+            <div class="col-1-2">
+                <div class="card">
+                    <h4>Who are you guys?</h4>
+                    <p>We're the same folks who make <a href="http://brace.io">Brace.io</a>, the simple way to host websites. {{config.SERVICE_NAME}} is a side project that solves a problem many of Brace.io users seem to face: having forms on otherwise static HTML pages.</p>
+                </div>
+            </div>
+            <div class="col-1-2">
+                <div class="card">
+                    <h4>What about privacy?</h4>
+                    <p>We don't store contents of the form submissions. Emails are sent using Mailgun's API, so on that end their privacy policies apply.</p>
+                </div>
+            </div>
+      </div>
+
+      <div class="container block">
+            <div class="col-1-2">
+                <div class="card">
+                    <h4>How much does it cost?</h4>
+                    <p>{{config.SERVICE_NAME}} are free for 1000 submissions per email each month. If you need more, please reach out.</p>
+                </div>
+            </div>
+            <div class="col-1-2">
+                <div class="card">
+                    <h4>Are there any limits?</h4>
+                    <p>Yep, for now we cap submissions to 1000 per email for each month. If you need more, please reach out to {{config.CONTACT_EMAIL}}.</p>
+                </div>
+            </div>
+      </div>
+
+  </div>
+
+  <div class="row section grey">
+
+      <div class="container narrow block">
+          <div class="col-1-1">
+            <h2>Advanced features:</h2>
+            <h4 class="light">Form inputs can have specially named <span class="code">name</span>-attributes, which alter functionality. They are all prefixed with an underscore.</h4>
+          </div>
+      </div>
+  
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h4><span class="code">_replyto</span></h4>
+                <p>This value is used for the email's Reply-To field. This way you can directly "Reply" to the email to respond to the person who originally submitted the form.</p>
+                <p><input type="text" value='<input type="text" name="_replyto" placeholder="Your email" />'></p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h4><span class="code">_next</span></h4>
+                <p>By default, after submitting a form the user is shown the {{config.SERVICE_NAME}} "Thank You" page. You can provide an alternative URL for that page.</p>
+                <p><input type="text" value='<input type="hidden" name="_next" value="//site.io/thanks.html" />'></p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h4><span class="code">_subject</span></h4>
+                <p>This value is used for the email's subject, so that you can quickly reply to submissions without having to edit the subject line each time.</p>
+                <p><input type="text" value='<input type="hidden" name="_subject" value="New submission!" />'></p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h4><span class="code">_cc</span></h4>
+                <p>This value is used for the email's CC Field. This lets you send a copy of each submission to another email address.</p>
+                <p><input type="text" value='<input type="hidden" name="_cc" value="another@email.com" />'></p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h4><span class="code">_gotcha</span></h4>
+                <p>Add this "honeypot" field to avoid spam by fooling scrapers. If a value is provided, the submission will be silently ignored. The input should be hidden with CSS.</p>
+                <p><input type="text" value='<input type="text" name="_gotcha" style="display:none" />'></p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h4>Using AJAX</h4>
+                <p>You can use {{config.SERVICE_NAME}} via AJAX. This even works cross-origin. The trick is to set the <span class="code">Accept</span> header to <span class="code">application/json</span>. If you're using jQuery this can be done like so:
+                <p class="card code">
+                  $.ajax({<br/>
+                  &nbsp;&nbsp;&nbsp;&nbsp;url: "{{config.API_ROOT}}/you@email.com", <br/>
+                  &nbsp;&nbsp;&nbsp;&nbsp;method: "POST",<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;data: {message: "hello!"},<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="tooltip hint--top" data-hint="Required to set the Accept header">dataType: "json"</span><br />
+                  });
+                </p>
+            </div>
+      </div>
+
+<!-- 
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h3 class="light">More to come...</h3>
+            </div>
+      </div>
+      
+ -->
+
+  </div>
+
+  <div class="row section">
+
+      <div class="container narrow block">
+          <div class="col-1-2">
+            <p>{{config.SERVICE_NAME}} is a tool made by <a href="http://brace.io">Brace.io</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
+          </div>
+          <div class="col-1-2">
+            <form method="POST" action="//{{config.API_ROOT}}/{{config.CONTACT_EMAIL}}">
+              <input type="email" name="_replyto" placeholder="Your email" />
+              <textarea name="message" rows="5"></textarea>
+              <input type="text" name="_gotcha" style="display:none">
+              <button type="submit">Send</button>
+            </form>
+          </div>
+      </div>
+
+  </div>
+
+</body>
+</html>

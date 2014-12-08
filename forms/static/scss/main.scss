@@ -1,0 +1,331 @@
+$green: #4ca1a7;
+$dark-green: #359173;
+
+$dark-blue: #1b3544;
+$accent-blue: #f1f1fa;
+$accent: #ddd;
+
+$red: #ff1708;
+$green: #359173;
+
+@import 'normalize.scss';
+@import 'grid.scss';
+@import 'typography.scss';
+@import 'hint/hint.scss';
+@import 'ionicons.min.scss';
+
+
+html {
+    height: 100%;
+}
+body {
+    min-height: 100%;
+}
+
+body#card {
+    background: $accent-blue;
+    padding-top: 4em;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+.tooltip {
+    font-weight: 600;
+    cursor: help;
+}
+
+#title {
+    text-align: center;
+    margin-bottom: 3em;
+    h1 {
+        font-size: 1.2em;
+    }
+    img {
+        max-width: 70px;
+    }
+}
+
+
+.row.section {
+    padding-top: 5em;
+    padding-bottom: 5em;
+    border-bottom: 1px solid #ddd;
+    &#header {
+        border-color: $green;
+    }
+}
+
+#header {
+
+    i {
+        font-size: 4em;
+        color: $dark-blue;
+    }
+
+    .next {
+        opacity: 0.5;
+    }
+
+    .success {
+        i {
+            color: $green;
+        }
+    }
+
+    .error {
+        i {
+            color: $red;
+        }
+    }
+
+    .done {
+        opacity: 0.3;
+        p {
+            text-decoration: line-through;
+        }
+    }
+
+    .done, .current {
+        i {
+            color: $green;
+        }
+    }
+
+    border-bottom: 1px solid #ddd;
+}
+
+
+.container {
+    padding-top: 1em;
+    padding-bottom: 1em;
+
+    @media (max-width: 760px) {
+        padding-bottom: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    &.block {
+        padding-bottom: 1.5em;
+        padding-top: 1.5em;
+
+        @media (max-width: 760px) {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        &:first-child{
+            padding-top: 0;
+        }
+        &:last-child{
+            padding-bottom: 0;
+        }
+    }
+
+    &.card {
+        max-width: 500px;
+    }
+
+}
+
+
+.card {
+    padding: 0.9em;
+    background: #fff;
+    border: 1px solid $accent;
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+}
+
+.row.grey {
+    background: $accent-blue;
+}
+
+
+p {
+    line-height: 1.5em;
+}
+
+p.code {
+    font-size: 0.8em;
+    font-family: "source-code-pro";
+    border: 1px solid $accent;
+    background: #fff;
+    @media (max-width: 760px) {
+        overflow: auto;
+    }
+}
+
+span.code {
+    font-family: "source-code-pro";
+    display: inline-block;
+    padding: 0 0.2em;
+    border: 1px solid $accent;
+    background: #fff;
+    font-size: 0.9em;
+}
+
+input, textarea {
+    font-size: 0.8em;
+    font-family: "source-code-pro";
+    border: 1px solid $accent;
+    background: #fff;
+    padding: 0.9em;
+    transition: all 0.3s ease-in-out;
+    width: 100%;
+    &:focus{
+        border-color: $dark-green;
+        outline: none;
+        box-shadow: 0 0 5px 1px $green;
+    }
+}
+
+form input, form textarea {
+    margin-bottom: 0.5em;
+}
+
+button, a.button {
+    font-size: 1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    border: 2px solid $green;
+    color: $dark-green;
+    background: transparent;
+    line-height: 1em;
+    padding: 0.6em 0.9em;
+    transition: all 0.3s ease-in-out;
+    &:hover {
+        border-color: $dark-green;
+    }
+}
+
+
+.animate {
+
+    -moz-animation-iteration-count: once;
+    -moz-animation-timing-function: cubic-bezier(0.895, 0.03, 0.685, 0.22);;
+    -moz-animation-duration: 0.4s;
+
+    -webkit-animation-iteration-count: once;
+    -webkit-animation-timing-function: cubic-bezier(0.895, 0.03, 0.685, 0.22);;
+    -webkit-animation-duration: 0.4s;
+
+    &.dropIn {
+        -moz-animation-name: dropIn;
+        -webkit-animation-name: dropIn;
+    }
+    
+}
+
+@-webkit-keyframes fadeIn {
+    0% {
+        -webkit-transform: translate3d(0, 0, 0);
+        -moz-transform: translate3d(0, 0, 0);
+        opacity: 0;
+    }
+    100% {
+        -webkit-transform: translate3d(0, 0, 0);
+        -moz-transform: translate3d(0, 0, 0);
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes dropIn {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate3d(0, -150px, 0);
+        -moz-transform: translate3d(0, -150px, 0);
+    }
+    100% {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        -moz-transform: translate3d(0, 0, 0);
+    }
+}
+
+@-webkit-keyframes dropInLong {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate3d(0, -450px, 0);
+        -moz-transform: translate3d(0, -450px, 0);
+    }
+    100% {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        -moz-transform: translate3d(0, 0, 0);
+    }
+}
+
+@-webkit-keyframes rotate {
+    100% {
+        -webkit-transform: rotate(45deg);
+        -moz-transform: rotate(45deg);
+    }
+}
+
+@-webkit-keyframes rotateBack {
+    100% {
+        -webkit-transform: rotate(0deg);
+        -moz-transform: rotate(0deg);
+    }
+}
+
+.overlay {
+    position: fixed;
+    width: 100%; 
+    height: 100%;
+
+    top: -10000px;
+    left: -10000px;
+    opacity: 0;
+
+    transition: opacity 0.4s linear;
+
+    background: rgba(255,255,255,0.96);
+}
+
+body.showOverlay {
+    overflow: hidden;
+
+    .overlay {
+        top: 0;
+        left: 0;
+        opacity: 1;
+
+        iframe {
+            -webkit-animation-iteration-count: once;
+            -webkit-animation-timing-function: cubic-bezier(0.895, 0.03, 0.685, 0.22);;
+            -webkit-animation-duration: 0.4s;
+
+            -moz-animation-name: dropInLong;
+            -webkit-animation-name: dropInLong;
+        }
+
+    }
+}
+
+.toggleOverlay {
+    cursor: pointer;
+    position: fixed; top: 20px; left: 20px; 
+    font-size: 2.2em;
+    font-weight: 600;
+
+    -moz-animation-iteration-count: once;
+    -moz-animation-fill-mode: forwards;
+    -moz-animation-timing-function: linear;
+    -moz-animation-duration: 0.2s;
+
+    -webkit-animation-iteration-count: once;
+    -webkit-animation-fill-mode: forwards;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-duration: 0.2s;
+
+}
+
+body.showOverlay .toggleOverlay {
+    -moz-animation-name: rotate;
+    -webkit-animation-name: rotate;
+}
+

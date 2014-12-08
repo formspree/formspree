@@ -1,0 +1,6 @@
+flask
+flask-script
+redis
+requests==2.0.0
+paste
+gunicorn
