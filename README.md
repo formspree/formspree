@@ -86,4 +86,54 @@ You can use Formspree via AJAX. This even works cross-origin. The trick is to se
 
 --------
 
+
+Running your own copy of Brace Forms 
+------------------------------------
+
+### Running on localhost
+
+You'll need python 2.7 and should [install pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server. 
+
+Once your environment is setup, clone the source and cd into the root of the Brace Forms repository. Then run:
+
+    pip install -r requirements.txt
+
+then
+
+    python manage.py runserver
+
+
+### Running on heroku
+
+You'll need python 2.7 and should [install pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server. 
+
+You also will need to install the [heroku toolbelt](https://toolbelt.heroku.com/).
+
+Once your environment is setup, clone the source and cd into the root of the Brace Forms repository. Then run:
+
+    heroku app:create [your project name]
+
+then
+
+    git push heroku
+
+Your new project will be running at [your project name].herokuapp.com.
+
+
+### Dependencies
+
+Brace Forms requires Redis. If you're deploying to heroku you can get an addon, such as redistogo. To install redistogo into your project just run the command:
+
+    heroku addons:add redistogo
+
+
+### Configuring Brace Forms
+
+Take a look at the `forms/settings.py` file for a list of environment variables that should be set in order for Forms to work correctly.
+
+
+
+
+
+
 Formspree is a tool made by Brace.io. To contact us send an email to team@brace.io.
