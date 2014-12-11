@@ -6,7 +6,7 @@ DEBUG = os.getenv('DEBUG') in ['True', 'true', '1', 'yes']
 
 #SERVER_NAME = os.getenv('SERVER_NAME')
 NONCE_SECRET = os.getenv('NONCE_SECRET')
-REDIS_URL = os.getenv('REDISTOGO_URL')
+REDIS_URL = os.getenv('REDISTOGO_URL') or os.getenv('REDISGREEN_URL') or 'http://localhost:6379'
 MAILGUN_API_KEY = os.getenv('MAILGUN_API_KEY')
 MAILGUN_DOMAIN = os.getenv('MAILGUN_DOMAIN')
 
