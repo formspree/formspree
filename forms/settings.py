@@ -10,7 +10,7 @@ MAILGUN_API_KEY = os.getenv('MAILGUN_API_KEY')
 MAILGUN_DOMAIN = os.getenv('MAILGUN_DOMAIN')
 
 SERVICE_NAME = os.getenv('SERVICE_NAME') or 'Forms'
-SERVICE_URL = os.getenv('SERVICE_URL') or 'http://myapp.com'
-CONTACT_EMAIL = os.getenv('CONTACT_EMAIL') or 'team@myapp.com'
-DEFAULT_SENDER = os.getenv('DEFAULT_SENDER') or 'Forms Team <submissions@myapp.com>'
-API_ROOT = os.getenv('API_ROOT') or '//myapp.com'
+SERVICE_URL = os.getenv('SERVICE_URL') or 'http://example.com'
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL') or 'team@example.com'
+DEFAULT_SENDER = os.getenv('DEFAULT_SENDER') or 'Forms Team <submissions@example.com>'
+API_ROOT = os.getenv('API_ROOT') or '//example.com'
