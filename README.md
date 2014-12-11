@@ -127,13 +127,10 @@ Brace Forms requires Redis. If you're deploying to heroku you can get an addon, 
     heroku addons:add redistogo
 
 
+Brace Forms also requires a mailgun account to send the emails. You'll need to add the api keys to your environment variables. See the configuration settings below.
+
+
 ### Configuring Brace Forms
 
 Take a look at the `forms/settings.py` file for a list of environment variables that should be set in order for Forms to work correctly.
 
-
-
-
-
-
-Formspree is a tool made by Brace.io. To contact us send an email to team@brace.io.
