@@ -105,9 +105,7 @@ then
 
 ### Running on heroku
 
-You'll need python 2.7 and should [install pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server. 
-
-You also will need to install the [heroku toolbelt](https://toolbelt.heroku.com/).
+You will need to install the [heroku toolbelt](https://toolbelt.heroku.com/).
 
 Once your environment is setup, clone the source and cd into the root of the Brace Forms repository. Then run:
 
