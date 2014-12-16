@@ -84,7 +84,7 @@ def _send_email(to=None, subject=None, text=None, html=None, sender=None, cc=Non
     log.info('Queuing message to %s' % str(to))
 
     result = requests.post(
-        'https://api.mailgun.net/v2/%s/messages' % setting.MAILGUN_DOMAIN,
+        'https://api.mailgun.net/v2/%s/messages' % settings.MAILGUN_DOMAIN,
         auth=('api', settings.MAILGUN_API_KEY),
         data=data
     )
