@@ -349,6 +349,8 @@ def create_app():
 
     @app.errorhandler(500)
     def internal_error(e):
+        import traceback
+        log.error(traceback.format_exc())
         return render_template('500.html'), 500
 
     @app.errorhandler(404)
