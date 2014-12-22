@@ -30,20 +30,6 @@ Go to your website and submit the form once. This will send you an email asking 
 
 From now on, when someone submits that form, we'll forward you the data as email.
 
-## Some questions you might have:
-
-What about privacy?
-
-We don't store contents of the form submissions. Emails are sent using Mailgun's API, so on that end their privacy policies apply.
-
-### How much does it cost?
-
-Formspree is free for 1000 submissions per email each month. If you need more, please reach out.
-
-### Are there any limits?
-
-Yep, for now we cap submissions to 1000 per email for each month. If you need more, please reach out to team@formspree.io.
-
 ## Advanced features:
 
 Form inputs can have specially named name-attributes, which alter functionality. They are all prefixed with an underscore.
@@ -126,4 +112,12 @@ Formspree also requires a mailgun account to send the emails. You'll need to add
 ### Configuring Formspree
 
 Take a look at the `forms/settings.py` file for a list of environment variables that should be set in order for Forms to work correctly.
+
+
+
+Contributing
+----------------------------------
+
+Formspree is being managed from Assembly. Check out the discussion and get involved at [assembly.com/formspree](http://www.assembly.com/formspree).
+
 
