@@ -43,6 +43,24 @@ IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
 EXCLUDE_KEYS = ['_gotcha', '_next', '_subject', '_cc']
 
+
+'''
+Notes about redis db: 
+
+Forms are identified by a unique email/url pair. We hash the two values with
+a secret key to get the ID.
+
+Currently we store the following keys for each form in redis:
+
+forms_hash_email_HASH -- the email for this form
+forms_hash_host_HASH -- the host url for this form
+forms_nonce_HASH -- has a confirmation email been sent?
+forms_email_HASH -- has the confirmation email been confirmed?
+forms_counter_HASH -- the number of emails sent for this form
+
+'''
+
+
 ''' 
 helpers
 
