@@ -59,9 +59,9 @@ def _print(hostid, unconfirmed):
     r = app.REDIS
     if unconfirmed and r.get('forms_email_%s' % hostid):
         return False
-    keys = r.keys("*%s*" % hostid)
-    results = dict((k,r.get(k)) for k in keys)
-    print results
+    keys = reversed(sorted(r.keys("*%s*" % hostid)))
+    results = ["%s: %s" % (k,r.get(k)) for k in keys]
+    print ",  ".join(results)
     return True
 
 
