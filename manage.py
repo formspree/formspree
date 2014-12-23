@@ -55,35 +55,41 @@ def _matchhosts(name):
     return map(lambda x: x.split("_")[-1], hosts)
 
 
-def _print(hostid):
+def _print(hostid, unconfirmed):
     r = app.REDIS
+    if unconfirmed and r.get('forms_email_%s' % hostid):
+        return False
     keys = r.keys("*%s*" % hostid)
     results = dict((k,r.get(k)) for k in keys)
     print results
+    return True
 
 
-def _del(hostid):
+def _del(hostid, unconfirmed):
     r = app.REDIS
+    if unconfirmed and r.get('forms_email_%s' % hostid):
+        return False
     keys = r.keys("*%s*" % hostid)
     for k in keys:
         r.delete(k)
+    return True
 
 
 @manager.command
-def print_hosts(name):
+def print_hosts(name, unconfirmed=False):
     count = 0
     for host in _matchhosts(name):
-        _print(host)
-        count +=1
+        if _print(host, unconfirmed):
+            count +=1
     print "found %d items" % count
 
 
 @manager.command
-def delete_hosts(name):
+def delete_hosts(name, unconfirmed=False):
     count = 0
     for host in _matchhosts(name):
-        _del(host)
-        count +=1
+        if _del(host, unconfirmed):
+            count +=1   
     print "deleted %d items" % count
 
 
