@@ -168,7 +168,7 @@ def _send_form(email, host):
     data, keys = _form_to_dict(request.form)
 
     subject = data.get('_subject', 'New submission from %s' % _referrer_to_path(request.referrer))
-    reply_to = data.get('_replyto', data.get('email', None))
+    reply_to = data.get('_replyto', data.get('email', data.get('Email', None)))
     cc = data.get('_cc', None)
     next = data.get('_next', url_for('thanks', next=request.referrer))
     spam = data.get('_gotcha', None)
