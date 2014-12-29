@@ -2,6 +2,7 @@ from datetime import timedelta
 from functools import update_wrapper
 from flask import make_response, current_app, request, url_for, jsonify
 
+import base64
 import uuid
 
 # decorators
@@ -64,6 +65,13 @@ def jsonerror(code, *args, **kwargs):
     resp = jsonify(*args, **kwargs)
     resp.status_code = code
     return resp
+
+
+def loosely_decode_b64(encoded):
+    try:
+        return base64.b64decode(encoded)
+    except ValueError:
+        return encoded
 
 
 def uuidslug():
