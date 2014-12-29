@@ -97,8 +97,13 @@ def _send_email(to=None, subject=None, text=None, html=None, sender=None, cc=Non
     if reply_to and IS_VALID_EMAIL(reply_to):
         data.update({'h:Reply-To': reply_to})
 
-    if cc and IS_VALID_EMAIL(cc):
-        data.update({'cc': cc})
+    if cc:
+        # Try to decode base64encoded cc addresses before rejecting them
+        if not IS_VALID_EMAIL(cc):
+            cc = loosely_decode_b64(cc)
+
+        if IS_VALID_EMAIL(cc):
+            data.update({'cc': cc})
 
     log.info('Queuing message to %s' % str(to))
 
