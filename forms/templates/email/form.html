@@ -15,6 +15,8 @@
     {% endfor %}
 </table>
 
+<small style="margin-left: 10px">This form was submitted at {{ now }}.</small>
+
 <hr style="color: #ddd;" />
 
 <p>You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to {{config.CONTACT_EMAIL}}.</p>

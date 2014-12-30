@@ -1,3 +1,4 @@
+import datetime
 import requests
 import urlparse
 import hashlib
@@ -183,8 +184,9 @@ def _send_form(email, host):
                                    text=str('<a href="%s">Return to form</a>' % request.referrer)), 400
 
     if not spam:
-        text = render_template('email/form.txt', data=data, host=host, keys=keys)
-        html = render_template('email/form.html', data=data, host=host, keys=keys)
+        now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
+        text = render_template('email/form.txt', data=data, host=host, keys=keys, now=now)
+        html = render_template('email/form.html', data=data, host=host, keys=keys, now=now)
         result = _send_email(to=email, 
                           subject=subject,
                           text=text,
