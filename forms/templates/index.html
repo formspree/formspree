@@ -13,8 +13,6 @@
 
   <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
 
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-
 </head>
 <body> 
 
@@ -180,6 +178,19 @@
             </div>
       </div>
 
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h4>Obfuscating the email address</h4>
+                <p>If you're afraid of scrapers and people seeing your email address, you can replace it with its Base64-encoded value, which you can get right here:
+                <p><input type="email"
+                          data-baseaddr="http:{{ config.API_ROOT }}/"
+                          placeholder="(type your actual email address)"
+                          class="b64-input"></p>
+                <p>For the address <span class="code b64-mirror"></span> the <span class="code">action</span>-attribute must be:</p>
+                <p class="card code b64-output-url"></p>
+            </div>
+      </div>
+
 <!-- 
       <div class="container narrow block">
             <div class="col-1-1">
@@ -208,6 +219,9 @@
       </div>
 
   </div>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="/static/js/base64-widget.js"></script>
 
 </body>
 </html>
