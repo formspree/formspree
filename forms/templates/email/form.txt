@@ -7,6 +7,8 @@ Someone just submitted your form on {{host}}. Here's what they had to say:
 {{data[k]}}
 
 {% endfor %}
+
+This form was submitted at {{ now }}.
 ---
 
 You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to {{config.CONTACT_EMAIL}}.
