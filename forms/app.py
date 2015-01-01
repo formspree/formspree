@@ -88,14 +88,25 @@ def _send_email(to=None, subject=None, text=None, html=None, sender=None, cc=Non
     if None in [to, subject, text, sender]:
         raise ValueError('to, subject text and sender are required to send email')
 
-    data = {'from': sender,
+    data = {'api_user': settings.SENDGRID_API_USER,
+            'api_key': settings.SENDGRID_API_KEY,
             'to': to,
             'subject': subject,
             'text': text,
             'html': html}
 
+    # parse 'fromname' from 'sender' if it is formatted like "Name <name@email.com>"
+    try:
+        bracket = sender.index('<')
+        data.update({
+            'from': sender[bracket+1:-1],
+            'fromname': sender[:bracket].strip()
+        })
+    except ValueError:
+        data.update({'from': sender})
+
     if reply_to and IS_VALID_EMAIL(reply_to):
-        data.update({'h:Reply-To': reply_to})
+        data.update({'replyto': reply_to})
 
     if cc and IS_VALID_EMAIL(cc):
         data.update({'cc': cc})
@@ -103,8 +114,7 @@ def _send_email(to=None, subject=None, text=None, html=None, sender=None, cc=Non
     log.info('Queuing message to %s' % str(to))
 
     result = requests.post(
-        'https://api.mailgun.net/v2/%s/messages' % settings.MAILGUN_DOMAIN,
-        auth=('api', settings.MAILGUN_API_KEY),
+        'https://api.sendgrid.com/api/mail.send.json',
         data=data
     )
 
@@ -112,7 +122,7 @@ def _send_email(to=None, subject=None, text=None, html=None, sender=None, cc=Non
     errmsg = ""
     if result.status_code / 100 != 2:
         try:
-            errmsg = result.json().get("message")
+            errmsg = '; \n'.join(result.json().get("errors"))
         except ValueError:
             errmsg = result.text
         log.warning(errmsg)
