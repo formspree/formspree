@@ -88,8 +88,8 @@ def _send_email(to=None, subject=None, text=None, html=None, sender=None, cc=Non
     if None in [to, subject, text, sender]:
         raise ValueError('to, subject text and sender are required to send email')
 
-    data = {'api_user': settings.SENDGRID_API_USER,
-            'api_key': settings.SENDGRID_API_KEY,
+    data = {'api_user': settings.SENDGRID_USERNAME,
+            'api_key': settings.SENDGRID_PASSWORD,
             'to': to,
             'subject': subject,
             'text': text,

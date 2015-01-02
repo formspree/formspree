@@ -13,5 +13,5 @@ CONTACT_EMAIL = os.getenv('CONTACT_EMAIL') or 'team@example.com'
 DEFAULT_SENDER = os.getenv('DEFAULT_SENDER') or 'Forms Team <submissions@example.com>'
 API_ROOT = os.getenv('API_ROOT') or '//example.com'
 
-SENDGRID_API_USER = os.getenv('SENDGRID_API_USER')
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+SENDGRID_USERNAME = os.getenv('SENDGRID_USERNAME')
+SENDGRID_PASSWORD = os.getenv('SENDGRID_PASSWORD')
