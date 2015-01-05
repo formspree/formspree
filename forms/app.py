@@ -24,8 +24,6 @@ constants
 
 REDIS = redis.Redis.from_url(settings.REDIS_URL)
 
-DEFAULT_SENDER = settings.DEFAULT_SENDER
-
 HASH = lambda x, y: hashlib.md5(x+y+settings.NONCE_SECRET).hexdigest()
 COUNTER_KEY = lambda x, y: 'forms_counter_%s' % HASH(x, y)
 
@@ -201,7 +199,7 @@ def _send_form(email, host):
                           subject=subject,
                           text=text,
                           html=html,
-                          sender=DEFAULT_SENDER,
+                          sender=settings.DEFAULT_SENDER,
                           reply_to=reply_to,
                           cc=cc)
 
@@ -249,7 +247,7 @@ def _send_confirmation(email, host):
                          subject='Confirm email for %s' % settings.SERVICE_NAME, 
                          text=render_content('txt'),
                          html=render_content('html'), 
-                         sender=DEFAULT_SENDER) 
+                         sender=settings.DEFAULT_SENDER)
 
     log.debug('Sent')
 
@@ -270,10 +268,6 @@ def _send_confirmation(email, host):
         return jsonify({'success': "confirmation email sent"})
     else:
         return render_template('confirmation_sent.html', email=email, host=host)
-
-
-def nl2br(value): 
-    return value.replace('\n','<br>\n')
 
 
 '''
@@ -373,7 +367,7 @@ def configure_routes(app):
 
 
 def create_app():
-    app = flask.Flask('forms')
+    app = flask.Flask(__name__)
     app.config.from_object(settings)
     configure_routes(app)
 
@@ -387,6 +381,6 @@ def create_app():
     def page_not_found(e):
         return render_template('error.html', title='Oops, page not found'), 404
 
-    app.jinja_env.filters['nl2br'] = nl2br
+    app.jinja_env.filters['nl2br'] = lambda value: value.replace('\n','<br>\n')
     
     return app
