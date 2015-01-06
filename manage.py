@@ -97,7 +97,7 @@ def delete_hosts(name, unconfirmed=False):
 def redis_to_postgres():
     import redis
     from forms.settings import REDIS_URL
-    from forms.app import DB, Form
+    from forms.app import DB, Form, HASH
     r = redis.Redis.from_url(REDIS_URL)
 
     hashes = set()
@@ -119,7 +119,7 @@ def redis_to_postgres():
         confirmed = bool(r.get('forms_email_%s' % hash))
         counter = r.get('forms_counter_%s' % hash) or 0
 
-        form = Form(email, host)
+        form = Form.query.filter_by(hash=HASH(email, host)).first() or Form(email, host)
         form.confirm_sent = confirm_sent
         form.counter = counter
         form.confirmed = confirmed
