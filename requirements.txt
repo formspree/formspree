@@ -2,6 +2,7 @@ flask
 flask-script
 redis
 flask-sqlalchemy
+flask-migrate
 requests==2.0.0
 paste
 gunicorn
