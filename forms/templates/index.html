@@ -13,8 +13,6 @@
 
   <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
 
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-
 </head>
 <body> 
 
@@ -34,7 +32,7 @@
             <div class="col-1-2">
                 <p>Example:</p>
                 <p class="card code" style="font-size: small">
-                    &lt;form <span class="tooltip hint--top" data-hint="Use our URL as form's action">action="<span class="attr">{{config.API_ROOT}}/you@email.com</span>"</span>&gt;<br />
+                    &lt;form <span class="tooltip hint--top" data-hint="Use our URL as form's action">action="<span class="attr b64-output-url">{{config.API_ROOT}}/you@email.com</span>"</span>&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="<span class="attr">text</span>" name="<span class="attr">name</span>"&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="<span class="attr">email</span>" <span class="tooltip hint--top" data-hint="Use advanced attributes">name="<span class="attr">_replyto</span>"</span>&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;<span class="tooltip hint--bottom" data-hint="When user submits, we'll email data to you">&lt;input type="<span class="attr">submit</span>" value="<span class="attr">Send</span>"&gt;</span><br />
@@ -56,8 +54,8 @@
       <div class="container narrow block">
             <div class="col-1-1">
                 <h3>1. Setup the HTML form</h3>
-                <p>Change your form's <span class="code">action</span>-attribute to this and replace your@email.com with your own email.</p>
-                <p><input type="text" value="http:{{config.API_ROOT}}/your@email.com" /></p>
+                <p>Change your form's <span class="code">action</span>-attribute to this and replace you@email.com with your own email.</p>
+                <p><input type="text" class="b64-output-url" value="{{config.API_ROOT}}/you@email.com" /></p>
             </div>  
       </div>
   
@@ -171,12 +169,25 @@
                 <p>You can use {{config.SERVICE_NAME}} via AJAX. This even works cross-origin. The trick is to set the <span class="code">Accept</span> header to <span class="code">application/json</span>. If you're using jQuery this can be done like so:
                 <p class="card code">
                   $.ajax({<br/>
-                  &nbsp;&nbsp;&nbsp;&nbsp;url: "{{config.API_ROOT}}/you@email.com", <br/>
+                  &nbsp;&nbsp;&nbsp;&nbsp;url: "<span class="b64-output-url">{{config.API_ROOT}}/you@email.com</span>", <br/>
                   &nbsp;&nbsp;&nbsp;&nbsp;method: "POST",<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;data: {message: "hello!"},<br />
                   &nbsp;&nbsp;&nbsp;&nbsp;<span class="tooltip hint--top" data-hint="Required to set the Accept header">dataType: "json"</span><br />
                   });
                 </p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h4>Obfuscating the email address</h4>
+                <p>If you're afraid of scrapers and people seeing your email address, you can replace it with its Base64-encoded value, which you can get right here:
+                <p><input type="email"
+                          data-baseaddr="http:{{ config.API_ROOT }}/"
+                          placeholder="(type your actual email address)"
+                          class="b64-input"></p>
+                <p>For the address <span class="code b64-mirror"></span> the <span class="code">action</span>-attribute must be:</p>
+                <p class="card code b64-output-url"></p>
             </div>
       </div>
 
@@ -208,6 +219,9 @@
       </div>
 
   </div>
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="/static/js/base64-widget.js"></script>
 
 </body>
 </html>

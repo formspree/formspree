@@ -12,7 +12,7 @@ import werkzeug.datastructures
 
 from paste.util.multidict import MultiDict
 
-from utils import crossdomain, request_wants_json, jsonerror
+from utils import crossdomain, request_wants_json, jsonerror, loosely_decode_b64
 import settings
 import log
 
@@ -38,7 +38,8 @@ HASH_EMAIL = lambda x: REDIS.get('forms_hash_email_%s' % x)
 HASH_HOST_KEY = lambda x: 'forms_hash_host_%s' % x
 HASH_HOST = lambda x: REDIS.get('forms_hash_host_%s' % x)
 
-IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
+MAIL_RE = re.compile(r"[^@]+@[^@]+\.[^@]+")
+IS_VALID_EMAIL = lambda x: MAIL_RE.match(x)
 
 EXCLUDE_KEYS = ['_gotcha', '_next', '_subject', '_cc']
 
@@ -106,8 +107,13 @@ def _send_email(to=None, subject=None, text=None, html=None, sender=None, cc=Non
     if reply_to and IS_VALID_EMAIL(reply_to):
         data.update({'replyto': reply_to})
 
-    if cc and IS_VALID_EMAIL(cc):
-        data.update({'cc': cc})
+    if cc:
+        # Try to decode base64encoded cc addresses before rejecting them
+        if not IS_VALID_EMAIL(cc):
+            cc = loosely_decode_b64(cc)
+
+        if IS_VALID_EMAIL(cc):
+            data.update({'cc': cc})
 
     log.info('Queuing message to %s' % str(to))
 
@@ -295,6 +301,10 @@ def send(email):
             return render_template('info.html', 
                                    title='Form should POST', 
                                    text='Make sure your form has the <span class="code"><strong>method="POST"</strong></span> attribute'), 405
+
+    # Try to decode base64encoded email addresses before failing
+    if not IS_VALID_EMAIL(email):
+        email = loosely_decode_b64(email)
 
     if not IS_VALID_EMAIL(email):
         if request_wants_json():
