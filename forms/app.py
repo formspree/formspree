@@ -7,6 +7,7 @@ import re
 
 import flask
 from flask import request, url_for, render_template, redirect, jsonify
+from flask.ext.sqlalchemy import SQLAlchemy
 
 import werkzeug.datastructures
 
@@ -15,7 +16,6 @@ from paste.util.multidict import MultiDict
 from utils import crossdomain, request_wants_json, jsonerror
 import settings
 import log
-
 
 '''
 constants
@@ -58,6 +58,23 @@ forms_email_HASH -- has the confirmation email been confirmed?
 forms_counter_HASH -- the number of emails sent for this form
 
 '''
+DB = SQLAlchemy()
+class Form(DB.Model):
+    __tablename__ = 'forms'
+    id = DB.Column(DB.Integer, primary_key=True)
+    hash = DB.Column(DB.String(32), unique=True)
+    email = DB.Column(DB.String(120))
+    host = DB.Column(DB.String(300))
+    confirm_sent = DB.Column(DB.Boolean)
+    confirmed = DB.Column(DB.Boolean)
+    counter = DB.Column(DB.Integer)
+    def __init__(self, email, host):
+        self.hash = HASH(email, host)
+        self.email = email
+        self.host = host
+        self.confirm_sent = False
+        self.confirmed = False
+        self.counter = 0
 
 
 ''' 
@@ -369,6 +386,8 @@ def configure_routes(app):
 def create_app():
     app = flask.Flask(__name__)
     app.config.from_object(settings)
+
+    DB.init_app(app)
     configure_routes(app)
 
     @app.errorhandler(500)
