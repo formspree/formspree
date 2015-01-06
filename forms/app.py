@@ -294,11 +294,8 @@ def send(email):
                                    title='Check email address', 
                                    text='Email address %s is not formatted correctly' % str(email)), 400
 
-    # Earlier we used referrer, which is problematic as it includes also URL
-    # parameters. To maintain backwards compatability and to avoid doing migrations
-    # check also if email is confirmed for the entire referrer
-    host = flask.request.referrer
-    new_host = _referrer_to_path(host)
+    # We're not using referrer anymore, just the domain + path
+    host = _referrer_to_path(flask.request.referrer)
 
     if not host:
         if request_wants_json():
@@ -309,12 +306,12 @@ def send(email):
                                    text='Make sure your form is running on a proper server. For geeks: could not find the "Referrer" header.'), 400
 
     # get the form for this request
-    form = Form.query.filter(Form.hash.in_([HASH(email, host), HASH(email, new_host)])).first()
+    form = Form.query.filter_by(hash=HASH(email, host)).first()
 
     if form and form.confirmed:
-        return _send_form(form, email, new_host)
+        return _send_form(form, email, host)
 
-    return _send_confirmation(form, email, new_host)
+    return _send_confirmation(form, email, host)
 
 
 def confirm_email(nonce):
