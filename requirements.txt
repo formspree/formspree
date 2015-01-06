@@ -1,6 +1,8 @@
 flask
 flask-script
 redis
+flask-sqlalchemy
 requests==2.0.0
 paste
 gunicorn
+psycopg2
