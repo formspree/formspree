@@ -2,7 +2,6 @@ import datetime
 import requests
 import urlparse
 import hashlib
-import redis
 import re
 
 import flask
@@ -22,45 +21,20 @@ constants
 
 '''
 
-REDIS = redis.Redis.from_url(settings.REDIS_URL)
-
 HASH = lambda x, y: hashlib.md5(x+y+settings.NONCE_SECRET).hexdigest()
-COUNTER_KEY = lambda x, y: 'forms_counter_%s' % HASH(x, y)
-
-NONCE_KEY = lambda x, y: 'forms_nonce_%s' % HASH(x, y)
-VALID_NONCE = lambda x: REDIS.get('forms_nonce_%s' % x)
-
-EMAIL_CONFIRMED_KEY = lambda x: 'forms_email_%s' % x
-EMAIL_CONFIRMED = lambda x: REDIS.get('forms_email_%s' % x)
-
-HASH_EMAIL_KEY = lambda x: 'forms_hash_email_%s' % x
-HASH_EMAIL = lambda x: REDIS.get('forms_hash_email_%s' % x)
-HASH_HOST_KEY = lambda x: 'forms_hash_host_%s' % x
-HASH_HOST = lambda x: REDIS.get('forms_hash_host_%s' % x)
-
 IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
-
 EXCLUDE_KEYS = ['_gotcha', '_next', '_subject', '_cc']
 
+'''
+database and its structure
 
 '''
-Notes about redis db: 
 
-Forms are identified by a unique email/url pair. We hash the two values with
-a secret key to get the ID.
-
-Currently we store the following keys for each form in redis:
-
-forms_hash_email_HASH -- the email for this form
-forms_hash_host_HASH -- the host url for this form
-forms_nonce_HASH -- has a confirmation email been sent?
-forms_email_HASH -- has the confirmation email been confirmed?
-forms_counter_HASH -- the number of emails sent for this form
-
-'''
 DB = SQLAlchemy()
+
 class Form(DB.Model):
     __tablename__ = 'forms'
+
     id = DB.Column(DB.Integer, primary_key=True)
     hash = DB.Column(DB.String(32), unique=True)
     email = DB.Column(DB.String(120))
@@ -68,6 +42,7 @@ class Form(DB.Model):
     confirm_sent = DB.Column(DB.Boolean)
     confirmed = DB.Column(DB.Boolean)
     counter = DB.Column(DB.Integer)
+
     def __init__(self, email, host):
         self.hash = HASH(email, host)
         self.email = email
@@ -145,14 +120,6 @@ def _send_email(to=None, subject=None, text=None, html=None, sender=None, cc=Non
     return result.status_code / 100 == 2, errmsg
 
 
-def _get_values_for_hash(h):
-    '''
-    We store email and host cleartext for each hash, returns those
-    '''
-
-    return HASH_EMAIL(h), HASH_HOST(h)
-
-
 def _referrer_to_path(r):
     log.debug('Referrer was %s' % str(r))
     if not r:
@@ -185,7 +152,7 @@ def _form_to_dict(data):
     return ret, ordered_keys
 
 
-def _send_form(email, host):
+def _send_form(form, email, host):
     '''
     Sends request.form to user's email. 
     Assumes email has been verified.
@@ -228,7 +195,10 @@ def _send_form(email, host):
                                        title='Unable to send email', 
                                        text=result[1]), 500
 
-        REDIS.incr(COUNTER_KEY(email, host))
+        # increment the forms counter
+        form.counter = Form.counter + 1
+        DB.session.add(form)
+        DB.session.commit()
 
     if request_wants_json():
         return jsonify({'success': "Email sent"})
@@ -236,14 +206,14 @@ def _send_form(email, host):
         return redirect(next, code=302)
 
 
-def _send_confirmation(email, host):
+def _send_confirmation(form, email, host):
     '''
     Helper that actually creates confirmation nonce
     and sends the email to associated email. Renders
     different templates depending on the result
     '''
     log.debug('Sending confirmation')
-    if VALID_NONCE(HASH(email, host)):
+    if form and form.confirm_sent:
         log.debug('Confirmation already sent')
         if request_wants_json():
             return jsonify({'success': "confirmation email sent"})
@@ -277,9 +247,11 @@ def _send_confirmation(email, host):
                                    text=result[1]), 500
 
 
-    REDIS.set(NONCE_KEY(email, host), None)
-    REDIS.set(HASH_EMAIL_KEY(HASH(email, host)), email)
-    REDIS.set(HASH_HOST_KEY(HASH(email, host)), host)
+    # create the form in the database and mark the email confirmation as sent
+    form = form or Form(email, host)
+    form.confirm_sent = True
+    DB.session.add(form)
+    DB.session.commit()
 
     if request_wants_json():
         return jsonify({'success': "confirmation email sent"})
@@ -321,11 +293,8 @@ def send(email):
                                    title='Check email address', 
                                    text='Email address %s is not formatted correctly' % str(email)), 400
 
-    # Earlier we used referrer, which is problematic as it includes also URL
-    # parameters. To maintain backwards compatability and to avoid doing migrations
-    # check also if email is confirmed for the entire referrer
-    host = flask.request.referrer
-    new_host = _referrer_to_path(host)
+    # We're not using referrer anymore, just the domain + path
+    host = _referrer_to_path(flask.request.referrer)
 
     if not host:
         if request_wants_json():
@@ -335,10 +304,13 @@ def send(email):
                                    title='Unable to submit form', 
                                    text='Make sure your form is running on a proper server. For geeks: could not find the "Referrer" header.'), 400
 
-    if not EMAIL_CONFIRMED(HASH(email, host)) and not EMAIL_CONFIRMED(HASH(email, new_host)):
-        return _send_confirmation(email, new_host)
+    # get the form for this request
+    form = Form.query.filter_by(hash=HASH(email, host)).first()
 
-    return _send_form(email, new_host)
+    if form and form.confirmed:
+        return _send_form(form, email, host)
+
+    return _send_confirmation(form, email, host)
 
 
 def confirm_email(nonce):
@@ -348,17 +320,19 @@ def confirm_email(nonce):
     flags associated email+host to be confirmed
     '''
 
-    # these are used just for email_confirmed.html template
-    email, host = _get_values_for_hash(nonce)
+    # get the form for this request
+    form = Form.query.filter_by(hash=nonce).first()
 
-    if not VALID_NONCE(nonce):
+    if not form:
         return render_template('error.html', 
                                title='Not a valid link', 
                                text='Confirmation token not found.<br />Please check the link and try again.'), 400
     
     else:
-        REDIS.set(EMAIL_CONFIRMED_KEY(nonce), 'confirmed')
-        return render_template('email_confirmed.html', email=email, host=host)
+        form.confirmed = True
+        DB.session.add(form)
+        DB.session.commit()
+        return render_template('email_confirmed.html', email=form.email, host=form.host)
 
 
 def default(template='index'):
