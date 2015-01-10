@@ -2,13 +2,11 @@
 database and its structure
 
 '''
-from app import DB
+from formspree.app import DB
+from formspree import settings, log
 from flask import url_for, render_template
-from helpers import http_form_to_dict, referrer_to_path, send_email
-from consts import HASH
+from utils import HASH, http_form_to_dict, referrer_to_path, send_email
 import datetime
-import settings
-import log
 
 class Form(DB.Model):
     __tablename__ = 'forms'

@@ -3,9 +3,9 @@ import re
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
 
-from forms import app
+from formspree import create_app, app
 
-forms_app = app.app
+forms_app = create_app()
 manager = Manager(forms_app)
 
 

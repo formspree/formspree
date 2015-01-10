@@ -1,39 +1,30 @@
 import flask
 
 from flask import request, url_for, render_template, redirect, jsonify
-from utils import crossdomain, request_wants_json, jsonerror
-from helpers import ordered_storage, referrer_to_path
-from consts import IS_VALID_EMAIL, HASH
-from app import app
-import log
+from utils import ordered_storage, referrer_to_path, crossdomain, request_wants_json, jsonerror, IS_VALID_EMAIL, HASH
+from formspree import log
 
 from models import Form
 
-@app.route('/')
-@app.route('/<path:template>')
 def default(template='index'):
+    log.debug("hello")
     template = template if template.endswith('.html') else template+'.html'
     return render_template(template, is_redirect = request.args.get('redirected'))
 
-@app.errorhandler(500)
 def internal_error(e):
     import traceback
     log.error(traceback.format_exc())
     return render_template('500.html'), 500
 
-@app.errorhandler(404)
 def page_not_found(e):
     return render_template('error.html', title='Oops, page not found'), 404
 
-@app.route('/thanks')
 def thanks():
     return render_template('thanks.html')
 
-@app.route('/favicon.ico')
 def favicon():
     return flask.redirect(url_for('static', filename='img/favicon.ico'))
 
-@app.route('/<email>', methods=['GET', 'POST'])
 @crossdomain(origin='*')
 @ordered_storage
 def send(email):
@@ -110,7 +101,6 @@ def send(email):
                                title='Unable to send email',
                                text=result[1]), 500
 
-@app.route('/confirm/<nonce>')
 def confirm_email(nonce):
     '''
     Confirmation emails point to this endpoint

@@ -1,1 +1,1 @@
-web: gunicorn forms:forms_app
+web: gunicorn formspree:forms_app
