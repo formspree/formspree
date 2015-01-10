@@ -15,6 +15,23 @@
 
 </head>
 <body class="" id="card">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="row">
+        <div class="container">
+            <div class="col-1-1">
+            {% for category, message in messages %}
+              <div class="alert-box {{ category }} banner">
+               {{ message }}
+              </div>
+            {% endfor %}
+           </div>
+        </div>
+      </div>
+      {% endif %}
+    {% endwith %}
+
     <div class="row">
         <div class="container narrow card">
             {% block base %}
@@ -22,7 +39,7 @@
             {% endblock %}
         </div>
         <div class="container narrow">
-            <p class="footer">{% block footer %}The form was submitted using {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
+            <p class="footer">{% block footer %}You are using {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
         </div>
     </div>
 </body>

@@ -1,11 +1,17 @@
 import re
 
 from flask.ext.script import Manager
+from flask.ext.migrate import Migrate, MigrateCommand
 
 from forms import create_app, app
 
 forms_app = create_app()
 manager = Manager(forms_app)
+
+
+# add flask-migrate commands
+Migrate(forms_app, app.DB)
+manager.add_command('db', MigrateCommand)
 
 @manager.command
 def run(port=5000):
@@ -91,6 +97,43 @@ def delete_hosts(name, unconfirmed=False):
         if _del(host, unconfirmed):
             count +=1   
     print "deleted %d items" % count
+
+
+@manager.command
+def redis_to_postgres():
+    import redis
+    from forms.settings import REDIS_URL
+    from forms.app import DB, Form, HASH
+    r = redis.Redis.from_url(REDIS_URL)
+
+    hashes = set()
+    for k in r.keys():
+        keyparts = k.split('_')
+        if keyparts[0] == 'forms':
+            hashes.add(keyparts[-1])
+
+    print "found %s different hashes" % len(hashes)
+
+    print "creating tables"
+    DB.create_all(app=forms_app)
+
+    print "building form rows"
+    for hash in hashes:
+        email = r.get('forms_hash_email_%s' % hash)
+        host = r.get('forms_hash_host_%s' % hash)
+        confirm_sent = bool(r.get('forms_nonce_%s' % hash))
+        confirmed = bool(r.get('forms_email_%s' % hash))
+        counter = r.get('forms_counter_%s' % hash) or 0
+
+        form = Form.query.filter_by(hash=HASH(email, host)).first() or Form(email, host)
+        form.confirm_sent = confirm_sent
+        form.counter = counter
+        form.confirmed = confirmed
+        form.counter = counter
+        DB.session.add(form)
+
+    print "commiting to the database"
+    DB.session.commit()
 
 
 if __name__ == "__main__":

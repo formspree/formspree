@@ -14,9 +14,13 @@
   <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-
+{% if g.user.is_authenticated()%}
+<!--<h4 class="light"><a href="{{ url_for('logout') }}">Logout</a></h3>-->
+{% else %}
+<!--<h4 class="light"><a href="{{ url_for('login') }}" class="btn btn-default btn-lg" role="button">Login</a> or <a href="{{ url_for('register') }}">Sign up</a></h3>-->
+{% endif %}
 </head>
-<body> 
+<body>
 
   <div class="row section" id="header">
         <div class="container" id="title">
