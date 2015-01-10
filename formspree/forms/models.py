@@ -23,9 +23,9 @@ class Form(DB.Model):
     STATUS_EMAIL_EMPTY             = 1
     STATUS_EMAIL_FAILED            = 2
 
-    STATUS_CONFIRMATION_SENT       = 0
-    STATUS_CONFIRMATION_DUPLICATED = 1
-    STATUS_CONFIRMATION_FAILED     = 2
+    STATUS_CONFIRMATION_SENT       = 10
+    STATUS_CONFIRMATION_DUPLICATED = 11
+    STATUS_CONFIRMATION_FAILED     = 12
 
     def __init__(self, email, host):
         self.hash = HASH(email, host)
@@ -69,8 +69,8 @@ class Form(DB.Model):
                 return{ 'code': Form.STATUS_EMAIL_FAILED }
 
             # increment the forms counter
-            form.counter = Form.counter + 1
-            DB.session.add(form)
+            self.counter = self.counter + 1
+            DB.session.add(self)
             DB.session.commit()
 
         return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
@@ -118,3 +118,11 @@ class Form(DB.Model):
 
         return { 'code': Form.STATUS_CONFIRMATION_SENT }
 
+    @staticmethod
+    def confirm(nonce):
+        form = Form.query.filter_by(hash=nonce).first()
+        if form:
+            form.confirmed = True
+            DB.session.add(form)
+            DB.session.commit()
+        return form

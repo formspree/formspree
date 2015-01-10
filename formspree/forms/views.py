@@ -110,7 +110,7 @@ def confirm_email(nonce):
     '''
 
     # get the form for this request
-    form = Form.query.filter_by(hash=nonce).first()
+    form = Form.confirm(nonce)
 
     if not form:
         return render_template('error.html',
@@ -118,7 +118,4 @@ def confirm_email(nonce):
                                text='Confirmation token not found.<br />Please check the link and try again.'), 400
 
     else:
-        form.confirmed = True
-        DB.session.add(form)
-        DB.session.commit()
         return render_template('email_confirmed.html', email=form.email, host=form.host)
