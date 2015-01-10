@@ -8,7 +8,7 @@ from datetime import datetime
 import flask
 from flask import request, url_for, render_template, redirect, jsonify, session, flash, g, abort
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager, login_user , logout_user , current_user , login_required
+from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
 
 import werkzeug.datastructures
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -47,7 +47,7 @@ class Form(DB.Model):
     counter = DB.Column(DB.Integer)
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
 
-    def __init__(self, email, host, owner):
+    def __init__(self, email, host, owner=None):
         self.hash = HASH(email, host)
         self.email = email
         self.host = host
@@ -214,7 +214,7 @@ def _send_form(form, email, host):
                                    text=str('<a href="%s">Return to form</a>' % request.referrer)), 400
 
     if not spam:
-        now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
+        now = datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         text = render_template('email/form.txt', data=data, host=host, keys=keys, now=now)
         html = render_template('email/form.html', data=data, host=host, keys=keys, now=now)
         result = _send_email(to=email,
@@ -398,8 +398,9 @@ def register():
     user = User(request.form['email'], request.form['password'])
     DB.session.add(user)
     DB.session.commit()
-    flash('Your account is successfully registered. Please log in to continue.')
-    return redirect(url_for('login'))
+    login_user(user)
+    flash('Your account is successfully registered.')
+    return redirect(url_for('dashboard'))
 
 def login():
     if request.method == 'GET':
@@ -418,12 +419,17 @@ def login():
         return redirect(url_for('login'))
     login_user(user, remember = remember_me)
     flash('Logged in successfully')
-    return redirect(request.args.get('next') or url_for('index'))
+    return redirect(request.args.get('next') or url_for('dashboard'))
 
 
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@login_required
+def dashboard():
+    return render_template('dashboard.html', user=current_user)
 
 
 '''
@@ -441,6 +447,7 @@ def configure_routes(app):
     app.add_url_rule('/register', 'register', view_func=register, methods=['GET', 'POST'])
     app.add_url_rule('/login', 'login', view_func=login, methods=   ['GET', 'POST'])
     app.add_url_rule('/logout', 'logout', view_func=logout, methods=['GET'])
+    app.add_url_rule('/dashboard', 'dashboard', view_func=dashboard, methods=['GET'])
 
 
 def create_app():
