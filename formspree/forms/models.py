@@ -5,7 +5,7 @@ database and its structure
 from formspree.app import DB
 from formspree import settings, log
 from flask import url_for, render_template
-from utils import HASH, http_form_to_dict, referrer_to_path, send_email
+from helpers import HASH, http_form_to_dict, referrer_to_path, send_email
 import datetime
 
 class Form(DB.Model):

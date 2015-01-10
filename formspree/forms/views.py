@@ -1,8 +1,9 @@
 import flask
 
 from flask import request, url_for, render_template, redirect, jsonify
-from utils import ordered_storage, referrer_to_path, crossdomain, request_wants_json, jsonerror, IS_VALID_EMAIL, HASH
+from formspree.utils import crossdomain, request_wants_json, jsonerror
 from formspree import log
+from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH
 
 from models import Form
 
