@@ -2264,6 +2264,48 @@ a {
 .ion-xbox:before {
   content: "\f30c"; }
 
+.alert-box {
+  padding: 15px;
+  font-size: 1em;
+  line-height: 1.5em;
+  display: block;
+  border: 2px solid #359173;
+  background-color: transparent;
+  color: #359173; }
+  .alert-box.error {
+    border-color: #ff1708;
+    background-color: transparent;
+    color: #ff1708; }
+  .alert-box.success {
+    border-color: #359173;
+    background-color: transparent;
+    color: #359173; }
+  .alert-box.banner {
+    text-align: center;
+    margin-bottom: 0; }
+    @media (max-width: 760px) {
+      .alert-box.banner {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        border: 0;
+        border-bottom: 2px solid #359173; } }
+    .alert-box.banner a {
+      opacity: 0.75;
+      text-decoration: underline; }
+
+a.alert-box:hover {
+  color: #1b3544;
+  border-color: #f1f1fa; }
+
+a.alert-box.error:hover {
+  color: #ff1708;
+  border-color: #ff1708; }
+
+a.alert-box.success:hover {
+  color: #359173;
+  border-color: #359173; }
+
 html {
   height: 100%; }
 

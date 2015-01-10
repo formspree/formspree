@@ -1,0 +1,58 @@
+.alert-box {
+    padding: 15px;
+    
+    font-size: 1em;
+    line-height: 1.5em;
+
+    display: block;
+    border: 2px solid $green;
+    background-color: transparent;
+    color: $green;
+
+    &.error {
+        border-color: $red;
+        background-color: transparent;
+        color: $red;
+    }
+
+    &.success {
+        border-color: $green;
+        background-color: transparent;
+        color: $green;
+    }
+
+    &.banner {
+        text-align: center;
+        margin-bottom: 0;
+
+        @media (max-width: 760px) {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          border:0;
+          border-bottom: 2px solid $green;
+        }
+
+        a {
+            opacity: 0.75;
+            text-decoration: underline;
+        }
+
+
+    }
+}
+
+a.alert-box:hover {
+    color: $dark-blue;
+    border-color: $accent-blue;
+}
+
+a.alert-box.error:hover {
+    color: $red;
+    border-color: $red;
+}
+
+a.alert-box.success:hover {
+    color: $green;
+    border-color: $green;
+}

@@ -15,6 +15,23 @@
 
 </head>
 <body class="" id="card">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="row">
+        <div class="container">
+            <div class="col-1-1">
+            {% for category, message in messages %}
+              <div class="alert-box {{ category }} banner">
+               {{ message }}
+              </div>
+            {% endfor %}
+           </div>
+        </div>
+      </div>
+      {% endif %}
+    {% endwith %}
+
     <div class="row">
         <div class="container narrow card">
             {% block base %}

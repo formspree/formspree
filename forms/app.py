@@ -8,7 +8,9 @@ from datetime import datetime
 import flask
 from flask import request, url_for, render_template, redirect, jsonify, session, flash, g, abort
 from flask.ext.sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
+
 
 import werkzeug.datastructures
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -395,9 +397,16 @@ def configure_login(app):
 def register():
     if request.method == 'GET':
         return render_template('register.html')
-    user = User(request.form['email'], request.form['password'])
-    DB.session.add(user)
-    DB.session.commit()
+    try:
+        user = User(request.form['email'], request.form['password'])
+        DB.session.add(user)
+        DB.session.commit()
+
+    except IntegrityError:
+        DB.session.rollback()
+        flash("An account with this email already exists.", "error")
+        return render_template('register.html')
+
     login_user(user)
     flash('Your account is successfully registered.')
     return redirect(url_for('dashboard'))
@@ -412,7 +421,7 @@ def login():
         remember_me = True
     user = User.query.filter_by(email=email).first()
     if user is None:
-        flash("We can't find an account related with this Email id. Please verify the Email entered.")
+        flash("We can't find an account related with this Email id. Please verify the Email entered.", "error")
         return redirect(url_for('login'))
     elif not check_password(password):
         flash("Invalid Password. Please verify the password entered.")
