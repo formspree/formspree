@@ -6,3 +6,4 @@ requests==2.0.0
 paste
 gunicorn
 psycopg2
+flask-login

@@ -2,6 +2,7 @@ import os
 
 # load a bunch of environment
 
+SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') in ['True', 'true', '1', 'yes']
 if DEBUG:
     SQLALCHEMY_ECHO = True
