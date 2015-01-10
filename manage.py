@@ -3,9 +3,9 @@ import re
 from flask.ext.script import Manager
 from flask.ext.migrate import Migrate, MigrateCommand
 
-from forms import create_app, app
+from forms import app
 
-forms_app = create_app()
+forms_app = app.app
 manager = Manager(forms_app)
 
 
@@ -19,8 +19,8 @@ def run(port=5000):
 
 @manager.command
 def show_list():
-    print 'Listing all referer / email pairs and counts...' 
-    
+    print 'Listing all referer / email pairs and counts...'
+
     values = []
 
     for key in app.REDIS.keys('*counter*'):
@@ -28,7 +28,7 @@ def show_list():
         keyhash = key.split('_')[-1]
         email, host = app._get_values_for_hash(keyhash)
         values.append((count, email, host))
-    
+
     values.sort(key=lambda x: x[0], reverse=True)
 
     total = {}
@@ -95,7 +95,7 @@ def delete_hosts(name, unconfirmed=False):
     count = 0
     for host in _matchhosts(name):
         if _del(host, unconfirmed):
-            count +=1   
+            count +=1
     print "deleted %d items" % count
 
 

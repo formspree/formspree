@@ -7,7 +7,9 @@ from datetime import datetime
 
 import flask
 from flask import request, url_for, render_template, redirect, jsonify, session, flash, g, abort
+
 from flask.ext.sqlalchemy import SQLAlchemy
+
 from sqlalchemy.exc import IntegrityError
 from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
 
@@ -18,22 +20,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from paste.util.multidict import MultiDict
 
 from utils import crossdomain, request_wants_json, jsonerror
+
 import settings
-import log
-
-'''
-constants
-
-'''
-
-HASH = lambda x, y: hashlib.md5(x+y+settings.NONCE_SECRET).hexdigest()
-IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
-EXCLUDE_KEYS = ['_gotcha', '_next', '_subject', '_cc']
-
-'''
-database and its structure
-
-'''
 
 DB = SQLAlchemy()
 
@@ -91,6 +79,149 @@ def hash_pwd(password):
 
 def check_password(password):
     return check_password_hash(hash_pwd(password), password)
+
+
+'''
+views
+
+'''
+
+
+def thanks():
+    return render_template('thanks.html')
+
+
+@crossdomain(origin='*')
+@ordered_storage
+def send(email):
+    '''
+    Main endpoint, checks if email+host is valid and sends
+    either form data or verification to email
+    '''
+
+    if request.method == 'GET':
+        if request_wants_json():
+            return jsonerror(405, {'error': "Please submit POST request."})
+        else:
+            return render_template('info.html',
+                                   title='Form should POST',
+                                   text='Make sure your form has the <span class="code"><strong>method="POST"</strong></span> attribute'), 405
+
+    if not IS_VALID_EMAIL(email):
+        if request_wants_json():
+            return jsonerror(400, {'error': "Invalid email address"})
+        else:
+            return render_template('error.html',
+                                   title='Check email address',
+                                   text='Email address %s is not formatted correctly' % str(email)), 400
+
+    # We're not using referrer anymore, just the domain + path
+    host = _referrer_to_path(flask.request.referrer)
+
+    if not host:
+        if request_wants_json():
+            return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
+        else:
+            return render_template('error.html',
+                                   title='Unable to submit form',
+                                   text='Make sure your form is running on a proper server. For geeks: could not find the "Referrer" header.'), 400
+
+    # get the form for this request
+    form = Form.query.filter_by(hash=HASH(email, host)).first()
+
+    if form and form.confirmed:
+        return _send_form(form, email, host)
+
+    return _send_confirmation(form, email, host)
+
+
+def confirm_email(nonce):
+    '''
+    Confirmation emails point to this endpoint
+    It either rejects the confirmation or
+    flags associated email+host to be confirmed
+    '''
+
+    # get the form for this request
+    form = Form.query.filter_by(hash=nonce).first()
+
+    if not form:
+        return render_template('error.html',
+                               title='Not a valid link',
+                               text='Confirmation token not found.<br />Please check the link and try again.'), 400
+
+    else:
+        form.confirmed = True
+        DB.session.add(form)
+        DB.session.commit()
+        return render_template('email_confirmed.html', email=form.email, host=form.host)
+
+
+def default(template='index'):
+    template = template if template.endswith('.html') else template+'.html'
+    return render_template(template, is_redirect = request.args.get('redirected'))
+
+
+def favicon():
+    return flask.redirect(url_for('static', filename='img/favicon.ico'))
+
+
+def configure_login(app):
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'login'
+
+    @login_manager.user_loader
+    def load_user(id):
+        return User.query.get(int(id))
+
+
+def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+    try:
+        user = User(request.form['email'], request.form['password'])
+        DB.session.add(user)
+        DB.session.commit()
+
+    except IntegrityError:
+        DB.session.rollback()
+        flash("An account with this email already exists.", "error")
+        return render_template('register.html')
+
+    login_user(user)
+    flash('Your account is successfully registered.')
+    return redirect(url_for('dashboard'))
+
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+    email = request.form['email']
+    password = request.form['password']
+    remember_me = False
+    if 'remember_me' in request.form:
+        remember_me = True
+    user = User.query.filter_by(email=email).first()
+    if user is None:
+        flash("We can't find an account related with this Email id. Please verify the Email entered.", "error")
+        return redirect(url_for('login'))
+    elif not check_password(password):
+        flash("Invalid Password. Please verify the password entered.")
+        return redirect(url_for('login'))
+    login_user(user, remember = remember_me)
+    flash('Logged in successfully')
+    return redirect(request.args.get('next') or url_for('dashboard'))
+
+
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+
+@login_required
+def dashboard():
+    return render_template('dashboard.html', user=current_user)
+
 
 '''
 helpers
@@ -216,7 +347,7 @@ def _send_form(form, email, host):
                                    text=str('<a href="%s">Return to form</a>' % request.referrer)), 400
 
     if not spam:
-        now = datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
+        now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         text = render_template('email/form.txt', data=data, host=host, keys=keys, now=now)
         html = render_template('email/form.html', data=data, host=host, keys=keys, now=now)
         result = _send_email(to=email,
@@ -383,64 +514,6 @@ def default(template='index'):
 def favicon():
     return flask.redirect(url_for('static', filename='img/favicon.ico'))
 
-
-def configure_login(app):
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-    login_manager.login_view = 'login'
-
-    @login_manager.user_loader
-    def load_user(id):
-        return User.query.get(int(id))
-
-
-def register():
-    if request.method == 'GET':
-        return render_template('register.html')
-    try:
-        user = User(request.form['email'], request.form['password'])
-        DB.session.add(user)
-        DB.session.commit()
-
-    except IntegrityError:
-        DB.session.rollback()
-        flash("An account with this email already exists.", "error")
-        return render_template('register.html')
-
-    login_user(user)
-    flash('Your account is successfully registered.')
-    return redirect(url_for('dashboard'))
-
-def login():
-    if request.method == 'GET':
-        return render_template('login.html')
-    email = request.form['email']
-    password = request.form['password']
-    remember_me = False
-    if 'remember_me' in request.form:
-        remember_me = True
-    user = User.query.filter_by(email=email).first()
-    if user is None:
-        flash("We can't find an account related with this Email id. Please verify the Email entered.", "error")
-        return redirect(url_for('login'))
-    elif not check_password(password):
-        flash("Invalid Password. Please verify the password entered.")
-        return redirect(url_for('login'))
-    login_user(user, remember = remember_me)
-    flash('Logged in successfully')
-    return redirect(request.args.get('next') or url_for('dashboard'))
-
-
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-
-@login_required
-def dashboard():
-    return render_template('dashboard.html', user=current_user)
-
-
 '''
 Add routes and create app (create_app is called in __init__.py)
 
@@ -453,10 +526,6 @@ def configure_routes(app):
     app.add_url_rule('/confirm/<nonce>', 'confirm_email', view_func=confirm_email, methods=['GET'])
     app.add_url_rule('/thanks', 'thanks', view_func=thanks, methods=['GET'])
     app.add_url_rule('/<path:template>', 'default', view_func=default, methods=['GET'])
-    app.add_url_rule('/register', 'register', view_func=register, methods=['GET', 'POST'])
-    app.add_url_rule('/login', 'login', view_func=login, methods=   ['GET', 'POST'])
-    app.add_url_rule('/logout', 'logout', view_func=logout, methods=['GET'])
-    app.add_url_rule('/dashboard', 'dashboard', view_func=dashboard, methods=['GET'])
 
 
 def create_app():
@@ -465,17 +534,6 @@ def create_app():
 
     DB.init_app(app)
     configure_routes(app)
-    configure_login(app)
-
-    @app.errorhandler(500)
-    def internal_error(e):
-        import traceback
-        log.error(traceback.format_exc())
-        return render_template('500.html'), 500
-
-    @app.errorhandler(404)
-    def page_not_found(e):
-        return render_template('error.html', title='Oops, page not found'), 404
 
     @app.before_request
     def before_request():
@@ -484,3 +542,4 @@ def create_app():
     app.jinja_env.filters['nl2br'] = lambda value: value.replace('\n','<br>\n')
 
     return app
+
