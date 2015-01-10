@@ -37,7 +37,7 @@ def login():
     if user is None:
         flash("We can't find an account related with this Email id. Please verify the Email entered.", "error")
         return redirect(url_for('login'))
-    elif not check_password(password):
+    elif not check_password(user.password, password):
         flash("Invalid Password. Please verify the password entered.")
         return redirect(url_for('login'))
     login_user(user, remember = remember_me)
