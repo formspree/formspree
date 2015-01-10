@@ -18,6 +18,7 @@ class Form(DB.Model):
     confirm_sent = DB.Column(DB.Boolean)
     confirmed = DB.Column(DB.Boolean)
     counter = DB.Column(DB.Integer)
+    owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
 
     STATUS_EMAIL_SENT              = 0
     STATUS_EMAIL_EMPTY             = 1
