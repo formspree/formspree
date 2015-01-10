@@ -80,7 +80,10 @@ def send(email):
 
     # Respond to the request accordingly to the status code
     if status['code'] == Form.STATUS_EMAIL_SENT:
-        return redirect(status['next'], code=302)
+        if request_wants_json():
+            return jsonify({ 'success': "email sent", 'next': status['next'] })
+        else:
+            return redirect(status['next'], code=302)
     elif status['code'] == Form.STATUS_EMAIL_EMPTY:
         if request_wants_json():
             return k(400, {'error': "Can't send an empty form"})
