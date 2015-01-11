@@ -1,10 +1,11 @@
 import forms
 import users
+import static_pages
 
 def configure_routes(app):
-    app.add_url_rule('/', 'index', view_func=forms.views.default, methods=['GET'])
-    app.add_url_rule('/favicon.ico', view_func=forms.views.favicon)
-    app.add_url_rule('/<path:template>', 'default', view_func=forms.views.default, methods=['GET'])
+    app.add_url_rule('/', 'index', view_func=static_pages.views.default, methods=['GET'])
+    app.add_url_rule('/favicon.ico', view_func=static_pages.views.favicon)
+    app.add_url_rule('/<path:template>', 'default', view_func=static_pages.views.default, methods=['GET'])
 
     # Forms
     app.add_url_rule('/<email>', 'send', view_func=forms.views.send, methods=['GET', 'POST'])

@@ -7,7 +7,7 @@ from models import User
 
 def register():
     if request.method == 'GET':
-        return render_template('register.html')
+        return render_template('users/register.html')
     try:
         user = User(request.form['email'], request.form['password'])
         DB.session.add(user)
@@ -16,18 +16,16 @@ def register():
     except IntegrityError:
         DB.session.rollback()
         flash("An account with this email already exists.", "error")
-        return render_template('register.html')
+        return render_template('users/register.html')
 
     login_user(user)
     flash('Your account is successfully registered.')
-
-    print "Dashboard:"
 
     return redirect(url_for('dashboard'))
 
 def login():
     if request.method == 'GET':
-        return render_template('login.html')
+        return render_template('users/login.html')
     email = request.form['email']
     password = request.form['password']
     remember_me = False
@@ -51,4 +49,4 @@ def logout():
 
 @login_required
 def dashboard():
-    return render_template('dashboard.html', user=current_user)
+    return render_template('users/dashboard.html', user=current_user)

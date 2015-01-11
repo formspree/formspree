@@ -7,24 +7,8 @@ from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH
 
 from models import Form
 
-def default(template='index'):
-    log.debug("hello")
-    template = template if template.endswith('.html') else template+'.html'
-    return render_template(template, is_redirect = request.args.get('redirected'))
-
-def internal_error(e):
-    import traceback
-    log.error(traceback.format_exc())
-    return render_template('500.html'), 500
-
-def page_not_found(e):
-    return render_template('error.html', title='Oops, page not found'), 404
-
 def thanks():
-    return render_template('thanks.html')
-
-def favicon():
-    return flask.redirect(url_for('static', filename='img/favicon.ico'))
+    return render_template('forms/thanks.html')
 
 @crossdomain(origin='*')
 @ordered_storage
@@ -73,7 +57,7 @@ def send(email):
             if request_wants_json():
                 return jsonify({'success': "confirmation email sent"})
             else:
-                return render_template('confirmation_sent.html', email=email, host=host)
+                return render_template('forms/confirmation_sent.html', email=email, host=host)
     else:
         status = Form.send_confirmation(email, host)
 
@@ -95,7 +79,7 @@ def send(email):
         if request_wants_json():
             return jsonify({'success': "confirmation email sent"})
         else:
-            return render_template('confirmation_sent.html', email=email, host=host)
+            return render_template('forms/confirmation_sent.html', email=email, host=host)
 
 
     if request_wants_json():
@@ -121,4 +105,4 @@ def confirm_email(nonce):
                                text='Confirmation token not found.<br />Please check the link and try again.'), 400
 
     else:
-        return render_template('email_confirmed.html', email=form.email, host=form.host)
+        return render_template('forms/email_confirmed.html', email=form.email, host=form.host)
