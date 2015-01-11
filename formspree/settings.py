@@ -10,8 +10,6 @@ if DEBUG:
 NONCE_SECRET = os.getenv('NONCE_SECRET')
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
-REDIS_URL = os.getenv('REDISTOGO_URL') or os.getenv('REDISGREEN_URL') or 'http://localhost:6379'
-
 SERVICE_NAME = os.getenv('SERVICE_NAME') or 'Forms'
 SERVICE_URL = os.getenv('SERVICE_URL') or 'http://example.com'
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL') or 'team@example.com'
