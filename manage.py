@@ -1,5 +1,4 @@
-
-from flask.ext.script import Manager
+from flask.ext.script import Manager, prompt_bool
 from flask.ext.migrate import Migrate, MigrateCommand
 
 from formspree import create_app, app
@@ -13,9 +12,42 @@ Migrate(forms_app, app.DB)
 manager.add_command('db', MigrateCommand)
 
 @manager.command
-def run(port=5000):
-    app.run(port=int(port))
+def run_debug(port=5000):
+    forms_app.run(host='0.0.0.0', debug=True, port=int(port))
 
+
+@manager.command
+def unsubscribe(email=None, host=None):
+    from formspree.forms.models import Form
+    form = None
+
+    if email and host:
+        form = Form.query.filter_by(email=email, host=host).first()
+    elif email and not host:
+        query = Form.query.filter_by(email=email)
+        if query.count() == 1:
+            form = query.first()
+        elif query.count() > 1:
+            for f in query.all():
+                print '-', f.host
+            print 'More than one result for this email, specify the host.'
+    elif host and not email:
+        query = Form.query.filter_by(host=host)
+        if query.count() == 1:
+            form = query.first()
+        elif query.count() > 1:
+            for f in query.all():
+                print '-', f.email
+            print 'More than one result for this host, specify the email.'
+
+    if form:
+        print 'unsubscribing the email %s from the form at %s' % (form.email, form.host)
+        if prompt_bool('are you sure?'):
+            form.confirmed = False
+            form.confirm_sent = False
+            app.DB.session.add(form)
+            app.DB.session.commit()
+            print 'success.'
 
 if __name__ == "__main__":
     manager.run()
