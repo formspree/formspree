@@ -7,6 +7,7 @@ DEBUG = os.getenv('DEBUG') in ['True', 'true', '1', 'yes']
 if DEBUG:
     SQLALCHEMY_ECHO = True
 
+LOG_LEVEL = os.getenv('LOG_LEVEL') or 'debug'
 NONCE_SECRET = os.getenv('NONCE_SECRET')
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
