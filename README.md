@@ -101,13 +101,10 @@ Your new project will be running at [your project name].herokuapp.com.
 
 ### Dependencies
 
-Formspree requires Redis. If you're deploying to heroku you can get an addon, such as redistogo. To install redistogo into your project just run the command:
+Formspree requires a Postgres database and uses SendGrid to send emails. If you're deploying to Heroku you can get a free Heroku Postgres database and a SendGrid account by running
 
-    heroku addons:add redistogo
-
-
-Formspree also requires a mailgun account to send the emails. You'll need to add the api keys to your environment variables. See the configuration settings below.
-
+    heroku addons:add heroku-postgresql:hobby-dev
+    heroku addons:add sendgrid
 
 ### Configuring Formspree
 
