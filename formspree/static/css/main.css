@@ -2419,6 +2419,11 @@ input, textarea {
     outline: none;
     box-shadow: 0 0 5px 1px #359173; }
 
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  margin-right: 6px; }
+
 form input, form textarea {
   margin-bottom: 0.5em; }
 

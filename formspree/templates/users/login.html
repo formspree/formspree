@@ -1,7 +1,7 @@
 {% extends 'layouts/base.html' %}
 {% block base %}
   <form action="" method=post class="form-horizontal">
-    <h2>Login to Formspree </h2>
+    <h2>Log in to Formspree</h2>
     <div class="control-group">
         <div class="controls">
           <input type="text" id="email" name="email" class="input-xlarge"
@@ -16,16 +16,19 @@
         </div>
     </div>
 
-    <div class="control-group">
-      <div class="controls">
-        <input type="checkbox" id="remember_me" name="remember_me">Remember me</input>
-      </div>
+    <div class="checkbox">
+        <label>
+          <input type="checkbox" id="remember_me" name="remember_me">Remember me
+        </label>
     </div>
 
     <div class="control-group">
         <div class="controls">
-          <button type="submit" class="btn btn-success">Signin</button>
+          <button type="submit" class="btn btn-success">Sign in</button>
         </div>
     </div>
   </form>
+
+  <p>Don't have an account? <a href="/register">Register</a>!</p>
+
 {% endblock %}
