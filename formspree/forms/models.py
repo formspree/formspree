@@ -70,7 +70,7 @@ class Form(DB.Model):
                 return{ 'code': Form.STATUS_EMAIL_FAILED }
 
             # increment the forms counter
-            self.counter = self.counter + 1
+            self.counter = Form.counter + 1
             DB.session.add(self)
             DB.session.commit()
 
