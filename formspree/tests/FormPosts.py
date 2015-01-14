@@ -1,5 +1,6 @@
 import os
 import unittest
+import httpretty
 
 from formspree import create_app, app
 from formspree.forms.models import Form
@@ -21,20 +22,23 @@ class FormPostsTestCase(unittest.TestCase):
         #destroy database here?
         Form.query.delete()
         c = Form.query.count()
-        print 'Torn down. %s left.' % c #TODO: this always says 0, but there is still a row left in the database
 
     def test_index_page(self):
         r = self.client.get('/')
         self.assertEqual(200, r.status_code)
 
+    @httpretty.activate
     def test_submit_form(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = self.client.post('/alice@example.com',
             headers = ajax_headers,
             data={'name': 'alice'}
         )
         self.assertEqual(1, Form.query.count())
 
+    @httpretty.activate
     def test_second_form(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = self.client.post('/bob@example.com',
             headers = ajax_headers,
             data={'name': 'bob'}
