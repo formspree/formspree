@@ -8,7 +8,6 @@ DEBUG = os.getenv('DEBUG') in ['True', 'true', '1', 'yes']
 if DEBUG:
     SQLALCHEMY_ECHO = True
 
-
 TESTING = True if 'test' in sys.argv else False
 TEST_DATABASE = os.getenv('TEST_DATABASE_URL')
 SQLALCHEMY_DATABASE_URI = TEST_DATABASE if TESTING else os.getenv('DATABASE_URL')

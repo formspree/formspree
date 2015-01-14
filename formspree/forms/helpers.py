@@ -86,10 +86,6 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
 
     log.info('Queuing message to %s' % str(to))
 
-    # if settings.TESTING:
-    #     # replace this with a real mock email function?
-    #     return True, ""
-
     result = requests.post(
         'https://api.sendgrid.com/api/mail.send.json',
         data=data

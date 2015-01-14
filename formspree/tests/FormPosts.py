@@ -1,6 +1,9 @@
 import os
 import unittest
+<<<<<<< HEAD
 import httpretty
+=======
+>>>>>>> FETCH_HEAD
 
 from formspree import create_app, app
 from formspree.forms.models import Form
@@ -53,5 +56,3 @@ class FormPostsTestCase(unittest.TestCase):
             data={'name': 'bob'}
         )
         self.assertNotEqual(200, r.status_code)
-
-
