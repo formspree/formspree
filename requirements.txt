@@ -7,3 +7,4 @@ paste
 gunicorn
 psycopg2
 flask-login
+httpretty
