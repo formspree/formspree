@@ -1,8 +1,12 @@
+import datetime
 
 from flask.ext.script import Manager, prompt_bool
 from flask.ext.migrate import Migrate, MigrateCommand, upgrade
 
 from formspree import create_app, app
+from formspree.app import REDIS
+from formspree.forms.helpers import MONTHLY_COUNTER_KEY
+from formspree.forms.models import Form
 
 forms_app = create_app()
 manager = Manager(forms_app)
@@ -67,6 +71,24 @@ def unsubscribe(email, host):
             app.DB.session.add(form)
             app.DB.session.commit()
             print 'success.'
+
+@manager.command
+def monthly_counters(email=None, host=None, id=None, month=datetime.date.today().month):
+    if id:
+        query = [Form.query.get(id)]
+    elif email and host:
+        query = Form.query.filter_by(email=email, host=host)
+    elif email and not host:
+        query = Form.query.filter_by(email=email)
+    elif host and not email:
+        query = Form.query.filter_by(host=host)
+    else:
+        print 'supply each --email or --form or both (or --id).'
+        return 1
+
+    for form in query:
+        nsubmissions = REDIS.get(MONTHLY_COUNTER_KEY(form_id=form.id, month=month)) or 0
+        print '%s submissions for %s' % (nsubmissions, form)
 
 if __name__ == "__main__":
     manager.run()

@@ -1,3 +1,5 @@
+import datetime
+import calendar
 from datetime import timedelta
 from functools import update_wrapper
 from flask import make_response, current_app, request, url_for, jsonify
@@ -85,3 +87,12 @@ def get_url(endpoint, secure=False, **values):
         url_parts = request.url.split('/', 3)
         path = "https://" + url_parts[2] + path
     return path
+
+
+def unix_time_for_12_months_from_now(now=None):
+    now = now or datetime.date.today()
+    month = now.month - 1 + 12
+    next_year = now.year + month / 12
+    next_month = month % 12 + 1
+    start_of_next_month = datetime.datetime(next_year, next_month, 1, 0, 0)
+    return calendar.timegm(start_of_next_month.utctimetuple())

@@ -2,9 +2,11 @@ import flask
 from flask import g
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
+import redis
 import settings
 
 DB = SQLAlchemy()
+REDIS = redis.StrictRedis.from_url(settings.REDIS_URL)
 
 import routes
 from users.models import User
