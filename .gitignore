@@ -53,3 +53,5 @@ sta.env
 pro.env
 
 celerybeat-schedule.db
+.Python
+include
