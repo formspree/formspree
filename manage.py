@@ -72,7 +72,9 @@ def unsubscribe(email, host):
             app.DB.session.commit()
             print 'success.'
 
-@manager.command
+@manager.option('-i', '--id', dest='id', default=None, help='form id')
+@manager.option('-H', '--host', dest='host', default=None, help='referer hostname')
+@manager.option('-e', '--email', dest='email', default=None, help='form email')
 def monthly_counters(email=None, host=None, id=None, month=datetime.date.today().month):
     if id:
         query = [Form.query.get(id)]
