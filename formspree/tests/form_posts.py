@@ -18,6 +18,7 @@ client = test_app.test_client()
 class FormPostsTestCase(unittest.TestCase):
 
     def setUp(self):
+        self.tearDown()
         DB.create_all()
 
     def tearDown(self):

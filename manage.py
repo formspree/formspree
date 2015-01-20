@@ -1,10 +1,8 @@
-import unittest
 
 from flask.ext.script import Manager, prompt_bool
 from flask.ext.migrate import Migrate, MigrateCommand, upgrade
 
 from formspree import create_app, app
-from formspree.tests import FormPosts
 
 forms_app = create_app()
 manager = Manager(forms_app)
@@ -21,11 +19,15 @@ def run_debug(port=5000):
 
 @manager.command
 def test():
+    import unittest
+    from formspree.tests import form_posts
     from formspree.settings import TEST_DATABASE
+
     assert TEST_DATABASE, "Please configure environment variable: TEST_DATABASE_URL with test database."
     print "Launching tests:"
+
     upgrade()
-    suite = unittest.TestLoader().loadTestsFromTestCase(FormPosts.FormPostsTestCase)
+    suite = unittest.TestLoader().loadTestsFromTestCase(form_posts.FormPostsTestCase)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 
