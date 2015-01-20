@@ -66,10 +66,7 @@ class Form(DB.Model):
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
-        monthly_counter_key = MONTHLY_COUNTER_KEY(form_id=self.id,
-                                                  month=datetime.date.today().month)
-        counter = REDIS.get(monthly_counter_key)
-        if counter > settings.MONTHLY_SUBMISSIONS_LIMIT:
+        if self.get_monthly_counter() > settings.MONTHLY_SUBMISSIONS_LIMIT:
             if not self.owner or not self.owner.upgraded:
                 overlimit = True
 
@@ -97,11 +94,22 @@ class Form(DB.Model):
         DB.session.add(self)
         DB.session.commit()
 
-        # increment the monthly counter
-        REDIS.incrby(monthly_counter_key, 1)
-        REDIS.expireat(monthly_counter_key, unix_time_for_12_months_from_now())
+        # increase the monthly counter
+        self.increase_monthly_counter()
 
         return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
+
+    def get_monthly_counter(self, month=None):
+        month = month or datetime.date.today().month
+        key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
+        counter = REDIS.get(key) or 0
+        return int(counter)
+
+    def increase_monthly_counter(self):
+        month = datetime.date.today().month
+        key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
+        REDIS.incr(key)
+        REDIS.expireat(key, unix_time_for_12_months_from_now())
 
     @staticmethod
     def send_confirmation(email, host):
