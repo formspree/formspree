@@ -13,11 +13,16 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def run_debug(port=5000):
+    '''runs the app with debug flag set to true'''
     forms_app.run(host='0.0.0.0', debug=True, port=int(port))
 
 
-@manager.command
-def unsubscribe(email=None, host=None):
+@manager.option('-H', '--host', dest='host', default=None, help='referer hostname')
+@manager.option('-e', '--email', dest='email', default=None, help='form email')
+def unsubscribe(email, host):
+    ''' Unsubscribes an email by resetting the form to unconfirmed. User may get
+    one more confirmation email, but if she doesn't confirm that will be it.'''
+
     from formspree.forms.models import Form
     form = None
 
