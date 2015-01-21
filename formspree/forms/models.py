@@ -72,7 +72,6 @@ class Form(DB.Model):
         # increase the monthly counter
         self.increase_monthly_counter()
 
-
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
         if self.get_monthly_counter() > settings.MONTHLY_SUBMISSIONS_LIMIT:
