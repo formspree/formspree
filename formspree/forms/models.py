@@ -70,11 +70,12 @@ class Form(DB.Model):
         DB.session.commit()
 
         # increase the monthly counter
-        self.increase_monthly_counter()
+        request_date = datetime.datetime.now()
+        self.increase_monthly_counter(basedate=request_date)
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
-        if self.get_monthly_counter() > settings.MONTHLY_SUBMISSIONS_LIMIT:
+        if self.get_monthly_counter(basedate=request_date) > settings.MONTHLY_SUBMISSIONS_LIMIT:
             if not self.owner or not self.owner.upgraded:
                 overlimit = True
 
@@ -83,8 +84,8 @@ class Form(DB.Model):
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
             html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
         else:
-            text = render_template('email/overlimit-notification.txt', data=data, host=self.host, keys=keys, now=now)
-            html = render_template('email/overlimit-notification.html', data=data, host=self.host, keys=keys, now=now)
+            text = render_template('email/overlimit-notification.txt', host=self.host)
+            html = render_template('email/overlimit-notification.html', host=self.host)
 
         result = send_email(to=self.email,
                           subject=subject,
@@ -99,17 +100,19 @@ class Form(DB.Model):
 
         return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
 
-    def get_monthly_counter(self, month=None):
-        month = month or datetime.date.today().month
+    def get_monthly_counter(self, basedate=None):
+        basedate = basedate or datetime.datetime.now()
+        month = basedate.month
         key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
         counter = REDIS.get(key) or 0
         return int(counter)
 
-    def increase_monthly_counter(self):
-        month = datetime.date.today().month
+    def increase_monthly_counter(self, basedate=None):
+        basedate = basedate or datetime.datetime.now()
+        month = basedate.month
         key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
         REDIS.incr(key)
-        REDIS.expireat(key, unix_time_for_12_months_from_now())
+        REDIS.expireat(key, unix_time_for_12_months_from_now(basedate))
 
     @staticmethod
     def send_confirmation(email, host):
