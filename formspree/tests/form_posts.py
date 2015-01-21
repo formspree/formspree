@@ -4,7 +4,7 @@ import httpretty
 
 from formspree import create_app, app
 from formspree import settings
-from formspree.app import DB
+from formspree.app import DB, REDIS
 from formspree.forms.models import Form
 
 ajax_headers = {
@@ -24,6 +24,7 @@ class FormPostsTestCase(unittest.TestCase):
     def tearDown(self):
         DB.session.remove()
         DB.drop_all()
+        REDIS.flushdb()
 
     def test_index_page(self):
         r = client.get('/')
@@ -116,7 +117,7 @@ class FormPostsTestCase(unittest.TestCase):
         # monthly limit is set to 2 during tests
         self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
 
-        # verify luke@example.com
+        # manually verify luke@example.com
         r = client.post('/luke@example.com',
             headers = ajax_headers,
             data={'name': 'luke'}
@@ -127,6 +128,7 @@ class FormPostsTestCase(unittest.TestCase):
         DB.session.add(f)
         DB.session.commit()
 
+        # first submission
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = client.post('/luke@example.com',
             headers = ajax_headers,
@@ -135,6 +137,7 @@ class FormPostsTestCase(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn('peter', httpretty.last_request().body)
 
+        # second submission
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = client.post('/luke@example.com',
             headers = ajax_headers,
@@ -143,18 +146,21 @@ class FormPostsTestCase(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertIn('ana', httpretty.last_request().body)
 
+        # third submission, now we're over the limit
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = client.post('/luke@example.com',
             headers = ajax_headers,
             data={'name': 'maria'}
         )
-        self.assertEqual(r.status_code, 200) # the response is the same whenever the form is
-                                             # over the limits or not
-        self.assertIn('ana', httpretty.last_request().body)      # but the mocked sendgrid should
-        self.assertNotIn('maria', httpretty.last_request().body) # never receive this last form
+        self.assertEqual(r.status_code, 200) # the response to the user is the same
+                                             # being the form over the limits or not
+
+        # but the mocked sendgrid should never receive this last form
+        self.assertNotIn('maria', httpretty.last_request().body)
+        self.assertIn('You+are+past+our+limit', httpretty.last_request().body)
 
         # all the other variables are ok:
         self.assertEqual(1, Form.query.count())
         f = Form.query.first()
-        self.assertEqual(f.counter, 4)
-        self.assertEqual(f.get_monthly_counter(), 4) # the counters mark 4
+        self.assertEqual(f.counter, 3)
+        self.assertEqual(f.get_monthly_counter(), 3) # the counters mark 4

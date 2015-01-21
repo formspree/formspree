@@ -64,6 +64,15 @@ class Form(DB.Model):
         if spam:
             return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
 
+        # increment the forms counter
+        self.counter = Form.counter + 1
+        DB.session.add(self)
+        DB.session.commit()
+
+        # increase the monthly counter
+        self.increase_monthly_counter()
+
+
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
         if self.get_monthly_counter() > settings.MONTHLY_SUBMISSIONS_LIMIT:
@@ -88,14 +97,6 @@ class Form(DB.Model):
 
         if not result[0]:
             return{ 'code': Form.STATUS_EMAIL_FAILED }
-
-        # increment the forms counter
-        self.counter = Form.counter + 1
-        DB.session.add(self)
-        DB.session.commit()
-
-        # increase the monthly counter
-        self.increase_monthly_counter()
 
         return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
 
