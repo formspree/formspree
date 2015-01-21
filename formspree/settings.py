@@ -17,7 +17,6 @@ NONCE_SECRET = os.getenv('NONCE_SECRET')
 
 MONTHLY_SUBMISSIONS_LIMIT = 2 if TESTING else int(os.getenv('MONTHLY_SUBMISSIONS_LIMIT') or 1000)
 REDIS_URL = os.getenv('REDISTOGO_URL')
-SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 SERVICE_NAME = os.getenv('SERVICE_NAME') or 'Forms'
 SERVICE_URL = os.getenv('SERVICE_URL') or 'http://example.com'
