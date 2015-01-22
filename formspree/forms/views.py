@@ -81,7 +81,6 @@ def send(email):
         else:
             return render_template('forms/confirmation_sent.html', email=email, host=host)
 
-
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})
     else:
