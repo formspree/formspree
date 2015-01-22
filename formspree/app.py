@@ -4,11 +4,11 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 import redis
 import settings
-import routes
-from users.models import User
+
 
 DB = SQLAlchemy()
 _redis = None
+
 
 def REDIS():
     ''' function to acquire the global redis connection '''
@@ -17,9 +17,15 @@ def REDIS():
         _redis = get_redis()
     return _redis
 
+
 def get_redis(): 
     ''' this may be overridden, for example to setup testing '''
     return redis.StrictRedis.from_url(settings.REDIS_URL)
+
+
+import routes
+from users.models import User
+
 
 def configure_login(app):
     login_manager = LoginManager()
@@ -34,6 +40,7 @@ def configure_login(app):
     @app.before_request
     def before_request():
         g.user = current_user
+
 
 def create_app():
     app = flask.Flask(__name__)
