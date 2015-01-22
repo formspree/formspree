@@ -1,39 +1,27 @@
-import os
-import unittest
 import httpretty
 
-from formspree import create_app, app
 from formspree import settings
-from formspree.app import DB, REDIS
+from formspree.app import DB
 from formspree.forms.models import Form
+
+from formspree_test_case import FormspreeTestCase
 
 ajax_headers = {
     'Referer': 'example.com',
     'X_REQUESTED_WITH': 'xmlhttprequest'
 }
 
-test_app = create_app()
-client = test_app.test_client()
 
-class FormPostsTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.tearDown()
-        DB.create_all()
-
-    def tearDown(self):
-        DB.session.remove()
-        DB.drop_all()
-        REDIS.flushdb()
+class FormPostsTestCase(FormspreeTestCase):
 
     def test_index_page(self):
-        r = client.get('/')
+        r = self.client.get('/')
         self.assertEqual(200, r.status_code)
 
     @httpretty.activate
     def test_submit_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = client.post('/alice@example.com',
+        self.client.post('/alice@example.com',
             headers = ajax_headers,
             data={'name': 'alice'}
         )
@@ -42,7 +30,7 @@ class FormPostsTestCase(unittest.TestCase):
     @httpretty.activate
     def test_second_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = client.post('/bob@example.com',
+        self.client.post('/bob@example.com',
             headers = ajax_headers,
             data={'name': 'bob'}
         )
@@ -51,7 +39,7 @@ class FormPostsTestCase(unittest.TestCase):
     def test_fail_form_submission(self):
         no_referer = ajax_headers.copy()
         del no_referer['Referer']
-        r = client.post('/bob@example.com',
+        r = self.client.post('/bob@example.com',
             headers = no_referer,
             data={'name': 'bob'}
         )
@@ -60,7 +48,7 @@ class FormPostsTestCase(unittest.TestCase):
     @httpretty.activate    
     def test_activation_workflow(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = client.post('/bob@example.com',
+        r = self.client.post('/bob@example.com',
             headers = ajax_headers,
             data={'name': 'bob'}
         )
@@ -73,7 +61,7 @@ class FormPostsTestCase(unittest.TestCase):
         self.assertEqual(f.get_monthly_counter(), 0) # monthly submissions also 0
 
         # form has another submission, number of forms in the table should increase?
-        r = client.post('/bob@example.com',
+        r = self.client.post('/bob@example.com',
             headers = ajax_headers,
             data={'name': 'bob'}
         )
@@ -89,13 +77,13 @@ class FormPostsTestCase(unittest.TestCase):
         self.assertEqual(f.owner_id, None)
 
         # test clicking of activation link
-        client.get('/confirm/%s' % (f.hash,))
+        self.client.get('/confirm/%s' % (f.hash,))
 
         f = Form.query.first()
         self.assertEqual(f.confirmed, True)
 
         # a third submission should now increase the counter
-        r = client.post('/bob@example.com',
+        r = self.client.post('/bob@example.com',
             headers = ajax_headers,
             data={'name': 'bob'}
         )
@@ -118,7 +106,7 @@ class FormPostsTestCase(unittest.TestCase):
         self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
 
         # manually verify luke@example.com
-        r = client.post('/luke@example.com',
+        r = self.client.post('/luke@example.com',
             headers = ajax_headers,
             data={'name': 'luke'}
         )
@@ -130,7 +118,7 @@ class FormPostsTestCase(unittest.TestCase):
 
         # first submission
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = client.post('/luke@example.com',
+        r = self.client.post('/luke@example.com',
             headers = ajax_headers,
             data={'name': 'peter'}
         )
@@ -139,7 +127,7 @@ class FormPostsTestCase(unittest.TestCase):
 
         # second submission
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = client.post('/luke@example.com',
+        r = self.client.post('/luke@example.com',
             headers = ajax_headers,
             data={'name': 'ana'}
         )
@@ -148,7 +136,7 @@ class FormPostsTestCase(unittest.TestCase):
 
         # third submission, now we're over the limit
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = client.post('/luke@example.com',
+        r = self.client.post('/luke@example.com',
             headers = ajax_headers,
             data={'name': 'maria'}
         )

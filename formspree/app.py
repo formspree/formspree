@@ -2,17 +2,24 @@ import flask
 from flask import g
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
-import fakeredis, redis
+import redis
 import settings
-
-DB = SQLAlchemy()
-if settings.TESTING:
-    REDIS = fakeredis.FakeStrictRedis()
-else:
-    REDIS = redis.StrictRedis.from_url(settings.REDIS_URL)
-
 import routes
 from users.models import User
+
+DB = SQLAlchemy()
+_redis = None
+
+def REDIS():
+    ''' function to acquire the global redis connection '''
+    global _redis
+    if not _redis:
+        _redis = get_redis()
+    return _redis
+
+def get_redis(): 
+    ''' this may be overridden, for example to setup testing '''
+    return redis.StrictRedis.from_url(settings.REDIS_URL)
 
 def configure_login(app):
     login_manager = LoginManager()
