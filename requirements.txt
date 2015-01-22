@@ -9,3 +9,4 @@ psycopg2
 flask-login
 httpretty
 fakeredis
+redis
