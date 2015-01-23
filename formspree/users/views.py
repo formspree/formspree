@@ -1,6 +1,7 @@
 from flask import request, flash, url_for, render_template, redirect, jsonify
 from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
 from formspree.utils import request_wants_json, jsonerror
+from formspree.forms.helpers import IS_VALID_EMAIL
 from sqlalchemy.exc import IntegrityError
 from formspree import settings
 from helpers import check_password
@@ -67,6 +68,9 @@ def forms():
         return jsonerror(403, {'error': "Please upgrade your account."})
 
     email = request.get_json().get('email') or abort(400)
+    if not IS_VALID_EMAIL(email):
+        return jsonerror(400, {'error': "The email you sent is not a valid email."})
+
     form = Form(email, owner=current_user)
     DB.session.add(form)
     DB.session.commit()

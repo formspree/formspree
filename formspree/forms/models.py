@@ -6,8 +6,6 @@ from helpers import HASH, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_pa
 from formspree.utils import int2bigstring, bigstring2int
 import datetime
 
-from formspree.users.models import User
-
 class Form(DB.Model):
     __tablename__ = 'forms'
 
