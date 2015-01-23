@@ -5,6 +5,7 @@ from formspree.utils import crossdomain, request_wants_json, jsonerror
 from formspree import log
 from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH
 
+from formspree.app import DB
 from models import Form
 
 def thanks():
@@ -12,10 +13,11 @@ def thanks():
 
 @crossdomain(origin='*')
 @ordered_storage
-def send(email):
+def send(email_or_string):
     '''
-    Main endpoint, checks if email+host is valid and sends
-    either form data or verification to email
+    Main endpoint, finds or creates the form row from the database,
+    checks validity and state of the form and sends either form data
+    or verification to email.
     '''
 
     if request.method == 'GET':
@@ -26,17 +28,7 @@ def send(email):
                                    title='Form should POST',
                                    text='Make sure your form has the <span class="code"><strong>method="POST"</strong></span> attribute'), 405
 
-    if not IS_VALID_EMAIL(email):
-        if request_wants_json():
-            return jsonerror(400, {'error': "Invalid email address"})
-        else:
-            return render_template('error.html',
-                                   title='Check email address',
-                                   text='Email address %s is not formatted correctly' % str(email)), 400
-
-    # We're not using referrer anymore, just the domain + path
     host = referrer_to_path(flask.request.referrer)
-
     if not host:
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
@@ -45,22 +37,48 @@ def send(email):
                                    title='Unable to submit form',
                                    text='Make sure your form is running on a proper server. For geeks: could not find the "Referrer" header.'), 400
 
-    # get the form for this request
-    form = Form.query.filter_by(hash=HASH(email, host)).first()
+    if not IS_VALID_EMAIL(email_or_string):
+        # in this case it can be a random_like_string identifying a
+        # form generated from the dashboard
+        random_like_string = email_or_string
+        form = Form.get_form_by_random_like_string(random_like_string)
+        email = form.email
+
+        if form and not form.host:
+            # add the host to the form
+            form.host = host
+            DB.session.add(form)
+            DB.session.commit()
+        elif form and form.host != host:
+            # if the form submission came from a different host, it is an error
+            if request_wants_json():
+                return jsonerror(403, {'error': "Submission from different host than confirmed", 'submitted': host, 'confirmed': form.host})
+            else:
+                return render_template('error.html',
+                                       title='Check email address',
+                                       text='This submission came from "%s" but the form was confirmed for the address "%s"' % (host, form.host)), 403
+        elif not form:
+            # no form row found. it is an error.
+            if request_wants_json():
+                return jsonerror(400, {'error': "Invalid email address"})
+            else:
+                return render_template('error.html',
+                                       title='Check email address',
+                                       text='Email address %s is not formatted correctly' % str(email_or_string)), 400
+    else:
+        # in this case, it is a normal email
+        email = email_or_string
+
+        # get the form for this request
+        form = Form.query.filter_by(hash=HASH(email, host)).first() \
+               or Form(email, host)
 
     # If form exists and is confirmed, send email
-    # otherwise send a confirmation email
-    if form:
-        if form.confirmed:
-            status = form.send(request.form, request.referrer)
-        else:
-            if request_wants_json():
-                return jsonify({'success': "confirmation email sent"})
-            else:
-                return render_template('forms/confirmation_sent.html', email=email, host=host)
+    # otherwise create it and send a confirmation email
+    if form.confirmed:
+        status = form.send(request.form, request.referrer)
     else:
-        status = Form.send_confirmation(email, host)
-
+        status = form.send_confirmation()
 
     # Respond to the request accordingly to the status code
     if status['code'] == Form.STATUS_EMAIL_SENT:
@@ -75,7 +93,8 @@ def send(email):
             return render_template('error.html',
                                    title='Can\'t send an empty form',
                                    text=str('<a href="%s">Return to form</a>' % request.referrer)), 400
-    elif status['code'] == Form.STATUS_CONFIRMATION_SENT:
+    elif status['code'] == Form.STATUS_CONFIRMATION_SENT or \
+         status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED:
         if request_wants_json():
             return jsonify({'success': "confirmation email sent"})
         else:
@@ -84,9 +103,12 @@ def send(email):
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})
     else:
-        return render_template('error.html',
-                               title='Unable to send email',
-                               text=result[1]), 500
+        if request_wants_json():
+            return jsonerror(500, {'error': "Unable to send email"})
+        else:
+            return render_template('error.html',
+                                   title='Unable to send email',
+                                   text='Unable to send email'), 500
 
 def confirm_email(nonce):
     '''

@@ -1,9 +1,12 @@
 from flask import request, flash, url_for, render_template, redirect, jsonify
 from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
+from formspree.utils import request_wants_json, jsonerror
 from sqlalchemy.exc import IntegrityError
+from formspree import settings
 from helpers import check_password
 from formspree.app import DB
 from models import User
+from formspree.forms.models import Form
 
 def register():
     if request.method == 'GET':
@@ -50,3 +53,30 @@ def logout():
 @login_required
 def dashboard():
     return render_template('users/dashboard.html', user=current_user)
+
+@login_required
+def forms():
+    if request.method == 'GET':
+        if request_wants_json():
+            return jsonerror(501, {'error': "This endpoint may return the list of forms for the logged user."})
+        else:
+            return redirect(url_form('dashboard'))
+
+    # Create a new form
+    if not current_user.upgraded:
+        return jsonerror(403, {'error': "Please upgrade your account."})
+
+    email = request.get_json().get('email') or abort(400)
+    form = Form(email, owner=current_user)
+    DB.session.add(form)
+    DB.session.commit()
+
+    # A unique identifier for the form that maps to its id,
+    # but doesn't seem like a sequential integer
+    random_like_string = form.get_random_like_string()
+
+    return jsonify({
+        'ok': True,
+        'random_like_string': random_like_string,
+        'submission_url': settings.API_ROOT + '/' + random_like_string
+    })
