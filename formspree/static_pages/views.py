@@ -1,4 +1,4 @@
-from flask import request, render_template
+from flask import request, render_template, redirect, url_for
 
 def default(template='index'):
     template = template if template.endswith('.html') else template+'.html'
@@ -13,4 +13,4 @@ def page_not_found(e):
     return render_template('error.html', title='Oops, page not found'), 404
 
 def favicon():
-    return flask.redirect(url_for('static', filename='img/favicon.ico'))
+    return redirect(url_for('static', filename='img/favicon.ico'))

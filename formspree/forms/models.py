@@ -104,15 +104,15 @@ class Form(DB.Model):
         basedate = basedate or datetime.datetime.now()
         month = basedate.month
         key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
-        counter = REDIS.get(key) or 0
+        counter = REDIS().get(key) or 0
         return int(counter)
 
     def increase_monthly_counter(self, basedate=None):
         basedate = basedate or datetime.datetime.now()
         month = basedate.month
         key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
-        REDIS.incr(key)
-        REDIS.expireat(key, unix_time_for_12_months_from_now(basedate))
+        REDIS().incr(key)
+        REDIS().expireat(key, unix_time_for_12_months_from_now(basedate))
 
     @staticmethod
     def send_confirmation(email, host):
