@@ -42,39 +42,44 @@ def send(email_or_string):
         # form generated from the dashboard
         random_like_string = email_or_string
         form = Form.get_form_by_random_like_string(random_like_string)
-        email = form.email
 
-        if form and not form.host:
-            # add the host to the form
-            form.host = host
-            DB.session.add(form)
-            DB.session.commit()
-        elif form and form.host != host:
-            # if the form submission came from a different host, it is an error
-            if request_wants_json():
-                return jsonerror(403, {'error': "Submission from different host than confirmed", 'submitted': host, 'confirmed': form.host})
-            else:
-                return render_template('error.html',
-                                       title='Check email address',
-                                       text='This submission came from "%s" but the form was confirmed for the address "%s"' % (host, form.host)), 403
-        elif not form:
+        if form:
+            email = form.email
+
+            if not form.host:
+                # add the host to the form
+                form.host = host
+                DB.session.add(form)
+                DB.session.commit()
+            elif form.host != host:
+                # if the form submission came from a different host, it is an error
+                if request_wants_json():
+                    return jsonerror(403, {'error': "Submission from different host than confirmed",
+                                           'submitted': host, 'confirmed': form.host})
+                else:
+                    return render_template('error.html',
+                                           title='Check email address',
+                                           text='This submission came from "%s" but the form was\
+                                                 confirmed for the address "%s"' % (host, form.host)), 403
+        else:
             # no form row found. it is an error.
             if request_wants_json():
                 return jsonerror(400, {'error': "Invalid email address"})
             else:
                 return render_template('error.html',
                                        title='Check email address',
-                                       text='Email address %s is not formatted correctly' % str(email_or_string)), 400
+                                       text='Email address %s is not formatted correctly' \
+                                            % str(email_or_string)), 400
     else:
         # in this case, it is a normal email
         email = email_or_string
 
         # get the form for this request
         form = Form.query.filter_by(hash=HASH(email, host)).first() \
-               or Form(email, host)
+               or Form(email, host) # or create it if it doesn't exists
 
     # If form exists and is confirmed, send email
-    # otherwise create it and send a confirmation email
+    # otherwise send a confirmation email
     if form.confirmed:
         status = form.send(request.form, request.referrer)
     else:
