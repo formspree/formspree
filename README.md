@@ -73,16 +73,26 @@ Running your own copy of Formspree
 
 ### Running on localhost
 
-You'll need python 2.7 and should [install pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server. 
+You'll need postgresql, redis and python 2.7 and should install [pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server. 
 
-Once your environment is setup, clone the source and cd into the root of the Formspree repository. Then run:
+Once your environment is setup, create a postgresql database, clone the source and cd into the root of the Formspree repository. Then run:
 
     pip install -r requirements.txt
 
 then
 
+    REDISTOGO_URL=127.0.0.1:6379 \
+    DATABASE_URL=postgresql://<username>@127.0.0.1:5432/formspree \
+    NONCE_SECRET='nonce_secret' \
+    SECRET_KEY='secret_key' \
     python manage.py runserver
+    
+### Running tests
 
+    $ TEST_DATABASE_URL=postgresql://<username>@127.0.0.1:5432/formspree \
+    > NONCE_SECRET='nonce_secret' \
+    > SECRET_KEY='secret_key' \
+    > python manage.py test
 
 ### Running on heroku
 
