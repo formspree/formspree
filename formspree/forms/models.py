@@ -1,4 +1,4 @@
-from formspree.app import DB, REDIS
+from formspree.app import DB, redis_store
 from formspree import settings, log
 from formspree.utils import unix_time_for_12_months_from_now
 from flask import url_for, render_template
@@ -132,15 +132,15 @@ class Form(DB.Model):
         basedate = basedate or datetime.datetime.now()
         month = basedate.month
         key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
-        counter = REDIS().get(key) or 0
+        counter = redis_store.get(key) or 0
         return int(counter)
 
     def increase_monthly_counter(self, basedate=None):
         basedate = basedate or datetime.datetime.now()
         month = basedate.month
         key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
-        REDIS().incr(key)
-        REDIS().expireat(key, unix_time_for_12_months_from_now(basedate))
+        redis_store.incr(key)
+        redis_store.expireat(key, unix_time_for_12_months_from_now(basedate))
 
     def send_confirmation(self):
         '''
