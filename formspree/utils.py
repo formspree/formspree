@@ -4,7 +4,7 @@ from datetime import timedelta
 from functools import update_wrapper
 from flask import make_response, current_app, request, url_for, jsonify
 
-import base64
+import string
 import uuid
 
 # decorators
@@ -81,8 +81,16 @@ def slug2uuid(slug):
     return str(uuid.UUID(bytes=(slug + '==').replace('_', '/').decode('base64')))
 
 
-int2bigstring = lambda x: base64.b32encode(str(x * x)).lower()
-bigstring2int = lambda s: int(float(base64.b32decode(s.upper()))**(1.0/2))
+def int2bigstring(n):
+    n += 1000
+    n = n * n
+    return ''.join(string.ascii_lowercase[int(i)] for i in str(n))
+
+
+def bigstring2int(s):
+    n = int(''.join(str(string.ascii_lowercase.index(l)) for l in s))
+    n = n**0.5
+    return int(n - 1000)
 
 
 def get_url(endpoint, secure=False, **values):   
