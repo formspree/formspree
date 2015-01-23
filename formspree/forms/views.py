@@ -58,7 +58,7 @@ def send(email_or_string):
                                            'submitted': host, 'confirmed': form.host})
                 else:
                     return render_template('error.html',
-                                           title='Check email address',
+                                           title='Check form address',
                                            text='This submission came from "%s" but the form was\
                                                  confirmed for the address "%s"' % (host, form.host)), 403
         else:

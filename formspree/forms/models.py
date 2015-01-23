@@ -18,6 +18,24 @@ class Form(DB.Model):
     counter = DB.Column(DB.Integer)
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
 
+    '''
+    When the form is created by a spontaneous submission, it is added to
+    the table with a `host`, an `email` and a `hash` made of these two
+    (+ a secret nonce).
+
+    `hash` is UNIQUE because it is used to query these spontaneous forms
+    when the form is going to be confirmed and whenever a new submission arrives.
+
+    When a registered user POSTs to /forms, a new form is added to the table
+    with an `email` (provided by the user) and an `owner_id`. Later, when this
+    form receives its first submission and confirmation, `host` is added, so
+    we can ensure that no one will submit to this same form from another host.
+
+    `hash` is never added to these forms, because they could conflict with other
+    forms, created by the spontaneous process, with the same email and host. So
+    for these forms a different confirmation method is used (see below).
+    '''
+
     STATUS_EMAIL_SENT              = 0
     STATUS_EMAIL_EMPTY             = 1
     STATUS_EMAIL_FAILED            = 2

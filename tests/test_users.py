@@ -107,9 +107,11 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertIn('__4__', httpretty.last_request().body)
         self.assertNotIn('You+are+past+our+limit', httpretty.last_request().body)
 
-
-
-
-
-
-
+        # try (and fail) to submit from a different host
+        r = self.client.post('/' + form_endpoint,
+            headers={'Referer': 'bad.com'},
+            data={'name': 'usurper'}
+        )
+        self.assertEqual(r.status_code, 403)
+        self.assertIn('ana', httpretty.last_request().body) # no more data is sent to sendgrid
+        self.assertIn('__4__', httpretty.last_request().body)
