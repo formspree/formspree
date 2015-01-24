@@ -84,9 +84,7 @@ def send(email):
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})
     else:
-        return render_template('error.html',
-                               title='Unable to send email',
-                               text=result[1]), 500
+        return render_template('error.html', title='Unable to send email'), 500
 
 def confirm_email(nonce):
     '''
