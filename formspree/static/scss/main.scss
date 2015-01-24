@@ -151,7 +151,7 @@ p {
 
 p.code {
     font-size: 0.8em;
-    font-family: "source-code-pro";
+    font-family: "source-code-pro", monospace;
     border: 1px solid $accent;
     background: #fff;
     @media (max-width: 760px) {
@@ -160,7 +160,7 @@ p.code {
 }
 
 span.code {
-    font-family: "source-code-pro";
+    font-family: "source-code-pro", monospace;
     display: inline-block;
     padding: 0 0.2em;
     border: 1px solid $accent;
@@ -170,7 +170,7 @@ span.code {
 
 input, textarea {
     font-size: 0.8em;
-    font-family: "source-code-pro";
+    font-family: "source-code-pro", monospace;
     border: 1px solid $accent;
     background: #fff;
     padding: 0.9em;
