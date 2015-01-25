@@ -1,9 +1,13 @@
 from flask import request, flash, url_for, render_template, redirect, jsonify
 from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
+from formspree.utils import request_wants_json, jsonerror
+from formspree.forms.helpers import IS_VALID_EMAIL
 from sqlalchemy.exc import IntegrityError
+from formspree import settings
 from helpers import check_password
 from formspree.app import DB
 from models import User
+from formspree.forms.models import Form
 
 def register():
     if request.method == 'GET':
@@ -50,3 +54,4 @@ def logout():
 @login_required
 def dashboard():
     return render_template('users/dashboard.html', user=current_user)
+
