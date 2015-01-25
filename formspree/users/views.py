@@ -1,5 +1,5 @@
-from flask import request, flash, url_for, render_template, redirect, jsonify
-from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
+from flask import request, flash, url_for, render_template, redirect
+from flask.ext.login import login_user, logout_user, current_user, login_required
 from sqlalchemy.exc import IntegrityError
 from helpers import check_password
 from formspree.app import DB
@@ -50,3 +50,4 @@ def logout():
 @login_required
 def dashboard():
     return render_template('users/dashboard.html', user=current_user)
+

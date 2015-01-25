@@ -34,7 +34,6 @@ def configure_login(app):
 
     @login_manager.user_loader
     def load_user(id):
-        print "hey"
         return User.query.get(int(id))
 
     @app.before_request
