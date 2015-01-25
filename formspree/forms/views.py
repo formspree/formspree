@@ -1,9 +1,8 @@
 import flask
 
 from flask import request, url_for, render_template, redirect, jsonify, abort
-from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
+from flask.ext.login import current_user, login_required
 from formspree.utils import crossdomain, request_wants_json, jsonerror
-from formspree import log
 from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH
 
 from formspree.app import DB
@@ -95,7 +94,7 @@ def send(email_or_string):
             return redirect(status['next'], code=302)
     elif status['code'] == Form.STATUS_EMAIL_EMPTY:
         if request_wants_json():
-            return k(400, {'error': "Can't send an empty form"})
+            return jsonerror(400, {'error': "Can't send an empty form"})
         else:
             return render_template('error.html',
                                    title='Can\'t send an empty form',
@@ -145,8 +144,6 @@ def forms():
     # Create a new form
     if not current_user.upgraded:
         return jsonerror(403, {'error': "Please upgrade your account."})
-
-    import pdb; pdb.set_trace();
 
     email = request.get_json().get('email') or abort(400)
     if not IS_VALID_EMAIL(email):
