@@ -126,5 +126,5 @@ Contributing
 ----------------------------------
 
 Formspree is being managed from Assembly. Check out the discussion and get involved at [assembly.com/formspree](http://www.assembly.com/formspree).
-
+<a href="https://assembly.com/formspree/bounties?utm_campaign=assemblage&utm_source=formspree&utm_medium=repo_badge"><img src="http://badger.asm.co/formspree/badges/tasks.svg" height="24px" alt="Open Tasks" /></a>
 
