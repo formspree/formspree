@@ -2,6 +2,7 @@ flask
 flask-script
 flask-sqlalchemy
 flask-migrate
+flask-redis
 flask-testing
 requests==2.0.0
 paste
@@ -11,3 +12,4 @@ flask-login
 httpretty
 fakeredis
 redis
+mock

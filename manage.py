@@ -4,7 +4,7 @@ from flask.ext.script import Manager, prompt_bool
 from flask.ext.migrate import Migrate, MigrateCommand
 
 from formspree import create_app, app
-from formspree.app import REDIS
+from formspree.app import redis_store
 from formspree.forms.helpers import MONTHLY_COUNTER_KEY
 from formspree.forms.models import Form
 
@@ -77,7 +77,7 @@ def monthly_counters(email=None, host=None, id=None, month=datetime.date.today()
         return 1
 
     for form in query:
-        nsubmissions = REDIS().get(MONTHLY_COUNTER_KEY(form_id=form.id, month=month)) or 0
+        nsubmissions = redis_store.get(MONTHLY_COUNTER_KEY(form_id=form.id, month=month)) or 0
         print '%s submissions for %s' % (nsubmissions, form)
 
 if __name__ == "__main__":

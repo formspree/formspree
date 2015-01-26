@@ -89,10 +89,10 @@ then
     
 ### Running tests
 
-    $ TEST_DATABASE_URL=postgresql://<username>@127.0.0.1:5432/formspree \
+    $ TEST_DATABASE_URL=sqlite:// \
     > NONCE_SECRET='nonce_secret' \
     > SECRET_KEY='secret_key' \
-    > python manage.py test
+    > python -m unittest discover
 
 ### Running on heroku
 
