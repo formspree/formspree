@@ -2,6 +2,7 @@ import datetime
 import calendar
 from datetime import timedelta
 from functools import update_wrapper
+import urlparse
 from flask import make_response, current_app, request, url_for, jsonify
 from importlib import import_module
 
@@ -110,3 +111,19 @@ def unix_time_for_12_months_from_now(now=None):
     next_month = month % 12 + 1
     start_of_next_month = datetime.datetime(next_year, next_month, 1, 0, 0)
     return calendar.timegm(start_of_next_month.utctimetuple())
+
+
+def next_url(referrer=None, next=None):
+    referrer = referrer if referrer is not None else ''
+    next = next if next is not None else ''
+
+    if not next:
+      return url_for('thanks')
+
+    if urlparse.urlparse(next).netloc:  # check if next_url is an absolute url
+      return next
+
+    parsed = list(urlparse.urlparse(referrer))  # results in [scheme, netloc, path, ...]
+    parsed[2] = next
+
+    return urlparse.urlunparse(parsed)
