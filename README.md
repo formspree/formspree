@@ -73,26 +73,41 @@ Running your own copy of Formspree
 
 ### Running on localhost
 
-You'll need postgresql, redis and python 2.7 and should install [pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server. 
+You'll need a [sendgrid](https://sendgrid.com/) account, postgresql, redis and python 2.7 and should install [pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server.
 
 Once your environment is setup, create a postgresql database, clone the source and cd into the root of the Formspree repository. Then run:
 
     pip install -r requirements.txt
 
-then
+then create a `.env` file with your configuration like the following:
 
-    REDISTOGO_URL=127.0.0.1:6379 \
-    DATABASE_URL=postgresql://<username>@127.0.0.1:5432/formspree \
-    NONCE_SECRET='nonce_secret' \
-    SECRET_KEY='secret_key' \
+    API_ROOT='127.0.0.1:5000'
+    CONTACT_EMAIL='support@example.com'
+    DATABASE_URL='postgresql://<username>@127.0.0.1:5432/formspree'
+    DEBUG='True'
+    DEFAULT_SENDER='no-reply@localhost.com'
+    LOG_LEVEL='debug'
+    MONTHLY_SUBMISSIONS_LIMIT='100'
+    NONCE_SECRET='y0ur_n0nc3_s3cr3t'
+    REDISTOGO_URL='127.0.0.1:6379'
+    SECRET_KEY='y0ur_s3cr3t_k3y'
+    SENDGRID_PASSWORD='<password>'
+    SENDGRID_USERNAME='<username>'
+    SERVICE_NAME='LocalFormspree'
+    SERVICE_URL='http://127.0.0.1:5000'
+    TEST_DATABASE_URL='sqlite://'
+
+And you are ready to run the server:
+
     python manage.py runserver
     
 ### Running tests
 
-    $ TEST_DATABASE_URL=sqlite:// \
-    > NONCE_SECRET='nonce_secret' \
-    > SECRET_KEY='secret_key' \
-    > python -m unittest discover
+    REDISTOGO_URL='0.0.0.0:6379' \
+    TEST_DATABASE_URL=sqlite:// \
+    NONCE_SECRET='y0ur_n0nc3_s3cr3t' \
+    SECRET_KEY='y0ur_s3cr3t_k3y' \
+    python -m unittest discover
 
 ### Running on heroku
 
