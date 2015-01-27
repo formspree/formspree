@@ -1,6 +1,8 @@
+import urlparse
+
 from formspree.app import DB, redis_store
 from formspree import settings, log
-from formspree.utils import unix_time_for_12_months_from_now
+from formspree.utils import unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
 from helpers import HASH, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path, send_email
 from formspree.utils import int2bigstring, bigstring2int
@@ -81,7 +83,7 @@ class Form(DB.Model):
         subject = data.get('_subject', 'New submission from %s' % referrer_to_path(referrer))
         reply_to = data.get('_replyto', data.get('email', data.get('Email', None)))
         cc = data.get('_cc', None)
-        next = data.get('_next', url_for('thanks', next=referrer))
+        next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
 
         # prevent submitting empty form
