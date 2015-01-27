@@ -6,6 +6,7 @@ flask-redis
 flask-testing
 requests==2.0.0
 paste
+python-dotenv
 gunicorn
 psycopg2
 flask-login

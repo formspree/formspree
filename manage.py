@@ -1,3 +1,9 @@
+import os
+import dotenv
+
+# Must come first, even before some imports. It reads the .env file and put the content as environment variables.
+dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
+
 import datetime
 
 from flask.ext.script import Manager, prompt_bool
@@ -7,7 +13,6 @@ from formspree import create_app, app
 from formspree.app import redis_store
 from formspree.forms.helpers import MONTHLY_COUNTER_KEY
 from formspree.forms.models import Form
-
 
 forms_app = create_app()
 manager = Manager(forms_app)
