@@ -97,6 +97,10 @@ then create a `.env` file with your configuration like the following:
     SERVICE_URL='http://127.0.0.1:5000'
     TEST_DATABASE_URL='sqlite://'
 
+Make sure you have a postgresql database called `formspree` and create the necessary tables by running:
+
+    python manage.py db upgrade
+
 And you are ready to run the server:
 
     python manage.py runserver
