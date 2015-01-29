@@ -85,5 +85,16 @@ def monthly_counters(email=None, host=None, id=None, month=datetime.date.today()
         nsubmissions = redis_store.get(MONTHLY_COUNTER_KEY(form_id=form.id, month=month)) or 0
         print '%s submissions for %s' % (nsubmissions, form)
 
+
+@manager.command
+def test():
+    import unittest
+
+    test_loader = unittest.defaultTestLoader
+    test_suite = test_loader.discover('.')
+
+    test_runner = unittest.TextTestRunner()
+    test_runner.run(test_suite)
+
 if __name__ == "__main__":
     manager.run()
