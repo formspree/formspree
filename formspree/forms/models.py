@@ -209,3 +209,7 @@ class Form(DB.Model):
             DB.session.add(form)
             DB.session.commit()
             return form
+
+    @property
+    def status(self):
+      return 'unknown'

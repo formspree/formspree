@@ -8,6 +8,31 @@
 
         <p><a href="/logout">logout</a></p>
     </div>
+
+    <div class="col-1-1">
+        <h2>Your Forms</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Origin</th>
+                    <th>Status</th>
+                    <th>Email</th>
+                    <th>Submissions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for form in user.forms.all() %}
+              <tr>
+                <td>{{ form.host }}</td>
+                <td>{{ form.status }}</td>
+                <td>{{ form.email }}</td>
+                <td>{{ form.counter }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 
