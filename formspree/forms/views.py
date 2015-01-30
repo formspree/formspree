@@ -145,7 +145,11 @@ def forms():
     if not current_user.upgraded:
         return jsonerror(403, {'error': "Please upgrade your account."})
 
-    email = request.get_json().get('email') or abort(400)
+    if request.get_json():
+        email = request.get_json().get('email')
+    else:
+        email = request.form.get('email')
+
     if not IS_VALID_EMAIL(email):
         return jsonerror(400, {'error': "The email you sent is not a valid email."})
 
