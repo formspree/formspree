@@ -161,9 +161,12 @@ def forms():
     # but doesn't seem like a sequential integer
     random_like_string = form.get_random_like_string()
 
-    return jsonify({
-        'ok': True,
-        'random_like_string': random_like_string,
-        'submission_url': settings.API_ROOT + '/' + random_like_string
-    })
+    if request_wants_json():
+        return jsonify({
+            'ok': True,
+            'random_like_string': random_like_string,
+            'submission_url': settings.API_ROOT + '/' + random_like_string
+        })
+    else:
+        return redirect(url_for('dashboard'))
 
