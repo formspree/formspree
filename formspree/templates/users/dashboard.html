@@ -13,7 +13,10 @@
     }
 
     *[class^="ion-"] {
+      display: inline-block;
       font-size: 32px;
+      text-align: center;
+      width: 32px;
     }
 </style>
 
@@ -59,7 +62,7 @@
                 <td>
                   {% if form.is_new %}
                     <a href="#" role="button">view HTML code</a>
-                    <div class="html-code">
+                    <div class="html-code" style="display: none;">
                         <h2>Success! Your form has been created</h2>
                         <label>Form Code:
                           <textarea>{{ form.code }}</textarea>
