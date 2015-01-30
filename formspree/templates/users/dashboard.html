@@ -33,14 +33,6 @@
         <h2>Your Forms</h2>
 
         <table class="forms">
-            <thead>
-                <tr>
-                    <th>Status</th>
-                    <th>Origin</th>
-                    <th>Email</th>
-                    <th>Submissions</th>
-                </tr>
-            </thead>
             <tbody>
             {% for form in user.forms.all() %}
               <tr>
@@ -73,7 +65,13 @@
                   {% endif %}
                 </td>
                 <td>{{ form.email }}</td>
-                <td>{{ form.counter }}</td>
+                <td>
+                  {% if form.is_new %}
+                    form never submitted
+                  {% else %}
+                    {{ form.counter }} submissions
+                  {% endif %}
+                </td>
               </tr>
             {% endfor %}
             </tbody>
