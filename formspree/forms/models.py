@@ -230,3 +230,7 @@ class Form(DB.Model):
     @property
     def code(self):
         return CODE_TEMPLATE.format(action=self.action)
+
+    @property
+    def is_new(self):
+        return not self.host

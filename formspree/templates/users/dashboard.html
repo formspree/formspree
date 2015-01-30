@@ -38,16 +38,14 @@
             {% for form in user.forms.all() %}
               <tr>
                 <td>
-                  {% if form.host %}
-                    {{ form.host }}
-                  {% else %}
+                  {% if form.is_new %}
                     New form
+                  {% else %}
+                    {{ form.host }}
                   {% endif %}
                 </td>
                 <td>
-                  {% if form.host %}
-                    {{ form.status }}
-                  {% else %}
+                  {% if form.is_new %}
                     <a href="#" role="button">view HTML code</a>
                     <div class="html-code">
                         <h2>Success! Your form has been created</h2>
@@ -55,6 +53,8 @@
                           <textarea>{{ form.code }}</textarea>
                         </label>
                     </div>
+                  {% else %}
+                    {{ form.status }}
                   {% endif %}
                 </td>
                 <td>{{ form.email }}</td>
