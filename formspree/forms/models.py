@@ -221,16 +221,6 @@ class Form(DB.Model):
             return form
 
     @property
-    def status(self):
-        if self.confirmed:
-            return 'confirmed'
-
-        if self.confirm_sent:
-            return 'awaiting confirmation'
-
-        return 'unknown'
-
-    @property
     def action(self):
         return url_for('send', email_or_string=self.get_random_like_string(), _external=True)
 
