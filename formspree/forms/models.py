@@ -10,9 +10,10 @@ import datetime
 
 CODE_TEMPLATE = '''
 <form action="{action}" method="POST">
-    <input type="email" name="email">
-    <input type="text" name="message">
-    <input type="submit">
+    <input type="text" name="_gotcha" style="display:none" />
+    <input type="email" name="email" placeholder="Your email">
+    <textarea name="message" rows="5" placeholder="Your message"></textarea>
+    <input type="submit" value="Send">
 </form>
 '''
 
