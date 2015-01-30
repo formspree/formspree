@@ -11,6 +11,10 @@
       text-align: left;
       width: 100%;
     }
+
+    *[class^="ion-"] {
+      font-size: 32px;
+    }
 </style>
 
 <div class="container">
@@ -39,6 +43,21 @@
               <tr>
                 <td>
                   {% if form.is_new %}
+                    <span class="tooltip hint--left" data-hint="New form">
+                        <span class="ion-alert"></span>
+                    </span>
+                  {% elif form.confirmed %}
+                    <span class="tooltip hint--left" data-hint="Confirmed">
+                        <span class="ion-checkmark"></span>
+                    </span>
+                  {% elif form.confirm_sent %}
+                    <span class="tooltip hint--left" data-hint="Awaiting confirmation">
+                        <span class="ion-refresh"></span>
+                    </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if form.is_new %}
                     <a href="#" role="button">view HTML code</a>
                     <div class="html-code">
                         <h2>Success! Your form has been created</h2>
@@ -46,13 +65,6 @@
                           <textarea>{{ form.code }}</textarea>
                         </label>
                     </div>
-                  {% else %}
-                    {{ form.status }}
-                  {% endif %}
-                </td>
-                <td>
-                  {% if form.is_new %}
-                    New form
                   {% else %}
                     {{ form.host }}
                   {% endif %}
