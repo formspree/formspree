@@ -222,6 +222,12 @@ class Form(DB.Model):
 
     @property
     def status(self):
+        if self.confirmed:
+            return 'confirmed'
+
+        if self.confirm_sent:
+            return 'awaiting confirmation'
+
         return 'unknown'
 
     @property
