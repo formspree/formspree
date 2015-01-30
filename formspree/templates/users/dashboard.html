@@ -28,8 +28,8 @@
         <table class="forms">
             <thead>
                 <tr>
-                    <th>Origin</th>
                     <th>Status</th>
+                    <th>Origin</th>
                     <th>Email</th>
                     <th>Submissions</th>
                 </tr>
@@ -37,13 +37,6 @@
             <tbody>
             {% for form in user.forms.all() %}
               <tr>
-                <td>
-                  {% if form.is_new %}
-                    New form
-                  {% else %}
-                    {{ form.host }}
-                  {% endif %}
-                </td>
                 <td>
                   {% if form.is_new %}
                     <a href="#" role="button">view HTML code</a>
@@ -55,6 +48,13 @@
                     </div>
                   {% else %}
                     {{ form.status }}
+                  {% endif %}
+                </td>
+                <td>
+                  {% if form.is_new %}
+                    New form
+                  {% else %}
+                    {{ form.host }}
                   {% endif %}
                 </td>
                 <td>{{ form.email }}</td>
