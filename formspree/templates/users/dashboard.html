@@ -37,7 +37,13 @@
             <tbody>
             {% for form in user.forms.all() %}
               <tr>
-                <td>{{ form.host }}</td>
+                <td>
+                  {% if form.host %}
+                    {{ form.host }}
+                  {% else %}
+                    New form
+                  {% endif %}
+                </td>
                 <td>{{ form.status }}</td>
                 <td>{{ form.email }}</td>
                 <td>{{ form.counter }}</td>
