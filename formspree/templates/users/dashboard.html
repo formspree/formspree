@@ -44,7 +44,19 @@
                     New form
                   {% endif %}
                 </td>
-                <td>{{ form.status }}</td>
+                <td>
+                  {% if form.host %}
+                    {{ form.status }}
+                  {% else %}
+                    <a href="#" role="button">view HTML code</a>
+                    <div class="html-code">
+                        <h2>Success! Your form has been created</h2>
+                        <label>Form Code:
+                          <textarea>{{ form.code }}</textarea>
+                        </label>
+                    </div>
+                  {% endif %}
+                </td>
                 <td>{{ form.email }}</td>
                 <td>{{ form.counter }}</td>
               </tr>

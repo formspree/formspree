@@ -8,6 +8,15 @@ from helpers import HASH, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_pa
 from formspree.utils import int2bigstring, bigstring2int
 import datetime
 
+CODE_TEMPLATE = '''
+<form action="{action}" method="POST">
+    <input type="email" name="email">
+    <input type="text" name="message">
+    <input type="submit">
+</form>
+'''
+
+
 class Form(DB.Model):
     __tablename__ = 'forms'
 
@@ -212,4 +221,12 @@ class Form(DB.Model):
 
     @property
     def status(self):
-      return 'unknown'
+        return 'unknown'
+
+    @property
+    def action(self):
+        return url_for('send', email_or_string=self.get_random_like_string(), _external=True)
+
+    @property
+    def code(self):
+        return CODE_TEMPLATE.format(action=self.action)
