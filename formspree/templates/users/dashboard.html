@@ -22,6 +22,26 @@
     div[id^="codeModal"] {
       display: none;
     }
+
+    tr.confirmed .ion-checkmark {
+      color: #33cc99;
+    }
+
+    tr.new {
+      color: #dd0000;
+    }
+
+    tr.new a {
+      color: #dd0000;
+    }
+
+    tr.new a:hover {
+      text-decoration: underline;
+    }
+
+    tr.awaiting_confirmation {
+      color: #ff6600;
+    }
 </style>
 
 <div class="container">
@@ -39,7 +59,7 @@
         <table class="forms">
             <tbody>
             {% for form in user.forms.all() %}
-              <tr>
+              <tr class="{{ form.status }}">
                 <td>
                   {% if form.is_new %}
                     <span class="tooltip hint--left" data-hint="New form">

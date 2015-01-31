@@ -231,3 +231,12 @@ class Form(DB.Model):
     @property
     def is_new(self):
         return not self.host
+
+    @property
+    def status(self):
+        if self.is_new:
+            return 'new'
+        elif self.confirmed:
+            return 'confirmed'
+        elif self.confirm_sent:
+            return 'awaiting_confirmation'
