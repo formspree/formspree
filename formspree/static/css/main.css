@@ -2561,3 +2561,6 @@ body.showOverlay {
 body.showOverlay .toggleOverlay {
   -moz-animation-name: rotate;
   -webkit-animation-name: rotate; }
+
+.tinymodal-window {
+  text-align: left; }
