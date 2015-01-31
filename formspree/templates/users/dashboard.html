@@ -53,21 +53,21 @@
                 </td>
                 <td>
                   {% if form.is_new %}
-                    <a role="button" href="#" data-toggle="modal" data-target="#myModal">
+                    <a role="button" href="#" data-toggle="modal" data-target="#codeModal-{{ loop.index }}">
                       view HTML code
                     </a>
 
-                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal fade" id="codeModal-{{ loop.index }}" tabindex="-1" role="dialog" aria-labelledby="codeModalLabel-{{ loop.index }}" aria-hidden="true">
                       <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                           <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" id="myModalLabel">Success! Your form has been created</h4>
+                            <h4 class="modal-title" id="codeModalLabel-{{ loop.index }}">Success! Your form has been created</h4>
                           </div>
                           <div class="modal-body">
                             <div class="form-group">
                               <label for="exampleInputEmail1">Form code</label>
-                              <textarea class="form-control" id="exampleInputEmail1" rows="6">{{ form.code }}</textarea>
+                              <textarea class="form-control" rows="6">{{ form.code }}</textarea>
                             </div>
                           </div>
                           <div class="modal-footer">
