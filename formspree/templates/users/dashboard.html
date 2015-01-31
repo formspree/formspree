@@ -1,13 +1,7 @@
 {% extends 'layouts/base.html' %}
 
 {% block base %}
-  <style>
-    {# TODO: Remove inline styling. #}
-    .container.narrow {
-      max-width: 950px;
-    }
-  </style>
-
+<div class="container narrow card index-card">
   <div class="container">
     <div class="col-1-1">
       <h1>Hello {{ user.email }}</h1>
@@ -30,4 +24,5 @@
 
     {% include "forms/create.html" %}
   </div>
+</div>
 {% endblock base %}

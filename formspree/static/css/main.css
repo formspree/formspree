@@ -2396,12 +2396,16 @@ body#card {
       padding-bottom: 0; }
   .container.card {
     max-width: 500px; }
+  .container.index-card {
+    max-width: 950px; }
 
-.card {
+.card,
+.index-card {
   padding: 0.9em;
   background: #fff;
   border: 1px solid #dddddd; }
-  .card h1 {
+  .card h1,
+  .index-card h1 {
     font-size: 1.8em; }
 
 .row.grey {

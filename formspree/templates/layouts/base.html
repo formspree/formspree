@@ -35,11 +35,11 @@
     {% endwith %}
 
     <div class="row">
-        <div class="container narrow card">
-            {% block base %}
-            <h1>Nothing to see here</h1>
-            {% endblock %}
-        </div>
+        {% block base %}
+            <div class="container narrow card">
+                <h1>Nothing to see here</h1>
+            </div>
+        {% endblock base %}
         <div class="container narrow">
             <p class="footer">{% block footer %}Powered by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
         </div>
