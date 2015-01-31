@@ -15,6 +15,7 @@ $green: #359173;
 @import 'ionicons.min.scss';
 @import 'alertbox.scss';
 @import 'dashboard.scss';
+@import 'tinymodal.scss';
 
 
 html {
@@ -339,8 +340,4 @@ body.showOverlay {
 body.showOverlay .toggleOverlay {
     -moz-animation-name: rotate;
     -webkit-animation-name: rotate;
-}
-
-.tinymodal-window {
-  text-align: left;
 }
