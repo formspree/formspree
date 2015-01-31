@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <title>{% block title %}{{config.SERVICE_NAME}}{% endblock %}</title>
 
-    <link href="{{ url_for('static', filename='css/vendor/bootstrap.min.css') }}" rel="stylesheet">
-
     <script src="//use.typekit.net/htc4dlo.js"></script>
     <script>try{Typekit.load();}catch(e){}</script>
 
+    <link rel="stylesheet" href="{{url_for('static', filename='css/vendor/jquery.tinymodal.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+
 
     <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
 
@@ -46,6 +46,6 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vendor/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/jquery.tinymodal.js') }}"></script>
 </body>
 </html>
