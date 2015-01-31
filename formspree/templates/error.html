@@ -1,25 +1,23 @@
 {% extends 'layouts/base.html' %}
 
 {% block base %}
-<div class="container narrow card">
+  <div class="container narrow card">
     <div class="container" id="header">
-        <div class="col-1-1 header error">
-            <i class="ion ion-alert-circled"></i>
-        </div>
+      <div class="col-1-1 header error">
+        <i class="ion ion-alert-circled"></i>
+      </div>
     </div>
 
     <div class="container">
-        <div class="col-1-1">
+      <div class="col-1-1">
+        {% if title %}
+          <h1>{{ title }}</h1>
+        {% endif %}
 
-            {% if title %}
-                <h1>{{title}}</h1>
-            {% endif %}
-
-            {% if text %}
-                <p>{{text|safe}}</p>
-            {% endif %}
-
-        </div>
+        {% if text %}
+          <p>{{ text|safe }}</p>
+        {% endif %}
+      </div>
     </div>
-</div>
+  </div>
 {% endblock base %}

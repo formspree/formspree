@@ -1,28 +1,28 @@
 {% extends 'layouts/base.html' %}
 
 {% block base %}
-<div class="container narrow card index-card">
-  <div class="container">
-    <div class="col-1-1">
-      <h1>Hello {{ user.email }}</h1>
+  <div class="container narrow card index-card">
+    <div class="container">
+      <div class="col-1-1">
+        <h1>Hello {{ user.email }}</h1>
 
-      <p><a href="/logout">logout</a></p>
+        <p><a href="/logout">logout</a></p>
+      </div>
+
+      <hr/>
+
+      <div class="col-1-1">
+        <h2>Your Forms</h2>
+
+        {% with %}
+          {% set forms = user.forms.all() %}
+          {% include "forms/list.html" %}
+        {% endwith %}
+      </div>
+
+      <hr/>
+
+      {% include "forms/create.html" %}
     </div>
-
-    <hr/>
-
-    <div class="col-1-1">
-      <h2>Your Forms</h2>
-
-      {% with %}
-        {% set forms = user.forms.all() %}
-        {% include "forms/list.html" %}
-      {% endwith %}
-    </div>
-
-    <hr/>
-
-    {% include "forms/create.html" %}
   </div>
-</div>
 {% endblock base %}
