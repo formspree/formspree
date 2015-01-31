@@ -28,20 +28,6 @@
 
     <hr/>
 
-    {% if user.upgraded %}
-      <div class="col-1-1">
-        <h2>New Form</h2>
-
-        <form method="POST" action="{{ url_for('forms-api') }}">
-          <label>
-            Send email to:
-            <input type="email" name="email" placeholder="johnny@example.com"/>
-          </label>
-          <input type="submit" value="Create"/>
-        </form>
-      </div>
-    {% else %}
-      Please upgrade your account in order to create new forms.
-    {% endif %}
+    {% include "forms/create.html" %}
   </div>
 {% endblock base %}
