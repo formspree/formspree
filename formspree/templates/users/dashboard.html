@@ -53,12 +53,28 @@
                 </td>
                 <td>
                   {% if form.is_new %}
-                    <a href="#" role="button">view HTML code</a>
-                    <div class="html-code" style="display: none;">
-                        <h2>Success! Your form has been created</h2>
-                        <label>Form Code:
-                          <textarea>{{ form.code }}</textarea>
-                        </label>
+                    <a role="button" href="#" data-toggle="modal" data-target="#myModal">
+                      view HTML code
+                    </a>
+
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                      <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Success! Your form has been created</h4>
+                          </div>
+                          <div class="modal-body">
+                            <div class="form-group">
+                              <label for="exampleInputEmail1">Form code</label>
+                              <textarea class="form-control" id="exampleInputEmail1" rows="6">{{ form.code }}</textarea>
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   {% else %}
                     {{ form.host }}
