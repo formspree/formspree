@@ -1,130 +1,47 @@
 {% extends 'layouts/base.html' %}
 
 {% block base %}
-<style>
+  <style>
     {# TODO: Remove inline styling. #}
     .container.narrow {
       max-width: 950px;
     }
+  </style>
 
-    table.forms {
-      text-align: left;
-      width: 100%;
-    }
-
-    *[class^="ion-"] {
-      display: inline-block;
-      font-size: 32px;
-      text-align: center;
-      width: 32px;
-    }
-
-    div[id^="codeModal"] {
-      display: none;
-    }
-
-    tr.confirmed .ion-checkmark {
-      color: #33cc99;
-    }
-
-    tr.new {
-      color: #dd0000;
-    }
-
-    tr.new a {
-      color: #dd0000;
-    }
-
-    tr.new a:hover {
-      text-decoration: underline;
-    }
-
-    tr.awaiting_confirmation {
-      color: #ff6600;
-    }
-</style>
-
-<div class="container">
+  <div class="container">
     <div class="col-1-1">
-        <h1>Hello {{user.email}}</h1>
+      <h1>Hello {{ user.email }}</h1>
 
-        <p><a href="/logout">logout</a></p>
+      <p><a href="/logout">logout</a></p>
     </div>
 
-    <hr />
+    <hr/>
 
     <div class="col-1-1">
-        <h2>Your Forms</h2>
+      <h2>Your Forms</h2>
 
-        <table class="forms">
-            <tbody>
-            {% for form in user.forms.all() %}
-              <tr class="{{ form.status }}">
-                <td>
-                  {% if form.is_new %}
-                    <span class="tooltip hint--left" data-hint="New form">
-                        <span class="ion-alert"></span>
-                    </span>
-                  {% elif form.confirmed %}
-                    <span class="tooltip hint--left" data-hint="Confirmed">
-                        <span class="ion-checkmark"></span>
-                    </span>
-                  {% elif form.confirm_sent %}
-                    <span class="tooltip hint--left" data-hint="Awaiting confirmation">
-                        <span class="ion-refresh"></span>
-                    </span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if form.is_new %}
-                    <a role="button" href="#"
-                       onclick="$.tinyModal({title: 'Success! Your form has been created', html: '#codeModal-{{ loop.index }}', buttons: ['Close']});">
-                      view HTML code
-                    </a>
-
-                    <div class="modal fade" id="codeModal-{{ loop.index }}" tabindex="-1" role="dialog" aria-hidden="true">
-                        <div class="form-group">
-                          <label for="code-{{ loop.index }}">Form code</label>
-                          <textarea class="form-control" id="code-{{ loop.index }}" rows="6">{{ form.code }}</textarea>
-                        </div>
-                    </div>
-                  {% else %}
-                    {{ form.host }}
-                  {% endif %}
-                </td>
-                <td>{{ form.email }}</td>
-                <td>
-                  {% if form.is_new %}
-                    form never submitted
-                  {% else %}
-                    {{ form.counter }} submissions
-                  {% endif %}
-                </td>
-              </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+      {% with %}
+        {% set forms = user.forms.all() %}
+        {% include "forms/list.html" %}
+      {% endwith %}
     </div>
 
-    <hr />
+    <hr/>
 
     {% if user.upgraded %}
-        <div class="col-1-1">
-            <h2>New Form</h2>
-            <form method="POST" action="{{ url_for('forms-api') }}">
-                <label>
-                    Send email to:
-                    <input type="email" name="email" placeholder="johnny@example.com" />
-                </label>
-                <input type="submit" value="Create" />
-            </form>
-        </div>
+      <div class="col-1-1">
+        <h2>New Form</h2>
+
+        <form method="POST" action="{{ url_for('forms-api') }}">
+          <label>
+            Send email to:
+            <input type="email" name="email" placeholder="johnny@example.com"/>
+          </label>
+          <input type="submit" value="Create"/>
+        </form>
+      </div>
     {% else %}
       Please upgrade your account in order to create new forms.
     {% endif %}
-</div>
-
-
-
-
-{% endblock %}
+  </div>
+{% endblock base %}

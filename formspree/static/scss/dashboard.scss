@@ -1,0 +1,35 @@
+table.forms {
+  text-align: left;
+  width: 100%;
+
+  tr.confirmed .ion-checkmark {
+    color: #33cc99;
+  }
+
+  tr.new {
+    color: #dd0000;
+
+    a {
+      color: #dd0000;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  tr.awaiting_confirmation {
+    color: #ff6600;
+  }
+
+  span[class^="ion-"] {
+    display: inline-block;
+    font-size: 32px;
+    text-align: center;
+    width: 32px;
+  }
+
+  div[id^="codeModal"] {
+    display: none;
+  }
+}

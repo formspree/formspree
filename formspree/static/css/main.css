@@ -2306,6 +2306,27 @@ a.alert-box.success:hover {
   color: #359173;
   border-color: #359173; }
 
+table.forms {
+  text-align: left;
+  width: 100%; }
+  table.forms tr.confirmed .ion-checkmark {
+    color: #33cc99; }
+  table.forms tr.new {
+    color: #dd0000; }
+    table.forms tr.new a {
+      color: #dd0000; }
+      table.forms tr.new a:hover {
+        text-decoration: underline; }
+  table.forms tr.awaiting_confirmation {
+    color: #ff6600; }
+  table.forms span[class^="ion-"] {
+    display: inline-block;
+    font-size: 32px;
+    text-align: center;
+    width: 32px; }
+  table.forms div[id^="codeModal"] {
+    display: none; }
+
 html {
   height: 100%; }
 
