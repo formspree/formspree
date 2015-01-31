@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}{{config.SERVICE_NAME}}{% endblock %}</title>
-    
+
+    <link href="{{ url_for('static', filename='css/vendor/bootstrap.min.css') }}" rel="stylesheet">
+
     <script src="//use.typekit.net/htc4dlo.js"></script>
     <script>try{Typekit.load();}catch(e){}</script>
 
@@ -42,5 +44,8 @@
             <p class="footer">{% block footer %}Powered by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
         </div>
     </div>
+
+    <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/bootstrap.min.js') }}"></script>
 </body>
 </html>
