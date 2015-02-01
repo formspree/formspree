@@ -15,7 +15,7 @@
         <h2>Your Forms</h2>
 
         {% with %}
-          {% set forms = user.forms.all() %}
+          {% set forms = user.forms.order_by('-id').all() %}
           {% include "forms/list.html" %}
         {% endwith %}
       </div>
