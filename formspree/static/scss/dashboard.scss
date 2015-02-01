@@ -1,3 +1,13 @@
+.create-form {
+  .create-form-button {
+    float: right;
+  }
+
+  #createFormModal {
+    display: none;
+  }
+}
+
 table.forms {
   text-align: left;
   width: 100%;
@@ -22,14 +32,17 @@ table.forms {
     color: #ff6600;
   }
 
+  div[id^="codeModal"] {
+    display: none;
+  }
+}
+
+.create-form,
+table.forms {
   span[class^="ion-"] {
     display: inline-block;
     font-size: 32px;
     text-align: center;
     width: 32px;
-  }
-
-  div[id^="codeModal"] {
-    display: none;
   }
 }

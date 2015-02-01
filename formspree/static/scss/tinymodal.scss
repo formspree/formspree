@@ -4,7 +4,8 @@
     height: 100%;
     top: 0;
     left: 0;
-    background: rgba(0, 0, 0, 0.5)
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000500; /* because of hint */
 }
 
 .tinymodal-window {
@@ -15,6 +16,7 @@
     -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.3), 0 6px 30px rgba(0, 0, 0, 0.25);
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.3), 0 6px 30px rgba(0, 0, 0, 0.25);
     text-align: left;
+    z-index: 1000510; /* because of hint */
 }
 
 .tinymodal-title {

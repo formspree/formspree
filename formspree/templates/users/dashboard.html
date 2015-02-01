@@ -14,15 +14,13 @@
       <div class="col-1-1">
         <h2>Your Forms</h2>
 
+        {% include "forms/create.html" %}
+
         {% with %}
           {% set forms = user.forms.order_by('-id').all() %}
           {% include "forms/list.html" %}
         {% endwith %}
       </div>
-
-      <hr/>
-
-      {% include "forms/create.html" %}
     </div>
   </div>
 {% endblock base %}

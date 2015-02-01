@@ -1,15 +1,30 @@
+<div class="create-form">
 {% if user.upgraded %}
-  <div class="col-1-1">
-    <h2>New Form</h2>
+  <a role="button" href="#" class="create-form-button tooltip hint--left" data-hint="Create new form"
+     onclick="$.tinyModal({
+        title: 'New Form',
+        html: '#createFormModal',
+        buttons: ['Create', 'Close'],
+        Create: function() {
+            $('#createForm').submit();
+        }
+     });">
+    <span class="ion-plus-circled"></span>
+  </a>
 
-    <form method="POST" action="{{ url_for('forms-api') }}">
-      <label>
-        Send email to:
-        <input type="email" name="email" placeholder="johnny@example.com"/>
-      </label>
-      <input type="submit" value="Create"/>
+  <div class="modal fade" id="createFormModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <form method="POST" action="{{ url_for('forms-api') }}" id="createForm">
+      <div class="form-group">
+          <label>
+            <label for="createFormEmail">Send email to:</label>
+            <input type="email" name="email" id="createFormEmail" class="form-control" placeholder="johnny@example.com"/>
+          </label>
+      </div>
     </form>
   </div>
 {% else %}
-  Please upgrade your account in order to create new forms.
+  <div class="col-1-1">
+    Please upgrade your account in order to create new forms.
+  </div>
 {% endif %}
+</div>

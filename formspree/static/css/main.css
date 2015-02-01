@@ -2306,6 +2306,11 @@ a.alert-box.success:hover {
   color: #359173;
   border-color: #359173; }
 
+.create-form .create-form-button {
+  float: right; }
+.create-form #createFormModal {
+  display: none; }
+
 table.forms {
   text-align: left;
   width: 100%; }
@@ -2319,13 +2324,15 @@ table.forms {
         text-decoration: underline; }
   table.forms tr.awaiting_confirmation {
     color: #ff6600; }
-  table.forms span[class^="ion-"] {
-    display: inline-block;
-    font-size: 32px;
-    text-align: center;
-    width: 32px; }
   table.forms div[id^="codeModal"] {
     display: none; }
+
+.create-form span[class^="ion-"],
+table.forms span[class^="ion-"] {
+  display: inline-block;
+  font-size: 32px;
+  text-align: center;
+  width: 32px; }
 
 .tinymodal-overlay {
   position: fixed;
@@ -2333,7 +2340,9 @@ table.forms {
   height: 100%;
   top: 0;
   left: 0;
-  background: rgba(0, 0, 0, 0.5); }
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000500;
+  /* because of hint */ }
 
 .tinymodal-window {
   position: absolute;
@@ -2342,7 +2351,9 @@ table.forms {
   left: 50%;
   -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.3), 0 6px 30px rgba(0, 0, 0, 0.25);
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.3), 0 6px 30px rgba(0, 0, 0, 0.25);
-  text-align: left; }
+  text-align: left;
+  z-index: 1000510;
+  /* because of hint */ }
 
 .tinymodal-title {
   position: relative;
