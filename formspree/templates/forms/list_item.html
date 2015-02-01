@@ -2,11 +2,11 @@
   {# status #}
   <td>
     {% if form.is_new %}
-        <span class="tooltip hint--left" data-hint="New form"><span class="ion-alert"></span></span>
+        <span class="tooltip hint--right" data-hint="New form"><span class="ion-alert"></span></span>
     {% elif form.confirmed %}
-        <span class="tooltip hint--left" data-hint="Confirmed"><span class="ion-checkmark"></span></span>
+        <span class="tooltip hint--right" data-hint="Confirmed"><span class="ion-checkmark"></span></span>
     {% elif form.confirm_sent %}
-        <span class="tooltip hint--left" data-hint="Awaiting confirmation"><span class="ion-refresh"></span></span>
+        <span class="tooltip hint--right" data-hint="Awaiting confirmation"><span class="ion-refresh"></span></span>
     {% endif %}
   </td>
 
