@@ -1,6 +1,6 @@
 import flask
 
-from flask import request, url_for, render_template, redirect, jsonify, abort
+from flask import request, url_for, render_template, redirect, jsonify, flash
 from flask.ext.login import current_user, login_required
 from formspree.utils import crossdomain, request_wants_json, jsonerror
 from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH
@@ -151,7 +151,11 @@ def forms():
         email = request.form.get('email')
 
     if not IS_VALID_EMAIL(email):
-        return jsonerror(400, {'error': "The email you sent is not a valid email."})
+        if request_wants_json():
+            return jsonerror(400, {'error': "The email you sent is not a valid email."})
+        else:
+            flash('The email you sent is not a valid email.', 'error')
+            return redirect(url_for('dashboard'))
 
     form = Form(email, owner=current_user)
     DB.session.add(form)
