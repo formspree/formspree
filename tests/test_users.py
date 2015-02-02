@@ -3,7 +3,7 @@ import json
 
 from formspree import settings
 from formspree.app import DB
-from formspree.forms.helpers import HASH, HASHIDS_CODEC
+from formspree.forms.helpers import HASH
 from formspree.users.models import User
 from formspree.forms.models import Form
 
@@ -73,7 +73,7 @@ class FormPostsTestCase(FormspreeTestCase):
         form_endpoint = resp['random_like_string']
         self.assertIn(resp['random_like_string'], resp['submission_url'])
         self.assertEqual(1, Form.query.count())
-        self.assertEqual(Form.query.first().id, HASHIDS_CODEC.decode(resp['random_like_string'])[0])
+        self.assertEqual(Form.query.first().id, Form.get_form_by_random_like_string(resp['random_like_string']).id)
 
         # post to form
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
