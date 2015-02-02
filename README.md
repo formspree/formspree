@@ -89,6 +89,7 @@ then create a `.env` file with your configuration like the following:
     LOG_LEVEL='debug'
     MONTHLY_SUBMISSIONS_LIMIT='100'
     NONCE_SECRET='y0ur_n0nc3_s3cr3t'
+    HASHIDS_SALT='a salt'
     REDISTOGO_URL='127.0.0.1:6379'
     SECRET_KEY='y0ur_s3cr3t_k3y'
     SENDGRID_PASSWORD='<password>'
@@ -110,6 +111,7 @@ And you are ready to run the server:
     REDISTOGO_URL='0.0.0.0:6379' \
     TEST_DATABASE_URL=sqlite:// \
     NONCE_SECRET='y0ur_n0nc3_s3cr3t' \
+    HASHIDS_SALT='a salt' \
     SECRET_KEY='y0ur_s3cr3t_k3y' \
     python -m unittest discover
 

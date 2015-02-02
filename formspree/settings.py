@@ -3,7 +3,6 @@ import sys
 
 # load a bunch of environment
 
-SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') in ['True', 'true', '1', 'yes']
 if DEBUG:
     SQLALCHEMY_ECHO = True
@@ -11,7 +10,10 @@ if DEBUG:
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 LOG_LEVEL = os.getenv('LOG_LEVEL') or 'debug'
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 NONCE_SECRET = os.getenv('NONCE_SECRET')
+HASHIDS_SALT = os.getenv('HASHIDS_SALT')
 
 MONTHLY_SUBMISSIONS_LIMIT = int(os.getenv('MONTHLY_SUBMISSIONS_LIMIT') or 1000)
 REDIS_URL = os.getenv('REDISTOGO_URL')

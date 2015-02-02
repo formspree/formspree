@@ -1,12 +1,11 @@
 import urlparse
+import datetime
 
 from formspree.app import DB, redis_store
 from formspree import settings, log
 from formspree.utils import unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
-from helpers import HASH, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path, send_email
-from formspree.utils import int2bigstring, bigstring2int
-import datetime
+from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path, send_email
 
 class Form(DB.Model):
     __tablename__ = 'forms'
@@ -65,11 +64,11 @@ class Form(DB.Model):
     def get_random_like_string(self):
         if not self.id:
             raise Exception("this form doesn't have an id yet, commit it first.")
-        return int2bigstring(self.id)
+        return HASHIDS_CODEC.encode(self.id)
 
     @classmethod
     def get_form_by_random_like_string(cls, random_like_string):
-        id = bigstring2int(random_like_string)
+        id = HASHIDS_CODEC.decode(random_like_string)[0]
         return cls.query.get(id)
 
     def send(self, http_form, referrer):
