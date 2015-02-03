@@ -102,6 +102,14 @@ Make sure you have a postgresql database called `formspree` and create the neces
 
     python manage.py db upgrade
 
+If your database is a normal Postgres installation, chances are that this command will fail, because your user hasn't the permissions to create the [HSTORE](http://www.postgresql.org/docs/9.0/static/hstore.html) extension. So run this first (considering that your database is named "formspree"):
+
+    sudo su - postgres -c 'psql -d formspree -c "create extension hstore"'
+
+Then
+
+    python manage.py db upgrade
+
 And you are ready to run the server:
 
     python manage.py runserver
