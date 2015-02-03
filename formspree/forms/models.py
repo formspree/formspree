@@ -156,10 +156,10 @@ class Form(DB.Model):
 
         # the nonce for email confirmation will be the hash when it exists
         # (whenever the form was created from a simple submission) or
-        # a concatenation of HASH(email, id) + ':' + id (whenever the form
-        # was created from the dashboard)
+        # a concatenation of HASH(email, id) + ':' + random_like_string
+        # (whenever the form was created from the dashboard)
         id = str(self.id)
-        nonce = self.hash or '%s:%s' % (HASH(self.email, id), id)
+        nonce = self.hash or '%s:%s' % (HASH(self.email, id), self.get_random_like_string())
         link = url_for('confirm_email', nonce=nonce, _external=True)
 
         def render_content(type):
@@ -191,10 +191,11 @@ class Form(DB.Model):
     def confirm(cls, nonce):
         if ':' in nonce:
             # form created in the dashboard
-            # nonce is another hash and the id
-            # comes in the request
-            nonce, id = nonce.split(':')
-            form = cls.query.get(id)
+            # nonce is another hash and the
+            # random_like_string comes in the
+            # request.
+            nonce, rls = nonce.split(':')
+            form = cls.get_form_by_random_like_string(rls)
             if HASH(form.email, str(form.id)) == nonce:
                 pass
             else:
