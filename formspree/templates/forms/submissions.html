@@ -1,0 +1,46 @@
+{% extends 'users/dashboard.html' %}
+
+{% block section %}
+
+  <div class="col-1-1">
+    <h2>
+      Submissions for
+      {% if not form.hash %}
+        <span class="code">/{{ form.get_random_like_string() }}</span>
+      {% else %}
+        <span class="code">/{{ form.email }}</span>
+      {% endif %}
+      at <span class="code">{{ form.host }}</span>
+      {% if not form.hash %}
+        (targetting <span class="code">{{ form.email }}</span>)
+      {% else %}
+        <br><small>(you can replace the email in the URL with <span class="code">/{{ form.get_random_like_string() }}</span>)</small>
+      {% endif %}
+    </h2>
+
+    {% if submissions %}
+      <table class="submissions">
+        <thead>
+          <tr>
+            <th>Submitted at</th>
+            {% for f in fields %}
+              <th>{{ f }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for submission in submissions %}
+            <tr>
+              <td>{{ submission.submitted_at.strftime('%A, %B %d, %Y at %X') }}</td>
+              {% for f in fields %}
+                <td>{{ submission.data[f] }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <h3>No submissions archived yet.</h3>
+    {% endif %}
+
+{% endblock %}

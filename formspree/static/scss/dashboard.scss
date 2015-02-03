@@ -1,5 +1,26 @@
+.navtabs {
+  ul {
+    padding: 0px;
+  }
+
+  li {
+    padding: 5px;
+    font-size: 18px;
+    display: inline-block;
+    height: 2em;
+
+    &.active {
+      background-color: $green;
+      a {
+        color: #FFF;
+      }
+    }
+  }
+}
+
 .create-form {
   .create-form-button {
+    cursor: pointer;
     float: right;
   }
 
@@ -8,32 +29,50 @@
   }
 }
 
-table.forms {
+table {
   text-align: left;
   width: 100%;
 
-  tr.confirmed .ion-checkmark {
-    color: #33cc99;
-  }
+  &.submissions {
+    border: 1px solid $accent;
+    padding: 2px;
+    background: #fff;
 
-  tr.new {
-    color: #dd0000;
-
-    a {
-      color: #dd0000;
-
-      &:hover {
-        text-decoration: underline;
-      }
+    th {
+      border-bottom: 2px solid $green;
+      text-align: center;
+      padding: 7px;
+    }
+    td {
+      border: 1px solid $accent;
+      padding: 5px;
     }
   }
 
-  tr.awaiting_confirmation {
-    color: #ff6600;
-  }
-
-  div[id^="codeModal"] {
-    display: none;
+  &.forms {
+    tr.confirmed .ion-checkmark {
+      color: #33cc99;
+    }
+  
+    tr.new {
+      color: #dd0000;
+  
+      a {
+        color: #dd0000;
+  
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  
+    tr.awaiting_confirmation {
+      color: #ff6600;
+    }
+  
+    div[id^="codeModal"] {
+      display: none;
+    }
   }
 }
 

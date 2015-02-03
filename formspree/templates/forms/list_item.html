@@ -39,7 +39,9 @@
     {% if form.is_new %}
       form never submitted
     {% else %}
-      {{ form.counter }} submissions
+      <a href="/forms/{{ form.get_random_like_string() }}">
+        {{ form.counter }} submissions
+      </a>
     {% endif %}
   </td>
 </tr>

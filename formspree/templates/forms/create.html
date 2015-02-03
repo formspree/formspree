@@ -1,5 +1,5 @@
 <div class="create-form">
-{% if user.upgraded %}
+{% if current_user.upgraded %}
   <a role="button" href="#" class="create-form-button tooltip hint--left" data-hint="Create new form"
      onclick="$.tinyModal({
         title: 'New Form',

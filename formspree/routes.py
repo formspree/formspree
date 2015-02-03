@@ -19,3 +19,4 @@ def configure_routes(app):
     app.add_url_rule('/logout', 'logout', view_func=users.views.logout, methods=['GET'])
 
     app.add_url_rule('/forms', 'forms-api', view_func=forms.views.forms, methods=['GET', 'POST'])
+    app.add_url_rule('/forms/<random_like_string>/', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
