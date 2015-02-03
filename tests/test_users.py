@@ -88,7 +88,7 @@ class FormPostsTestCase(FormspreeTestCase):
 
         # confirm form
         form = Form.query.first()
-        self.client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.id))
+        self.client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.get_random_like_string()))
         self.assertTrue(Form.query.first().confirmed)
 
         # send 5 forms (monthly limits should not apply to the upgraded user)
