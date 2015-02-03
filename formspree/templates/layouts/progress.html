@@ -1,32 +1,35 @@
 {% extends 'layouts/base.html' %}
 
 {% block base %}
-
-<div class="container" id="header">
-    <div class="col-1-3 header done">
+  <div class="container narrow card">
+    <div class="container" id="header">
+      <div class="col-1-3 header done">
         <i class="ion ion-compose"></i>
+
         <p>1. Setup Form</p>
-    </div>
-    <div class="col-1-3 header {% if current_step=='progress' %}current{% else %}done{% endif %}">
+      </div>
+      <div class="col-1-3 header {% if current_step=='progress' %}current{% else %}done{% endif %}">
         <i class="ion ion-paper-airplane"></i>
+
         <p>2. Confirm email</p>
-    </div>
-    <div class="col-1-3 header {% if current_step=='done'%}current{% else %}next{% endif %}">
+      </div>
+      <div class="col-1-3 header {% if current_step=='done' %}current{% else %}next{% endif %}">
         <i class="ion ion-checkmark-circled"></i>
+
         <p>3. All set, profit</p>
+      </div>
     </div>
-</div>
 
-
-
-<div class="container">
-    <div class="col-1-1">
+    <div class="container">
+      <div class="col-1-1">
         {% block content %}
-        
+
         {% endblock %}
+      </div>
     </div>
-</div>
+  </div>
+{% endblock base %}
 
-{% endblock %}
-
-{% block footer %}Part of the {{config.SERVICE_NAME}} sign up process. <a href="{{config.SERVICE_URL}}">Read more</a>.{% endblock %}
+{% block footer %}
+  Part of the {{ config.SERVICE_NAME }} sign up process. <a href="{{ config.SERVICE_URL }}">Read more</a>.
+{% endblock footer %}

@@ -20,7 +20,8 @@ body {
     }
 }
 
-.container.card {
+.container.card,
+.container.index-card {
     background: #fff;
     padding: 2em;
     border: 1px solid $accent;

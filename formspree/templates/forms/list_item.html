@@ -1,0 +1,45 @@
+<tr class="{{ form.status }}">
+  {# status #}
+  <td>
+    {% if form.is_new %}
+        <span class="tooltip hint--right" data-hint="New form"><span class="ion-alert"></span></span>
+    {% elif form.confirmed %}
+        <span class="tooltip hint--right" data-hint="Confirmed"><span class="ion-checkmark"></span></span>
+    {% elif form.confirm_sent %}
+        <span class="tooltip hint--right" data-hint="Awaiting confirmation"><span class="ion-refresh"></span></span>
+    {% endif %}
+  </td>
+
+  {# code / host #}
+  <td>
+    {% if form.is_new %}
+      <a role="button" href="#"
+         onclick="$.tinyModal({title: 'Success! Your form has been created', html: '#codeModal-{{ form_loop.index }}', buttons: ['Close']});">
+        view HTML code
+      </a>
+
+      <div class="modal fade" id="codeModal-{{ form_loop.index }}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="form-group">
+          <label for="code-{{ form_loop.index }}">Form code:</label>
+          <textarea class="form-control" id="code-{{ form_loop.index }}" rows="6">{{ form.code }}</textarea>
+        </div>
+      </div>
+    {% else %}
+      {{ form.host }}
+    {% endif %}
+  </td>
+
+  {# email #}
+  <td>
+    {{ form.email }}
+  </td>
+
+  {# number of submissions #}
+  <td>
+    {% if form.is_new %}
+      form never submitted
+    {% else %}
+      {{ form.counter }} submissions
+    {% endif %}
+  </td>
+</tr>

@@ -14,6 +14,8 @@ $green: #359173;
 @import 'hint/hint.scss';
 @import 'ionicons.min.scss';
 @import 'alertbox.scss';
+@import 'dashboard.scss';
+@import 'tinymodal.scss';
 
 
 html {
@@ -126,10 +128,14 @@ body#card {
         max-width: 500px;
     }
 
+    &.index-card {
+        max-width: 950px;
+    }
 }
 
 
-.card {
+.card,
+.index-card {
     padding: 0.9em;
     background: #fff;
     border: 1px solid $accent;
@@ -335,4 +341,3 @@ body.showOverlay .toggleOverlay {
     -moz-animation-name: rotate;
     -webkit-animation-name: rotate;
 }
-

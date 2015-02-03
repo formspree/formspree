@@ -63,7 +63,7 @@ class FormPostsTestCase(FormspreeTestCase):
 
         # successfully create form
         r = self.client.post('/forms',
-            headers={'Content-type': 'application/json'},
+            headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'hope@springs.com'})
         )
         resp = json.loads(r.data)

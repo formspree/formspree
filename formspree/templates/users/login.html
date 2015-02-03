@@ -1,34 +1,37 @@
 {% extends 'layouts/base.html' %}
+
 {% block base %}
-  <form action="" method=post class="form-horizontal">
-    <h2>Log in to Formspree</h2>
-    <div class="control-group">
+  <div class="container narrow card">
+    <form action="" method=post class="form-horizontal">
+      <h2>Log in to Formspree</h2>
+
+      <div class="control-group">
         <div class="controls">
           <input type="text" id="email" name="email" class="input-xlarge"
-            placeholder="Enter Email" required>
+                 placeholder="Enter Email" required>
         </div>
-    </div>
+      </div>
 
-    <div class="control-group">
+      <div class="control-group">
         <div class="controls">
           <input type="password" id="password" name="password" class="input-xlarge"
-            placeholder="Enter Password" required>
+                 placeholder="Enter Password" required>
         </div>
-    </div>
+      </div>
 
-    <div class="checkbox">
+      <div class="checkbox">
         <label>
           <input type="checkbox" id="remember_me" name="remember_me">Remember me
         </label>
-    </div>
+      </div>
 
-    <div class="control-group">
+      <div class="control-group">
         <div class="controls">
           <button type="submit" class="btn btn-success">Sign in</button>
         </div>
-    </div>
-  </form>
+      </div>
+    </form>
 
-  <p>Don't have an account? <a href="/register">Register</a>!</p>
-
-{% endblock %}
+    <p>Don't have an account? <a href="/register">Register</a>!</p>
+  </div>
+{% endblock base %}

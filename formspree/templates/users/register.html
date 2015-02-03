@@ -1,31 +1,33 @@
 {% extends 'layouts/base.html' %}
-{% block base %}
-  <form action="" method=post class="form-horizontal">
-    <h2>Sign up for Formspree </h2>
 
-    <div class="control-group">
+{% block base %}
+  <div class="container narrow card">
+    <form action="" method=post class="form-horizontal">
+      <h2>Sign up for Formspree </h2>
+
+      <div class="control-group">
         <div class="controls">
           <input type="email" id="email" name="email" class="input-xlarge"
-            placeholder="Enter Email" value="{{ request.form.email }}"
-            required>
+                 placeholder="Enter Email" value="{{ request.form.email }}"
+                 required>
         </div>
-    </div>
+      </div>
 
-    <div class="control-group">
+      <div class="control-group">
         <div class="controls">
           <input type="password" id="password" name="password" class="input-xlarge"
-            placeholder="Enter Password" value="{{ request.form.password }}"
-            required>
+                 placeholder="Enter Password" value="{{ request.form.password }}"
+                 required>
         </div>
-    </div>
+      </div>
 
-    <div class="control-group">
+      <div class="control-group">
         <div class="controls">
           <button type="submit" class="btn btn-success">Sign up</button>
         </div>
-    </div>
-  </form>
+      </div>
+    </form>
 
-  <p>Already have an account? <a href="/login">Log in</a>.</p>
-
-{% endblock %}
+    <p>Already have an account? <a href="/login">Log in</a>.</p>
+  </div>
+{% endblock base %}

@@ -1,0 +1,10 @@
+<table class="forms">
+  <tbody>
+  {% for form in forms %}
+    {% with %}
+      {% set form_loop = loop %}
+      {% include "forms/list_item.html" %}
+    {% endwith %}
+  {% endfor %}
+  </tbody>
+</table>

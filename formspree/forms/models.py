@@ -7,6 +7,16 @@ from formspree.utils import unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
 from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path, send_email
 
+CODE_TEMPLATE = '''
+<form action="{action}" method="POST">
+    <input type="text" name="_gotcha" style="display:none" />
+    <input type="email" name="email" placeholder="Your email">
+    <textarea name="message" rows="5" placeholder="Your message"></textarea>
+    <input type="submit" value="Send">
+</form>
+'''
+
+
 class Form(DB.Model):
     __tablename__ = 'forms'
 
@@ -209,3 +219,24 @@ class Form(DB.Model):
             DB.session.add(form)
             DB.session.commit()
             return form
+
+    @property
+    def action(self):
+        return url_for('send', email_or_string=self.get_random_like_string(), _external=True)
+
+    @property
+    def code(self):
+        return CODE_TEMPLATE.format(action=self.action)
+
+    @property
+    def is_new(self):
+        return not self.host
+
+    @property
+    def status(self):
+        if self.is_new:
+            return 'new'
+        elif self.confirmed:
+            return 'confirmed'
+        elif self.confirm_sent:
+            return 'awaiting_confirmation'
