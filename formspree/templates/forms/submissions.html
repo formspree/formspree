@@ -12,9 +12,9 @@
       {% endif %}
       at <span class="code">{{ form.host }}</span>
       {% if not form.hash %}
-        (targetting <span class="code">{{ form.email }}</span>)
+        (targeting <span class="code">{{ form.email }}</span>)
       {% else %}
-        <br><small>(you can replace the email in the URL with <span class="code">/{{ form.get_random_like_string() }}</span>)</small>
+        <br><small>(you can now replace the email in the URL with <span class="code">/{{ form.get_random_like_string() }}</span>)</small>
       {% endif %}
     </h2>
 
