@@ -1,4 +1,5 @@
 flask
+flask-cors
 flask-script
 flask-sqlalchemy
 flask-migrate

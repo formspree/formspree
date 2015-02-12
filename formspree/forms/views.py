@@ -2,7 +2,8 @@ import flask
 
 from flask import request, url_for, render_template, redirect, jsonify, flash
 from flask.ext.login import current_user, login_required
-from formspree.utils import crossdomain, request_wants_json, jsonerror
+from flask.ext.cors import cross_origin
+from formspree.utils import request_wants_json, jsonerror
 from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH
 
 from formspree.app import DB
@@ -12,7 +13,7 @@ from formspree import settings
 def thanks():
     return render_template('forms/thanks.html')
 
-@crossdomain(origin='*')
+@cross_origin(allow_headers=['Accept', 'Content-Type', 'X-Requested-With'])
 @ordered_storage
 def send(email_or_string):
     '''
