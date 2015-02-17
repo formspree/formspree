@@ -2326,7 +2326,10 @@ table {
       padding: 7px; }
     table.submissions td {
       border: 1px solid #ddd;
-      padding: 5px; }
+      padding: 1px; }
+    table.submissions pre {
+      font-family: inherit;
+      margin: 0; }
   table.forms tr.confirmed .ion-checkmark {
     color: #33cc99; }
   table.forms tr.new {

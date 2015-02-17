@@ -33,7 +33,7 @@
             <tr>
               <td>{{ submission.submitted_at.strftime('%A, %B %d, %Y at %X') }}</td>
               {% for f in fields %}
-                <td>{{ submission.data[f] }}</td>
+                <td><pre>{{ submission.data[f] }}</pre></td>
               {% endfor %}
             </tr>
           {% endfor %}

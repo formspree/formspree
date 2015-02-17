@@ -45,7 +45,11 @@ table {
     }
     td {
       border: 1px solid $accent;
-      padding: 5px;
+      padding: 1px;
+    }
+    pre {
+      font-family: inherit;
+      margin: 0;
     }
   }
 
