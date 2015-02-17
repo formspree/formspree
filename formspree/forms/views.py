@@ -144,7 +144,7 @@ def forms():
 
     # Create a new form
     if not current_user.upgraded:
-        return jsonerror(403, {'error': "Please upgrade your account."})
+        return jsonerror(402, {'error': "Please upgrade your account."})
 
     if request.get_json():
         email = request.get_json().get('email')

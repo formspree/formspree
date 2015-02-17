@@ -51,7 +51,7 @@ class FormPostsTestCase(FormspreeTestCase):
             headers={'Content-type': 'application/json'},
             data={'email': 'hope@springs.com'}
         )
-        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.status_code, 402)
         self.assertIn('error', json.loads(r.data))
         self.assertEqual(0, Form.query.count())
 
