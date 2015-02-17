@@ -250,7 +250,7 @@ class Form(DB.Model):
         elif self.confirm_sent:
             return 'awaiting_confirmation'
 
-from sqlalchemy.dialects.postgresql import HSTORE
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.ext.mutable import MutableDict
 
 class Submission(DB.Model):
@@ -259,7 +259,7 @@ class Submission(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)
     submitted_at = DB.Column(DB.DateTime)
     form_id = DB.Column(DB.Integer, DB.ForeignKey('forms.id'))
-    data = DB.Column(MutableDict.as_mutable(HSTORE))
+    data = DB.Column(MutableDict.as_mutable(JSON))
 
     def __init__(self, form_id):
         self.submitted_at = datetime.datetime.utcnow()
