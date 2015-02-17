@@ -4,7 +4,7 @@ from flask import request, url_for, render_template, redirect, jsonify, flash
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from formspree.utils import request_wants_json, jsonerror
-from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH
+from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH, EXCLUDE_KEYS
 
 from formspree.app import DB
 from models import Form, Submission
@@ -177,18 +177,30 @@ def forms():
 
 @login_required
 def form_submissions(random_like_string):
+    if not current_user.upgraded:
+        return jsonerror(402, {'error': "Please upgrade your account."})
+
     form = Form.get_form_by_random_like_string(random_like_string)
-    if current_user.id != form.owner_id:
-        return redirect(url_for('dashboard'))
+    submissions = form.submissions
 
-    submissions = form.submissions.all()
-    fields = set()
-    for s in submissions:
-        fields.update(s.data.keys())
-    fields -= {'_gotcha', '_subject', '_next'}
+    if request_wants_json():
+        if current_user.id != form.owner_id:
+            return jsonerror(403, {'error': "You're not the owner of this form."})
 
-    return render_template('forms/submissions.html',
-        form=form,
-        fields=sorted(fields),
-        submissions=submissions
-    )
+        return jsonify({
+            'submissions': [s.data for s in submissions]
+        })
+    else:
+        if current_user.id != form.owner_id:
+            return redirect(url_for('dashboard'))
+
+        fields = set()
+        for s in submissions:
+            fields.update(s.data.keys())
+        fields -= set(EXCLUDE_KEYS)
+
+        return render_template('forms/submissions.html',
+            form=form,
+            fields=sorted(fields),
+            submissions=submissions
+        )
