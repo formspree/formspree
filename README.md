@@ -1,9 +1,9 @@
 
 
-FORMSPREE
----------
+FORMSPREE.IO
+------------
 
-Functional HTML forms
+Functional HTML forms. Hosted at [http://formspree.io](http://formspree.io).
 
 Just send your form to our URL and we'll forward it to your email. No PHP, Javascript or sign up required — perfect for static sites!
 Example:
