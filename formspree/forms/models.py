@@ -5,6 +5,7 @@ from formspree.app import DB, redis_store
 from formspree import settings, log
 from formspree.utils import unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
+from werkzeug.datastructures import ImmutableMultiDict
 from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path, send_email
 
 CODE_TEMPLATE = '''
@@ -81,13 +82,16 @@ class Form(DB.Model):
         id = HASHIDS_CODEC.decode(random_like_string)[0]
         return cls.query.get(id)
 
-    def send(self, http_form, referrer):
+    def send(self, submitted_data, referrer):
         '''
         Sends form to user's email.
         Assumes sender's email has been verified.
         '''
 
-        data, keys = http_form_to_dict(http_form)
+        if type(submitted_data) is ImmutableMultiDict:
+            data, keys = http_form_to_dict(submitted_data)
+        else:
+            data, keys = submitted_data, submitted_data.keys()
 
         subject = data.get('_subject', 'New submission from %s' % referrer_to_path(referrer))
         reply_to = data.get('_replyto', data.get('email', data.get('Email', None)))

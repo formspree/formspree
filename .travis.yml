@@ -1,0 +1,7 @@
+language: python
+python:
+  - "2.7"
+install: "pip install -r requirements.txt"
+script: "python manage.py test"
+env:
+  - REDISTOGO_URL='0.0.0.0:6379' TEST_DATABASE_URL=sqlite:// NONCE_SECRET='y0ur_n0nc3_s3cr3t' SECRET_KEY='y0ur_s3cr3t_k3y'

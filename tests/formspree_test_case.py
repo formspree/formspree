@@ -18,6 +18,8 @@ class FormspreeTestCase(TestCase):
         settings.MONTHLY_SUBMISSIONS_LIMIT = 2
         settings.SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL')
 
+        settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
+
         return create_app()
 
     def setUp(self):
