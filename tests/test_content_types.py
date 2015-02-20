@@ -67,19 +67,18 @@ class ContentTypeTestCase(FormspreeTestCase):
             data = {'name': 'bob'}
             data = json.dumps(data) if ct and 'json' in ct else data
 
-            # print 'SENT'
-            # print 'headers', headers
-            # print type(data), data
-            # print '\n'
+            res = self.client.post('/bob@example.com',
+                headers=headers,
+                data=data
+            )
+            check(res)
+
+            # test all combinations again, but with X-Requested-With header
+            # and expect json in all of them
+            headers['X-Requested-With'] = 'XMLHttpRequest'
 
             res = self.client.post('/bob@example.com',
                 headers=headers,
                 data=data
             )
-
-            # print 'GOT'
-            # print res.headers
-            # print res.get_data()
-            # print '\n'
-
-            check(res)
+            isjson(res)
