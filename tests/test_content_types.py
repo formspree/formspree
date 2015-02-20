@@ -23,19 +23,20 @@ class ContentTypeTestCase(FormspreeTestCase):
 
         def isjson(res):
             try:
-                json.loads(res.get_data())
-                assert(res.mimetype == 'application/json')
-                return True
-            except ValueError:
-                return False
+                d = json.loads(res.get_data())
+                self.assertIsInstance(d, dict)
+                self.assertIn('success', d)
+                self.assertEqual(res.mimetype, 'application/json')
+            except ValueError, e:
+                self.assertFalse(e)
 
         def ishtml(res):
             try:
-                json.loads(res.get_data())
-                return False
+                d = json.loads(res.get_data())
+                self.assertNotIsInstance(d, dict)
             except ValueError:
-                assert(res.mimetype == 'text/html')
-                return True
+                self.assertEqual(res.mimetype, 'text/html')
+                self.assertEqual(res.status_code, 302)
 
         types = [
              # content-type      # accept     # check
@@ -81,15 +82,4 @@ class ContentTypeTestCase(FormspreeTestCase):
             # print res.get_data()
             # print '\n'
 
-            assertion = check(res)
-            self.assertTrue(assertion)
-
-
-
-
-
-
-
-
-
-
+            check(res)
