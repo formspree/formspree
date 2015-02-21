@@ -49,5 +49,5 @@ def logout():
 
 @login_required
 def dashboard():
-    return render_template('users/dashboard.html', user=current_user)
+    return render_template('forms/list.html')
 

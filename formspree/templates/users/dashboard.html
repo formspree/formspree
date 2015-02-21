@@ -1,26 +1,26 @@
 {% extends 'layouts/base.html' %}
 
 {% block base %}
-  <div class="container narrow card index-card">
-    <div class="container">
-      <div class="col-1-1">
-        <h1>Hello {{ user.email }}</h1>
-
-        <p><a href="/logout">logout</a></p>
-      </div>
-
-      <hr/>
-
-      <div class="col-1-1">
-        <h2>Your Forms</h2>
-
-        {% include "forms/create.html" %}
-
-        {% with %}
-          {% set forms = user.forms.order_by('-id').all() %}
-          {% include "forms/list.html" %}
-        {% endwith %}
-      </div>
+  <div class="row section" id="header">
+    <div class="container center">
+      <h1>Hello {{ current_user.email }}</h1>
     </div>
   </div>
+
+  <div class="container block navtabs">
+    <div class="col-1-1">
+      <ul>
+        <li><a href="/dashboard">Your Forms</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="container block">
+      {% block section %}
+      {% endblock %}
+    </div>
+  </div>
+
 {% endblock base %}

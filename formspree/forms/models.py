@@ -27,6 +27,7 @@ class Form(DB.Model):
     confirm_sent = DB.Column(DB.Boolean)
     confirmed = DB.Column(DB.Boolean)
     counter = DB.Column(DB.Integer)
+    submissions = DB.relationship('Submission', backref='form', lazy='dynamic')
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
 
     '''
@@ -103,14 +104,22 @@ class Form(DB.Model):
         if spam:
             return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
 
+        # increase the monthly counter
+        request_date = datetime.datetime.now()
+        self.increase_monthly_counter(basedate=request_date)
+
         # increment the forms counter
         self.counter = Form.counter + 1
         DB.session.add(self)
         DB.session.commit()
 
-        # increase the monthly counter
-        request_date = datetime.datetime.now()
-        self.increase_monthly_counter(basedate=request_date)
+        # archive the form contents
+        sub = Submission(self.id)
+        sub.data = data
+        DB.session.add(sub)
+
+        # commit changes to postgres
+        DB.session.commit()
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
@@ -240,3 +249,18 @@ class Form(DB.Model):
             return 'confirmed'
         elif self.confirm_sent:
             return 'awaiting_confirmation'
+
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.ext.mutable import MutableDict
+
+class Submission(DB.Model):
+    __tablename__ = 'submissions'
+
+    id = DB.Column(DB.Integer, primary_key=True)
+    submitted_at = DB.Column(DB.DateTime)
+    form_id = DB.Column(DB.Integer, DB.ForeignKey('forms.id'))
+    data = DB.Column(MutableDict.as_mutable(JSON))
+
+    def __init__(self, form_id):
+        self.submitted_at = datetime.datetime.utcnow()
+        self.form_id = form_id
