@@ -25,6 +25,8 @@ def register():
 
 def login():
     if request.method == 'GET':
+        if current_user.is_authenticated():
+            return redirect(url_for('dashboard'))
         return render_template('users/login.html')
     email = request.form['email']
     password = request.form['password']
