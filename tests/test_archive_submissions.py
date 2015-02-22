@@ -56,14 +56,35 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         # check archived values
         submissions = form.submissions.all()
 
-        self.assertNotIn('message', submissions[0].data)
-        self.assertNotIn('_next', submissions[0].data)
-        self.assertIn('_next', submissions[1].data)
-        self.assertEqual('johann@gmail.com', submissions[0].data['_replyto'])
-        self.assertEqual('joh@ann.es', submissions[1].data['_replyto'])
-        self.assertEqual('johann', submissions[0].data['name'])
-        self.assertEqual('johannes', submissions[1].data['name'])
-        self.assertEqual('salve!', submissions[1].data['message'])
+        self.assertEqual(2, len(submissions))
+        self.assertNotIn('message', submissions[1].data)
+        self.assertNotIn('_next', submissions[1].data)
+        self.assertIn('_next', submissions[0].data)
+        self.assertEqual('johann@gmail.com', submissions[1].data['_replyto'])
+        self.assertEqual('joh@ann.es', submissions[0].data['_replyto'])
+        self.assertEqual('johann', submissions[1].data['name'])
+        self.assertEqual('johannes', submissions[0].data['name'])
+        self.assertEqual('salve!', submissions[0].data['message'])
+
+        # check if submissions over the limit are correctly deleted
+        self.assertEqual(settings.ARCHIVED_SUBMISSIONS_LIMIT, 2)
+
+        self.client.post('/alice@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'which-submission-is-this': 'the third!'}
+        )
+        self.assertEqual(2, form.submissions.count())
+        newest = form.submissions.first() # first should be the newest
+        self.assertEqual(newest.data['which-submission-is-this'], 'the third!')
+
+        self.client.post('/alice@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'which-submission-is-this': 'the fourth!'}
+        )
+        self.assertEqual(2, form.submissions.count())
+        newest, last = form.submissions.all()
+        self.assertEqual(newest.data['which-submission-is-this'], 'the fourth!')
+        self.assertEqual(last.data['which-submission-is-this'], 'the third!')
 
     @httpretty.activate
     def test_upgraded_user_access(self):
