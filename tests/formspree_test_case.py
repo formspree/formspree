@@ -16,6 +16,8 @@ class FormspreeTestCase(TestCase):
         self.redis_patcher.start()
 
         settings.MONTHLY_SUBMISSIONS_LIMIT = 2
+        settings.ARCHIVED_SUBMISSIONS_LIMIT = 2
+        settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
         settings.SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL')
 
         return create_app()

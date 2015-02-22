@@ -5,6 +5,7 @@ from formspree.app import DB, redis_store
 from formspree import settings, log
 from formspree.utils import unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
+from sqlalchemy.sql.expression import delete
 from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path, send_email
 
 CODE_TEMPLATE = '''
@@ -27,8 +28,10 @@ class Form(DB.Model):
     confirm_sent = DB.Column(DB.Boolean)
     confirmed = DB.Column(DB.Boolean)
     counter = DB.Column(DB.Integer)
-    submissions = DB.relationship('Submission', backref='form', lazy='dynamic')
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
+
+    submissions = DB.relationship('Submission',
+        backref='form', lazy='dynamic', order_by=lambda: Submission.id.desc())
 
     '''
     When the form is created by a spontaneous submission, it is added to
@@ -111,15 +114,19 @@ class Form(DB.Model):
         # increment the forms counter
         self.counter = Form.counter + 1
         DB.session.add(self)
-        DB.session.commit()
 
         # archive the form contents
         sub = Submission(self.id)
         sub.data = data
         DB.session.add(sub)
 
-        # commit changes to postgres
+        # commit changes
         DB.session.commit()
+
+        # delete all archived submissions over the limit
+        records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
+        newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
+        DB.engine.execute(delete('submissions').where(~Submission.id.in_(newest)))
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
