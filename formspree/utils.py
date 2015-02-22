@@ -34,6 +34,8 @@ def accept_better(subject, against):
             return True
 
         return isub < iaga
+    else:
+        return False
 
 
 def jsonerror(code, *args, **kwargs):
