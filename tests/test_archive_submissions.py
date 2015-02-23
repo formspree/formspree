@@ -86,6 +86,74 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         self.assertEqual(newest.data['which-submission-is-this'], 'the fourth!')
         self.assertEqual(last.data['which-submission-is-this'], 'the third!')
 
+        #
+        # try another form (to ensure that a form is not deleting wrong submissions)
+        self.client.post('/sokratis@example.com',
+            headers = {'referer': 'http://here.com'},
+            data={'name': 'send me the confirmation!'}
+        )
+        query = Form.query.filter_by(host='here.com',
+                                     email='sokratis@example.com')
+        self.assertEqual(query.count(), 1)
+        secondform = query.first()
+
+        # this form wasn't confirmed, so it still has no submissions
+        self.assertEqual(secondform.submissions.count(), 0)
+
+        # confirm
+        secondform.confirmed = True
+        DB.session.add(form)
+        DB.session.commit()
+
+        # submit more times and test
+        self.client.post('/sokratis@example.com',
+            headers = {'referer': 'http://here.com'},
+            data={'name': 'leibniz'}
+        )
+
+        self.assertEqual(1, secondform.submissions.count())
+        self.assertEqual(secondform.submissions.first().data['name'], 'leibniz')
+
+        self.client.post('/sokratis@example.com',
+            headers = {'referer': 'http://here.com'},
+            data={'name': 'schelling'}
+        )
+
+        self.assertEqual(2, secondform.submissions.count())
+        newest, last = secondform.submissions.all()
+        self.assertEqual(newest.data['name'], 'schelling')
+        self.assertEqual(last.data['name'], 'leibniz')
+
+        self.client.post('/sokratis@example.com',
+            headers = {'referer': 'http://here.com'},
+            data={'name': 'husserl'}
+        )
+
+        self.assertEqual(2, secondform.submissions.count())
+        newest, last = secondform.submissions.all()
+        self.assertEqual(newest.data['name'], 'husserl')
+        self.assertEqual(last.data['name'], 'schelling')
+
+        # now check the previous form again
+        newest, last = form.submissions.all()
+        self.assertEqual(newest.data['which-submission-is-this'], 'the fourth!')
+        self.assertEqual(last.data['which-submission-is-this'], 'the third!')
+
+        self.client.post('/alice@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'which-submission-is-this': 'the fifth!'}
+        )
+        self.assertEqual(2, form.submissions.count())
+        newest, last = form.submissions.all()
+        self.assertEqual(newest.data['which-submission-is-this'], 'the fifth!')
+        self.assertEqual(last.data['which-submission-is-this'], 'the fourth!')
+
+        # just one more time the second form
+        self.assertEqual(2, secondform.submissions.count())
+        newest, last = secondform.submissions.all()
+        self.assertEqual(newest.data['name'], 'husserl')
+        self.assertEqual(last.data['name'], 'schelling')
+
     @httpretty.activate
     def test_upgraded_user_access(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
