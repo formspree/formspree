@@ -60,7 +60,7 @@ def http_form_to_dict(data):
 
 def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
     '''
-    Sends email using Mailgun's REST-api
+    Sends email using Sendgrid Web API.
     '''
 
     if None in [to, subject, text, sender]:
