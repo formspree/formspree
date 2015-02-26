@@ -10,6 +10,7 @@ from formspree.app import DB
 from models import Form, Submission
 from formspree import settings
 
+@cross_origin(allow_headers=['Accept', 'Content-Type', 'X-Requested-With'])
 def thanks():
     return render_template('forms/thanks.html')
 
