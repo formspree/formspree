@@ -1,3 +1,5 @@
+import stripe
+
 import flask
 from flask import g
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -7,10 +9,10 @@ import settings
 
 DB = SQLAlchemy()
 redis_store = Redis()
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 import routes
 from users.models import User
-
 
 def configure_login(app):
     login_manager = LoginManager()

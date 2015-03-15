@@ -9,8 +9,6 @@ from formspree.app import DB
 from formspree import settings
 from models import User
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
-
 def register():
     if request.method == 'GET':
         return render_template('users/register.html')
@@ -67,7 +65,7 @@ def upgrade():
     try:
         if current_user.stripe_id:
             customer = stripe.Customer.retrieve(current_user.stripe_id)
-            sub = customer.subscriptions.data[0] if customer.subscriptions.data else none
+            sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
         else:
             customer = stripe.Customer.create(
                 email=current_user.email,
@@ -98,7 +96,7 @@ def upgrade():
 @login_required
 def downgrade():
     customer = stripe.Customer.retrieve(current_user.stripe_id)
-    sub = customer.subscriptions.data[0] if customer.subscriptions.data else none
+    sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
 
     if not sub:
         flash("You are not subscribed to any plan", "error")
@@ -112,10 +110,13 @@ def downgrade():
 def stripe_webhook():
     event = request.get_json()
     if event['type'] == 'customer.subscription.deleted':
-        user = User.query.filter_by(stripe_id=event['data']['object']['customer']).first()
-        user.upgraded = False
-        DB.session.add(user)
-        DB.session.commit()
+        customer_id = event['data']['object']['customer']
+        customer = stripe.Customer.retrieve(customer_id)
+        if len(customer.subscriptions.data) == 0:
+            user = User.query.filter_by(stripe_id=customer_id).first()
+            user.upgraded = False
+            DB.session.add(user)
+            DB.session.commit()
     return 'ok'
 
 
