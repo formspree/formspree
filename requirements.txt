@@ -5,13 +5,14 @@ flask-sqlalchemy
 flask-migrate
 flask-redis
 flask-testing
+flask-login
 requests==2.0.0
 hashids==1.0.2
 paste
 python-dotenv
 gunicorn
 psycopg2
-flask-login
+stripe
 httpretty
 fakeredis
 redis

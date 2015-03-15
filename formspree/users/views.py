@@ -1,9 +1,15 @@
-from flask import request, flash, url_for, render_template, redirect
+import stripe
+import datetime
+
+from flask import request, flash, url_for, render_template, redirect, abort
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from sqlalchemy.exc import IntegrityError
 from helpers import check_password
 from formspree.app import DB
+from formspree import settings
 from models import User
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def register():
     if request.method == 'GET':
@@ -49,7 +55,78 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+
+def upgrade():
+    token = request.form['stripeToken']
+
+    if not current_user:
+        user = User.query.filter_by(email=request.form['stripeEmail']).first()
+        login_user(user)
+
+    sub = None
+    try:
+        if current_user.stripe_id:
+            customer = stripe.Customer.retrieve(current_user.stripe_id)
+            sub = customer.subscriptions.data[0] if customer.subscriptions.data else none
+        else:
+            customer = stripe.Customer.create(
+                email=current_user.email,
+                metadata={'formspree_id': current_user.id},
+            )
+            current_user.stripe_id = customer.id
+
+        if sub:
+            sub.plan = 'gold'
+            sub.source = token
+            sub.save()
+        else:
+            customer.subscriptions.create(
+                plan='gold',
+                source=token
+            )
+    except stripe.CardError:
+        flash("Your card could not be charged", "error")
+        return redirect(url_for('dashboard'))
+
+    current_user.upgraded = True
+    DB.session.add(current_user)
+    DB.session.commit()
+
+    return redirect(url_for('dashboard'))
+
+
+@login_required
+def downgrade():
+    customer = stripe.Customer.retrieve(current_user.stripe_id)
+    sub = customer.subscriptions.data[0] if customer.subscriptions.data else none
+
+    if not sub:
+        flash("You are not subscribed to any plan", "error")
+
+    sub = sub.delete(at_period_end=True)
+    flash("Your were unregistered from the Formspree Gold plan. Your card will not be charged anymore, but your plan will remain active until %s." % datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')) 
+
+    return redirect(url_for('account'))
+
+
+def stripe_webhook():
+    event = request.get_json()
+    if event['type'] == 'customer.subscription.deleted':
+        user = User.query.filter_by(stripe_id=event['data']['object']['customer']).first()
+        user.upgraded = False
+        DB.session.add(user)
+        DB.session.commit()
+    return 'ok'
+
+
+@login_required
+def account():
+    return render_template('users/account.html')
+
+
 @login_required
 def dashboard():
+    if not current_user.upgraded:
+        return redirect(url_for('account'))
     return render_template('forms/list.html')
 

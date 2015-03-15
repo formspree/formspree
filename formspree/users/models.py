@@ -9,6 +9,7 @@ class User(DB.Model):
     email = DB.Column(DB.String(50),unique=True , index=True)
     password = DB.Column(DB.String(100))
     upgraded = DB.Column(DB.Boolean)
+    stripe_id = DB.Column(DB.String(50))
     registered_on = DB.Column(DB.DateTime)
     forms = DB.relationship('Form', backref='owner', lazy='dynamic')
 
