@@ -19,7 +19,7 @@ def register():
         return render_template('users/register.html')
 
     login_user(user)
-    flash('Your account is successfully registered.')
+    # flash('Your account is successfully registered.') # this is ugly.
 
     return redirect(url_for('dashboard'))
 
@@ -41,7 +41,7 @@ def login():
         flash("Invalid Password. Please verify the password entered.")
         return redirect(url_for('login'))
     login_user(user, remember = remember_me)
-    flash('Logged in successfully')
+    # flash('Logged in successfully') # this is ugly
     return redirect(request.args.get('next') or url_for('dashboard'))
 
 
