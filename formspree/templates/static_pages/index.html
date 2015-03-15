@@ -4,7 +4,7 @@
 
   <title>{{config.SERVICE_NAME}} | Functional HTML forms</title>
 
-  <link rel="stylesheet" href="/static/css/main.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
 
   <script src="//use.typekit.net/htc4dlo.js"></script>
   <script>try{Typekit.load();}catch(e){}</script>
@@ -38,7 +38,7 @@
             <div class="col-1-2">
                 <p>Example:</p>
                 <p class="card code" style="font-size: small">
-                    &lt;form <span class="tooltip hint--top" data-hint="Use our URL as form's action">action="<span class="attr">{{config.API_ROOT}}/you@email.com</span>"</span>&gt;<br />
+                    &lt;form <span class="tooltip hint--top" data-hint="Use our URL as form's action">action="<span class="attr">{{config.API_ROOT}}/your@email.com</span>"</span>&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="<span class="attr">text</span>" name="<span class="attr">name</span>"&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="<span class="attr">email</span>" <span class="tooltip hint--top" data-hint="Use advanced attributes">name="<span class="attr">_replyto</span>"</span>&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;<span class="tooltip hint--bottom" data-hint="When user submits, we'll email data to you">&lt;input type="<span class="attr">submit</span>" value="<span class="attr">Send</span>"&gt;</span><br />
@@ -113,7 +113,7 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>Are there any limits?</h4>
-                    <p>Yep, for now we cap submissions to 1000 per email for each month. If you need more, please reach out to {{config.CONTACT_EMAIL}}.</p>
+                    <p>Yep, for now we cap submissions to 1000 per email for each month. If you need more, please reach out to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</p>
                 </div>
             </div>
       </div>
