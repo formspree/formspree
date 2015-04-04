@@ -8,4 +8,4 @@ addons:
 before_script:
   - psql -c 'create database formspree_test;' -U postgres
 env:
-  - REDISTOGO_URL='0.0.0.0:6379' TEST_DATABASE_URL=postgres:///formspree_test NONCE_SECRET='y0ur_n0nc3_s3cr3t' SECRET_KEY='y0ur_s3cr3t_k3y' HASHIDS_SALT=doesntmatter
+  - REDISTOGO_URL='0.0.0.0:6379' TEST_DATABASE_URL=postgres:///formspree_test NONCE_SECRET='y0ur_n0nc3_s3cr3t' SECRET_KEY='y0ur_s3cr3t_k3y' HASHIDS_SALT=doesntmatter STRIPE_TEST_PUBLISHABLE_KEY=pk_test_Wfn24tmg5vXrawR8Qoiel2l1 STRIPE_TEST_SECRET_KEY=sk_test_GhoW9IIKi09RWW7EVcqtNtni

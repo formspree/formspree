@@ -14,9 +14,15 @@ def configure_routes(app):
 
     # Users
     app.add_url_rule('/dashboard', 'dashboard', view_func=users.views.dashboard, methods=['GET'])
+    app.add_url_rule('/account', 'account', view_func=users.views.account, methods=['GET'])
+    app.add_url_rule('/account/upgrade', view_func=users.views.upgrade, methods=['POST'])
+    app.add_url_rule('/account/downgrade', view_func=users.views.downgrade, methods=['POST'])
     app.add_url_rule('/register', 'register', view_func=users.views.register, methods=['GET', 'POST'])
     app.add_url_rule('/login', 'login', view_func=users.views.login, methods=   ['GET', 'POST'])
     app.add_url_rule('/logout', 'logout', view_func=users.views.logout, methods=['GET'])
 
     app.add_url_rule('/forms', 'forms', view_func=forms.views.forms, methods=['GET', 'POST'])
     app.add_url_rule('/forms/<random_like_string>/', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
+
+    # Webhooks
+    app.add_url_rule('/webhooks/stripe', view_func=users.views.stripe_webhook, methods=['POST'])
