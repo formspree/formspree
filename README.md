@@ -121,7 +121,7 @@ You will need to install the [heroku toolbelt](https://toolbelt.heroku.com/).
 
 Once your environment is setup, clone the source and cd into the root of the Formspree repository. Then run:
 
-    heroku app:create [your project name]
+    heroku apps:create [your project name]
 
 then
 
