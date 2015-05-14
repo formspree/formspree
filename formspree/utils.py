@@ -1,12 +1,17 @@
+import requests
 import datetime
 import calendar
-from datetime import timedelta
 import urlparse
+import string
+import uuid
+import re
+from datetime import timedelta
 from flask import make_response, current_app, request, url_for, jsonify
 from importlib import import_module
 
-import string
-import uuid
+from formspree import settings, log
+
+IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
 # decorators
 
@@ -70,3 +75,53 @@ def next_url(referrer=None, next=None):
     parsed[2] = next
 
     return urlparse.urlunparse(parsed)
+
+
+def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
+    '''
+    Sends email using SendGrid's REST-api
+    '''
+
+    if None in [to, subject, text, sender]:
+        raise ValueError('to, subject text and sender are required to send email')
+
+    data = {'api_user': settings.SENDGRID_USERNAME,
+            'api_key': settings.SENDGRID_PASSWORD,
+            'to': to,
+            'subject': subject,
+            'text': text,
+            'html': html}
+
+    # parse 'fromname' from 'sender' if it is formatted like "Name <name@email.com>"
+    try:
+        bracket = sender.index('<')
+        data.update({
+            'from': sender[bracket+1:-1],
+            'fromname': sender[:bracket].strip()
+        })
+    except ValueError:
+        data.update({'from': sender})
+
+    if reply_to and IS_VALID_EMAIL(reply_to):
+        data.update({'replyto': reply_to})
+
+    if cc and IS_VALID_EMAIL(cc):
+        data.update({'cc': cc})
+
+    log.info('Queuing message to %s' % str(to))
+
+    result = requests.post(
+        'https://api.sendgrid.com/api/mail.send.json',
+        data=data
+    )
+
+    log.info('Queued message to %s' % str(to))
+    errmsg = ""
+    if result.status_code / 100 != 2:
+        try:
+            errmsg = '; \n'.join(result.json().get("errors"))
+        except ValueError:
+            errmsg = result.text
+        log.warning(errmsg)
+
+    return result.status_code / 100 == 2, errmsg

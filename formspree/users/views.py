@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from helpers import check_password
 from formspree.app import DB
 from formspree import settings
-from models import User
+from models import User, Email
 
 def register():
     if request.method == 'GET':
@@ -23,9 +23,25 @@ def register():
         return render_template('users/register.html')
 
     login_user(user)
-    # flash('Your account is successfully registered.') # this is ugly.
 
-    return redirect(url_for('dashboard'))
+    Email.send_confirmation(user.email, user.id)
+    return redirect(url_for('notify_email_confirmation'))
+
+
+@login_required
+def confirm_email(digest):
+    email = Email.create_with_digest(addr=request.args.get('email', ''),
+                                     user_id=current_user.id,
+                                     digest=digest)
+    if email:
+        DB.session.add(email)
+        DB.session.commit()
+        flash('%s confirmed.' % email)
+        return redirect(url_for('dashboard'))
+    else:
+        flash('Couldn\'t confirm %s. Wrong link.' % email)
+        return redirect(url_for('dashboard'))
+
 
 def login():
     if request.method == 'GET':
@@ -39,7 +55,7 @@ def login():
         remember_me = True
     user = User.query.filter_by(email=email).first()
     if user is None:
-        flash("We can't find an account related with this Email id. Please verify the Email entered.", "error")
+        flash("We couldn't find an account related with this email. Please verify the email entered.", "error")
         return redirect(url_for('login'))
     elif not check_password(user.password, password):
         flash("Invalid Password. Please verify the password entered.")
@@ -118,6 +134,16 @@ def stripe_webhook():
             DB.session.add(user)
             DB.session.commit()
     return 'ok'
+
+
+@login_required
+def notify_email_confirmation():
+    return render_template('users/info.html',
+      title="Please confirm your email",
+      text="We've sent an email confirmation to {email}. "
+           "Please go there and click on the confirmation "
+           "link before you can use your Formspree account."\
+           .format(email=current_user.email))
 
 
 @login_required

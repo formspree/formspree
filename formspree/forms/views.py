@@ -3,8 +3,8 @@ import flask
 from flask import request, url_for, render_template, redirect, jsonify, flash
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
-from formspree.utils import request_wants_json, jsonerror
-from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH, EXCLUDE_KEYS
+from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
+from helpers import ordered_storage, referrer_to_path, HASH, EXCLUDE_KEYS
 
 from formspree.app import DB
 from models import Form, Submission

@@ -3,10 +3,10 @@ import datetime
 
 from formspree.app import DB, redis_store
 from formspree import settings, log
-from formspree.utils import unix_time_for_12_months_from_now, next_url
+from formspree.utils import send_email, unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
 from sqlalchemy.sql.expression import delete
-from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path, send_email
+from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path
 
 CODE_TEMPLATE = '''
 <form action="{action}" method="POST">
