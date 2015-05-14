@@ -17,7 +17,11 @@ class User(DB.Model):
     upgraded = DB.Column(DB.Boolean)
     stripe_id = DB.Column(DB.String(50))
     registered_on = DB.Column(DB.DateTime)
-    forms = DB.relationship('Form', backref='owner', lazy='dynamic')
+    forms = DB.relationship('Form',
+        primaryjoin="and_(Email.owner_id==User.id, foreign(Form.email)==remote(Email.address))",
+        viewonly=True,
+        lazy='dynamic'
+    )
     emails = DB.relationship('Email', backref='owner', lazy='dynamic')
 
     def __init__(self, email, password):

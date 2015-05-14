@@ -1,8 +1,6 @@
 import httpretty
-import re
 import json
 import stripe
-from urllib import unquote
 
 from formspree import settings
 from formspree.app import DB
@@ -11,6 +9,7 @@ from formspree.users.models import User, Email
 from formspree.forms.models import Form
 
 from formspree_test_case import FormspreeTestCase
+from utils import parse_confirmation_link_sent
 
 class UserAccountsTestCase(FormspreeTestCase):
 
@@ -31,13 +30,12 @@ class UserAccountsTestCase(FormspreeTestCase):
         user = User.query.filter_by(email='alice@springs.com').first()
         self.assertIsNone(Email.query.get(['alice@springs.com', user.id]))
 
-        txt = unquote(httpretty.last_request().body)
-        matchlink = re.search('Link:\+([^?]+)\?(\S+)', txt)
-        self.assertTrue(matchlink)
-
-        link = matchlink.group(1)
-        qs = matchlink.group(2)
-        self.client.get(link, query_string=qs, follow_redirects=True)
+        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
+        self.client.get(
+            link,
+            query_string=qs,
+            follow_redirects=True
+        )
         email = Email.query.get(['alice@springs.com', user.id])
         self.assertEqual(Email.query.count(), 1)
         self.assertIsNotNone(email)

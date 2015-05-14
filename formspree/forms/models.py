@@ -30,6 +30,7 @@ class Form(DB.Model):
     counter = DB.Column(DB.Integer)
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
 
+    owner = DB.relationship('User')
     submissions = DB.relationship('Submission',
         backref='form', lazy='dynamic', order_by=lambda: Submission.id.desc())
 
