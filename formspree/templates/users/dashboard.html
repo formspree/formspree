@@ -10,8 +10,8 @@
   <div class="container block navtabs">
     <div class="col-1-1">
       <ul>
-        <li><a href="/account">Your account</a></li>
-        {% if current_user.upgraded %}<li><a href="/dashboard">Your Forms</a></li>{% endif %}
+        <li><a href="{{ url_for('account') }}">Your account</a></li>
+        <li><a href="{{ url_for('dashboard') }}">Your Forms</a></li>
         <li><a href="/logout">Logout</a></li>
       </ul>
     </div>

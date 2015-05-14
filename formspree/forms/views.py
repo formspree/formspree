@@ -137,10 +137,40 @@ def confirm_email(nonce):
 @login_required
 def forms():
     if request.method == 'GET':
+        '''
+        A reminder: this is the /forms endpoint, but for GET requests
+        it is also the /dashboard endpoint.
+
+        The /dashboard endpoint, the address gave by url_for('dashboard'),
+        is the target of a lot of redirects around the app, but it can
+        be changed later to point to somewhere else.
+        '''
+
+        # grab all the forms this user controls
+        forms = current_user.forms.order_by('-id').all()
+
         if request_wants_json():
-            return jsonerror(501, {'error': "This endpoint may return the list of forms for the logged user."})
+            return jsonify({
+                'ok': True,
+                'forms': [{
+                    'email': f.email,
+                    'host': f.host,
+                    'confirm_sent': f.confirm_sent,
+                    'confirmed': f.confirmed,
+                    'is_public': bool(f.hash),
+                    'url': '{S}/{E}'.format(
+                        S=settings.SERVICE_URL,
+                        E=f.get_random_like_string()
+                    )
+                } for f in forms]
+            })
         else:
-            return redirect(url_for('dashboard'))
+            # when the user has no forms and no way of creating them (because he is not upgraded)
+            # redirect him to a page with more useful information:
+            if not current_user.upgraded and not forms:
+                return redirect(url_for('account'))
+
+            return render_template('forms/list.html', forms=forms)
 
     # Create a new form
     if not current_user.upgraded:

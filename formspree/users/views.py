@@ -161,11 +161,3 @@ def notify_email_confirmation():
 @login_required
 def account():
     return render_template('users/account.html')
-
-
-@login_required
-def dashboard():
-    if not current_user.upgraded:
-        return redirect(url_for('account'))
-    return render_template('forms/list.html')
-
