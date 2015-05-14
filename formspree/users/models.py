@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import url_for, render_template
 
 from formspree import settings
-from formspree.utils import send_email
+from formspree.utils import send_email, IS_VALID_EMAIL
 from formspree.app import DB
 from helpers import hash_pwd
 
@@ -21,6 +21,9 @@ class User(DB.Model):
     emails = DB.relationship('Email', backref='owner', lazy='dynamic')
 
     def __init__(self, email, password):
+        if not IS_VALID_EMAIL(email):
+            raise ValueError('Cannot create User. %s is not a valid email.' % email)
+
         self.email = email
         self.password = hash_pwd(password)
         self.upgraded = False
@@ -52,6 +55,9 @@ class Email(DB.Model):
     @staticmethod
     def send_confirmation(addr, user_id):
         addr = addr.lower()
+        if not IS_VALID_EMAIL(addr):
+            raise ValueError('Cannot send confirmation. %s is not a valid email.' % addr)
+
         message = 'email={email}&user_id={user_id}'.format(email=addr, user_id=user_id)
         digest = hmac.new(settings.NONCE_SECRET, message, hashlib.sha256).hexdigest()
         link = url_for('confirm_account_email', digest=digest, email=addr, _external=True)

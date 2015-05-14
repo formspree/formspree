@@ -16,7 +16,10 @@ def register():
         user = User(request.form['email'], request.form['password'])
         DB.session.add(user)
         DB.session.commit()
-
+    except ValueError:
+        DB.session.rollback()
+        flash("%s is not a valid email address." % request.form['email'], "error")
+        return render_template('users/register.html')
     except IntegrityError:
         DB.session.rollback()
         flash("An account with this email already exists.", "error")
@@ -26,6 +29,15 @@ def register():
 
     Email.send_confirmation(user.email, user.id)
     return redirect(url_for('notify_email_confirmation'))
+
+
+@login_required
+def add_email():
+    try:
+        Email.send_confirmation(request.form['address'], current_user.id)
+    except ValueError:
+        flash("%s is not a valid email address." % request.form['email'], "error")
+    return redirect(url_for('account'))
 
 
 @login_required
