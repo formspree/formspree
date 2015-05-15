@@ -48,7 +48,7 @@ def add_email():
     try:
         sent = Email.send_confirmation(address, current_user.id)
         if sent:
-            pending = request.cookies['pending-emails'].split(',') if 'pending-emails' in request.cookies else []
+            pending = request.cookies.get('pending-emails', '').split(',')
             pending.append(address)
             res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
             flash("We've sent a message with a verification link to %s." % address)
@@ -70,7 +70,7 @@ def confirm_email(digest):
         try:
             DB.session.add(email)
             DB.session.commit()
-            pending = request.cookies['pending-emails'].split(',') if 'pending-emails' in request.cookies else []
+            pending = request.cookies.get('pending-emails', '').split(',')
             pending.remove(email.address)
             res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
             flash('%s confirmed.' % email.address)
@@ -188,6 +188,6 @@ def notify_email_confirmation():
 def account():
     emails = {
         'verified': (e.address for e in current_user.emails.order_by(Email.registered_on.desc())),
-        'pending': request.cookies['pending-emails'].split(',') if 'pending-emails' in request.cookies else [],
+        'pending': filter(bool, request.cookies.get('pending-emails', '').split(',')),
     }
     return render_template('users/account.html', emails=emails)

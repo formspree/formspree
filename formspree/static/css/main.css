@@ -2340,7 +2340,7 @@ table {
       color: #dd0000; }
       table.forms tr.new a:hover, table.emails tr.new a:hover {
         text-decoration: underline; }
-  table.forms tr.awaiting_confirmation, table.emails tr.awaiting_confirmation {
+  table.forms tr.waiting_confirmation, table.emails tr.waiting_confirmation {
     color: #ff6600; }
   table.forms div[id^="codeModal"], table.emails div[id^="codeModal"] {
     display: none; }

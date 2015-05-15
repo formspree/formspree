@@ -266,7 +266,7 @@ class Form(DB.Model):
         elif self.confirmed:
             return 'confirmed'
         elif self.confirm_sent:
-            return 'awaiting_confirmation'
+            return 'waiting_confirmation'
 
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.ext.mutable import MutableDict
