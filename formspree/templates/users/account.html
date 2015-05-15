@@ -7,8 +7,41 @@
 
     <div class="container block">
       <div class="col-1-2">
-        <div class="card">
-          You are registered with the email <span class="code">{{ current_user.email }}</span> since {{ current_user.registered_on.strftime('%B %d, %Y') }}.
+        <div class="container block">
+          <div class="card">
+            You are registered with the email <span class="code">{{ current_user.email }}</span> since {{ current_user.registered_on.strftime('%B %d, %Y') }}.
+          </div>
+        </div>
+        <div class="container block">
+          <div class="card">
+            <h3>Your emails</h3>
+            <table class="emails">
+              <tr>
+                <form method="post" action="{{ url_for('add-account-email') }}">
+                  <td>
+                    <input name="address" placeholder="Add an email to your account">
+                  </td>
+                  <td style="width: 1px">
+                    <button type="submit" style="font-size: 0.76em; padding: 1em 0.9em">Verify</button>
+                  </td>
+                </form>
+              </tr>
+            {% for email in emails.pending %}
+              <tr class="awaiting_confirmation">
+                <td>{{ email }}</td>
+                <td><span class="tooltip hint--right" data-hint="Waiting verification. Please check your mailbox."><span class="ion-pause"></span></span></td>
+              </tr>
+            {% endfor %}
+            {% for email in emails.verified %}
+              <tr>
+                <td>{{ email }}</td>
+                <td>
+                  <span class="tooltip hint--right" data-hint="This address is verified. You can freely control forms that post to it."><span class="ion-checkmark-round"></span>
+                </td>
+              </tr>
+            {% endfor %}
+            </table>
+          </div>
         </div>
       </div>
       <div class="col-1-2">

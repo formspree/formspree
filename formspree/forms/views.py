@@ -147,7 +147,7 @@ def forms():
         '''
 
         # grab all the forms this user controls
-        forms = current_user.forms.order_by('-id').all()
+        forms = current_user.forms.order_by(Form.id.desc()).all()
 
         if request_wants_json():
             return jsonify({
@@ -165,11 +165,6 @@ def forms():
                 } for f in forms]
             })
         else:
-            # when the user has no forms and no way of creating them (because he is not upgraded)
-            # redirect him to a page with more useful information:
-            if not current_user.upgraded and not forms:
-                return redirect(url_for('account'))
-
             return render_template('forms/list.html', forms=forms)
 
     # Create a new form
@@ -211,19 +206,20 @@ def form_submissions(random_like_string):
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     form = Form.get_form_by_random_like_string(random_like_string)
+
+    if not form.controlled_by(current_user):
+        if request_wants_json():
+            return jsonerror(403, {'error': "You do not control this form."})
+        else:
+            return redirect(url_for('dashboard'))
+
     submissions = form.submissions
 
     if request_wants_json():
-        if current_user.id != form.owner_id:
-            return jsonerror(403, {'error': "You're not the owner of this form."})
-
         return jsonify({
             'submissions': [s.data for s in submissions]
         })
     else:
-        if current_user.id != form.owner_id:
-            return redirect(url_for('dashboard'))
-
         fields = set()
         for s in submissions:
             fields.update(s.data.keys())

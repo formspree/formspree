@@ -6,23 +6,31 @@ from flask import url_for, render_template
 from formspree import settings
 from formspree.utils import send_email, IS_VALID_EMAIL
 from formspree.app import DB
+from formspree.forms.models import Form
 from helpers import hash_pwd
 
 class User(DB.Model):
     __tablename__ = 'users'
 
     id = DB.Column(DB.Integer, primary_key=True)
-    email = DB.Column(DB.String(50), unique=True, index=True)
+    email = DB.Column(DB.Text, unique=True, index=True)
     password = DB.Column(DB.String(100))
     upgraded = DB.Column(DB.Boolean)
     stripe_id = DB.Column(DB.String(50))
     registered_on = DB.Column(DB.DateTime)
-    forms = DB.relationship('Form',
-        primaryjoin="and_(Email.owner_id==User.id, foreign(Form.email)==remote(Email.address))",
-        viewonly=True,
-        lazy='dynamic'
-    )
+
     emails = DB.relationship('Email', backref='owner', lazy='dynamic')
+
+    @property
+    def forms(self):
+        by_email = DB.session.query(Form) \
+            .join(Email, Email.address == Form.email) \
+            .join(User, User.id == Email.owner_id) \
+            .filter(User.id == self.id)
+        by_creation = DB.session.query(Form) \
+            .join(User, User.id == Form.owner_id) \
+            .filter(User.id == self.id)
+        return by_creation.union(by_email)
 
     def __init__(self, email, password):
         if not IS_VALID_EMAIL(email):
@@ -64,12 +72,14 @@ class Email(DB.Model):
 
         message = 'email={email}&user_id={user_id}'.format(email=addr, user_id=user_id)
         digest = hmac.new(settings.NONCE_SECRET, message, hashlib.sha256).hexdigest()
-        link = url_for('confirm_account_email', digest=digest, email=addr, _external=True)
-        res = send_email(to=addr,
-                         subject='Confirm email for your account at %s' % settings.SERVICE_NAME,
-                         text=render_template('email/confirm-account.txt', email=addr, link=link),
-                         html=render_template('email/confirm-account.html', email=addr, link=link),
-                         sender=settings.ACCOUNT_SENDER)
+        link = url_for('confirm-account-email', digest=digest, email=addr, _external=True)
+        res = send_email(
+            to=addr,
+            subject='Confirm email for your account at %s' % settings.SERVICE_NAME,
+            text=render_template('email/confirm-account.txt', email=addr, link=link),
+            html=render_template('email/confirm-account.html', email=addr, link=link),
+            sender=settings.ACCOUNT_SENDER
+        )
         if not res[0]:
             return False
         else:

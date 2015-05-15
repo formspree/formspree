@@ -27,32 +27,58 @@ def register():
 
     login_user(user)
 
-    Email.send_confirmation(user.email, user.id)
-    return redirect(url_for('notify_email_confirmation'))
-
+    sent = Email.send_confirmation(user.email, user.id)
+    if sent:
+        res = redirect(url_for('notify-email-confirmation'))
+        res.set_cookie('pending-emails', user.email, max_age=10800)
+        return res
+    else:
+        flash("Your account was set up, but we couldn't send a verification email "
+              "to your address, please try doing it again manually later.", "error")
+        return redirect(url_for('account'))
 
 @login_required
 def add_email():
+    address = request.form['address']
+    res = redirect(url_for('account'))
+
+    if Email.query.get([address, current_user.id]):
+        flash("%s is already registered for your account." % address)
+        return res
     try:
-        Email.send_confirmation(request.form['address'], current_user.id)
+        sent = Email.send_confirmation(address, current_user.id)
+        if sent:
+            pending = request.cookies['pending-emails'].split(',') if 'pending-emails' in request.cookies else []
+            pending.append(address)
+            res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
+            flash("We've sent a message with a verification link to %s." % address)
+        else:
+            flash("We couldn't sent you the verification email at %s. Please "
+                  "try again later.", "error")
     except ValueError:
         flash("%s is not a valid email address." % request.form['email'], "error")
-    return redirect(url_for('account'))
+    return res
 
 
 @login_required
 def confirm_email(digest):
+    res = redirect(url_for('account'))
     email = Email.create_with_digest(addr=request.args.get('email', ''),
                                      user_id=current_user.id,
                                      digest=digest)
     if email:
-        DB.session.add(email)
-        DB.session.commit()
-        flash('%s confirmed.' % email)
-        return redirect(url_for('dashboard'))
+        try:
+            DB.session.add(email)
+            DB.session.commit()
+            pending = request.cookies['pending-emails'].split(',') if 'pending-emails' in request.cookies else []
+            pending.remove(email.address)
+            res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
+            flash('%s confirmed.' % email.address)
+        except IntegrityError:
+            return res
     else:
         flash('Couldn\'t confirm %s. Wrong link.' % email)
-        return redirect(url_for('dashboard'))
+    return res
 
 
 def login():
@@ -150,7 +176,7 @@ def stripe_webhook():
 
 @login_required
 def notify_email_confirmation():
-    return render_template('users/info.html',
+    return render_template('info.html',
       title="Please confirm your email",
       text="We've sent an email confirmation to {email}. "
            "Please go there and click on the confirmation "
@@ -160,4 +186,8 @@ def notify_email_confirmation():
 
 @login_required
 def account():
-    return render_template('users/account.html')
+    emails = {
+        'verified': (e.address for e in current_user.emails.order_by(Email.registered_on.desc())),
+        'pending': request.cookies['pending-emails'].split(',') if 'pending-emails' in request.cookies else [],
+    }
+    return render_template('users/account.html', emails=emails)

@@ -76,6 +76,12 @@ class Form(DB.Model):
     def __repr__(self):
         return '<Form %s, email=%s, host=%s>' % (self.id, self.email, self.host)
 
+    def controlled_by(self, user):
+        print 'user:', user.__dict__
+        print 'user.forms:', [f.__dict__ for f in user.forms]
+        print 'self:', self.__dict__
+        return user.forms.filter(Form.id == self.id).count()
+
     def get_random_like_string(self):
         if not self.id:
             raise Exception("this form doesn't have an id yet, commit it first.")

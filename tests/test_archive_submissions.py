@@ -193,7 +193,8 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
 
         # test submissions endpoint (/forms/<random_like_string>/)
         r = self.client.get('/forms/' + form_endpoint + '/',
-                            headers={'Accept': 'application/json'})
+            headers={'Accept': 'application/json'}
+        )
         submissions = json.loads(r.data)['submissions']
 
         self.assertEqual(len(submissions), 1)

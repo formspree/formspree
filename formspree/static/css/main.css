@@ -2307,6 +2307,8 @@ a.alert-box.success:hover {
     .navtabs li.active a {
       color: #FFF; }
 
+.create-form span {
+  font-size: 32px !important; }
 .create-form .create-form-button {
   cursor: pointer;
   float: right; }
@@ -2330,23 +2332,26 @@ table {
     table.submissions pre {
       font-family: inherit;
       margin: 0; }
-  table.forms tr.confirmed .ion-checkmark {
+  table.forms .ion-checkmark-round, table.emails .ion-checkmark-round {
     color: #33cc99; }
-  table.forms tr.new {
+  table.forms tr.new, table.emails tr.new {
     color: #dd0000; }
-    table.forms tr.new a {
+    table.forms tr.new a, table.emails tr.new a {
       color: #dd0000; }
-      table.forms tr.new a:hover {
+      table.forms tr.new a:hover, table.emails tr.new a:hover {
         text-decoration: underline; }
-  table.forms tr.awaiting_confirmation {
+  table.forms tr.awaiting_confirmation, table.emails tr.awaiting_confirmation {
     color: #ff6600; }
-  table.forms div[id^="codeModal"] {
+  table.forms div[id^="codeModal"], table.emails div[id^="codeModal"] {
     display: none; }
+  table.emails tr:nth-child(2) td {
+    padding-top: 10px; }
+  table.emails td:last-child {
+    text-align: center; }
 
-.create-form span[class^="ion-"],
-table.forms span[class^="ion-"] {
+span[class^="ion-"] {
   display: inline-block;
-  font-size: 32px;
+  font-size: 20px;
   text-align: center;
   width: 32px; }
 
@@ -2451,6 +2456,8 @@ body#card {
   padding-top: 4em;
   font-size: 0.9em;
   text-align: center; }
+  body#card.dashboard {
+    padding-top: 0; }
 
 .tooltip {
   font-weight: 600;

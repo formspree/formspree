@@ -17,7 +17,7 @@ HASHIDS_SALT = os.getenv('HASHIDS_SALT')
 
 MONTHLY_SUBMISSIONS_LIMIT = int(os.getenv('MONTHLY_SUBMISSIONS_LIMIT') or 1000)
 ARCHIVED_SUBMISSIONS_LIMIT = int(os.getenv('ARCHIVED_SUBMISSIONS_LIMIT') or 100)
-REDIS_URL = os.getenv('REDISTOGO_URL')
+REDIS_URL = os.getenv('REDISTOGO_URL') or os.getenv('REDISCLOUD_URL')
 
 SERVICE_NAME = os.getenv('SERVICE_NAME') or 'Forms'
 SERVICE_URL = os.getenv('SERVICE_URL') or 'http://example.com'

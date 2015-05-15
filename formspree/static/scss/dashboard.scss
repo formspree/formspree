@@ -19,6 +19,10 @@
 }
 
 .create-form {
+  span {
+    font-size: 32px !important; 
+  }
+
   .create-form-button {
     cursor: pointer;
     float: right;
@@ -53,10 +57,9 @@ table {
     }
   }
 
-  &.forms {
-    tr.confirmed .ion-checkmark {
-      color: #33cc99;
-    }
+  &.forms,
+  &.emails {
+    .ion-checkmark-round { color: #33cc99; }
   
     tr.new {
       color: #dd0000;
@@ -78,14 +81,18 @@ table {
       display: none;
     }
   }
+
+  &.emails tr:nth-child(2) td {
+    padding-top: 10px;
+  }
+  &.emails td:last-child {
+    text-align: center;
+  }
 }
 
-.create-form,
-table.forms {
-  span[class^="ion-"] {
-    display: inline-block;
-    font-size: 32px;
-    text-align: center;
-    width: 32px;
-  }
+span[class^="ion-"] {
+  display: inline-block;
+  font-size: 20px;
+  text-align: center;
+  width: 32px;
 }
