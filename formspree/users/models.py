@@ -33,6 +33,7 @@ class User(DB.Model):
         return by_creation.union(by_email)
 
     def __init__(self, email, password):
+        email = email.lower().strip()
         if not IS_VALID_EMAIL(email):
             raise ValueError('Cannot create User. %s is not a valid email.' % email)
 
@@ -66,7 +67,7 @@ class Email(DB.Model):
 
     @staticmethod
     def send_confirmation(addr, user_id):
-        addr = addr.lower()
+        addr = addr.lower().strip()
         if not IS_VALID_EMAIL(addr):
             raise ValueError('Cannot send confirmation. %s is not a valid email.' % addr)
 
