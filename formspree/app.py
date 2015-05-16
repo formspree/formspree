@@ -1,3 +1,4 @@
+import json
 import stripe
 
 import flask
@@ -38,5 +39,6 @@ def create_app():
     configure_login(app)
 
     app.jinja_env.filters['nl2br'] = lambda value: value.replace('\n','<br>\n')
+    app.jinja_env.filters['json'] = json.dumps
 
     return app

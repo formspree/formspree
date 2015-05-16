@@ -59,13 +59,13 @@ table {
 
   &.forms,
   &.emails {
-    .ion-checkmark-round { color: #33cc99; }
+    .ion-checkmark-round { color: $dark-green; }
   
     tr.new {
-      color: #dd0000;
+      color: $red;
   
       a {
-        color: #dd0000;
+        color: inherit;
   
         &:hover {
           text-decoration: underline;
@@ -74,7 +74,7 @@ table {
     }
   
     tr.waiting_confirmation {
-      color: #ff6600;
+      color: $warning-orange;
     }
   
     div[id^="codeModal"] {

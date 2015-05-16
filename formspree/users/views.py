@@ -31,10 +31,11 @@ def register():
     if sent:
         res = redirect(url_for('notify-email-confirmation'))
         res.set_cookie('pending-emails', user.email, max_age=10800)
+        flash('Your Formspree account was created successfully!', 'success')
         return res
     else:
         flash("Your account was set up, but we couldn't send a verification email "
-              "to your address, please try doing it again manually later.", "error")
+              "to your address, please try doing it again manually later.", "warning")
         return redirect(url_for('account'))
 
 @login_required
@@ -43,7 +44,7 @@ def add_email():
     res = redirect(url_for('account'))
 
     if Email.query.get([address, current_user.id]):
-        flash("%s is already registered for your account." % address)
+        flash("%s is already registered for your account." % address, 'warning')
         return res
     try:
         sent = Email.send_confirmation(address, current_user.id)
@@ -51,12 +52,12 @@ def add_email():
             pending = request.cookies.get('pending-emails', '').split(',')
             pending.append(address)
             res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
-            flash("We've sent a message with a verification link to %s." % address)
+            flash("We've sent a message with a verification link to %s." % address, 'info')
         else:
             flash("We couldn't sent you the verification email at %s. Please "
                   "try again later.", "error")
     except ValueError:
-        flash("%s is not a valid email address." % request.form['email'], "error")
+        flash("%s is not a valid email address." % request.form['email'], "warning")
     return res
 
 
@@ -73,11 +74,11 @@ def confirm_email(digest):
             pending = request.cookies.get('pending-emails', '').split(',')
             pending.remove(email.address)
             res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
-            flash('%s confirmed.' % email.address)
+            flash('%s confirmed.' % email.address, 'success')
         except IntegrityError:
             return res
     else:
-        flash('Couldn\'t confirm %s. Wrong link.' % email)
+        flash('Couldn\'t confirm %s. Wrong link.' % email, 'error')
     return res
 
 
@@ -93,13 +94,13 @@ def login():
         remember_me = True
     user = User.query.filter_by(email=email).first()
     if user is None:
-        flash("We couldn't find an account related with this email. Please verify the email entered.", "error")
+        flash("We couldn't find an account related with this email. Please verify the email entered.", "warning")
         return redirect(url_for('login'))
     elif not check_password(user.password, password):
-        flash("Invalid Password. Please verify the password entered.")
+        flash("Invalid Password. Please verify the password entered.", 'warning')
         return redirect(url_for('login'))
     login_user(user, remember = remember_me)
-    # flash('Logged in successfully') # this is ugly
+    flash('Logged in successfully!', 'success')
     return redirect(request.args.get('next') or url_for('dashboard'))
 
 
@@ -137,7 +138,7 @@ def upgrade():
                 source=token
             )
     except stripe.CardError:
-        flash("Your card could not be charged", "error")
+        flash("Sorry. Your card could not be charged. Please contact us.", "error")
         return redirect(url_for('dashboard'))
 
     current_user.upgraded = True
@@ -153,7 +154,7 @@ def downgrade():
     sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
 
     if not sub:
-        flash("You are not subscribed to any plan", "error")
+        flash("You are not subscribed to any plan", "warning")
 
     sub = sub.delete(at_period_end=True)
     flash("Your were unregistered from the Formspree Gold plan. Your card will not be charged anymore, but your plan will remain active until %s." % datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')) 

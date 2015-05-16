@@ -1,4 +1,4 @@
-$green: #4ca1a7;
+$navy: #4ca1a7;
 $dark-green: #359173;
 
 $dark-blue: #1b3544;
@@ -8,6 +8,10 @@ $accent: #ddd;
 $red: #ff1708;
 $green: #359173;
 
+$warning-orange: #D87431;
+$info-blue: $navy;
+$error-red: #CC3F36;
+
 @import 'normalize.scss';
 @import 'grid.scss';
 @import 'typography.scss';
@@ -16,7 +20,7 @@ $green: #359173;
 @import 'alertbox.scss';
 @import 'dashboard.scss';
 @import 'tinymodal.scss';
-
+@import 'toastr.scss';
 
 html {
     height: 100%;

@@ -1,16 +1,17 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}{{config.SERVICE_NAME}}{% endblock %}</title>
-    <script src="//use.typekit.net/htc4dlo.js"></script>
-    <script>try{Typekit.load();}catch(e){}</script>
-    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
-    <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
-    <meta name="viewport" content="initial-scale=1">
+  <meta charset="UTF-8">
+  <title>{% block title %}{{config.SERVICE_NAME}}{% endblock %}</title>
+  <script src="//use.typekit.net/htc4dlo.js"></script>
+  <script>try{Typekit.load();}catch(e){}</script>
+  <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+  <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
+  <meta name="viewport" content="initial-scale=1">
 </head>
 <body class="{% block bodyclass %}{% endblock %}" id="card">
 
+  <noscript>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       <div class="row">
@@ -26,19 +27,31 @@
       </div>
       {% endif %}
     {% endwith %}
+  </noscript>
 
-    <div class="row">
-        {% block base %}
-            <div class="container narrow card">
-                <h1>Nothing to see here</h1>
-            </div>
-        {% endblock base %}
-        <div class="container narrow">
-            <p class="footer">{% block footer %}Powered by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
-        </div>
-    </div>
+  <div class="row">
+      {% block base %}
+          <div class="container narrow card">
+              <h1>Nothing to see here</h1>
+          </div>
+      {% endblock base %}
+      <div class="container narrow">
+          <p class="footer">{% block footer %}Powered by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
+      </div>
+  </div>
 
-    <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vendor/jquery.tinymodal.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vendor/jquery.tinymodal.js') }}"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
+  <script>
+    var messages = {{ get_flashed_messages(with_categories=True) | json | safe }}
+    toastr.options = { positionClass: 'toast-top-left' }
+    messages.forEach(function (m) {
+      var category = m[0] || 'info'
+      var text = m[1]
+      toastr[category](text)
+    })
+  </script>
+
 </body>
 </html>
