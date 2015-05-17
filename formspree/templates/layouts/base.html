@@ -41,7 +41,6 @@
   </div>
 
   <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/vendor/jquery.tinymodal.js') }}"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
   <script>
     var messages = {{ get_flashed_messages(with_categories=True) | json | safe }}

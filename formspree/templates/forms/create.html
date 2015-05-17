@@ -1,30 +1,22 @@
 <div class="create-form">
 {% if current_user.upgraded %}
-  <a role="button" href="#" class="create-form-button tooltip hint--left" data-hint="Create new form"
-     onclick="$.tinyModal({
-        title: 'New Form',
-        html: '#createFormModal',
-        buttons: ['Create', 'Close'],
-        Create: function() {
-            $('#createForm').submit();
-        }
-     });">
+  <a role="button" href="#create-form" class="create-form-button tooltip hint--left" data-hint="Create a form with a invisible email">
     <span class="ion-plus-circled"></span>
   </a>
 
-  <div class="modal fade" id="createFormModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <form method="POST" action="{{ url_for('forms') }}" id="createForm">
-      <div class="form-group">
-          <label>
-            <label for="createFormEmail">Send email to:</label>
-            <input type="email" name="email" id="createFormEmail" class="form-control" placeholder="johnny@example.com"/>
-          </label>
-      </div>
-    </form>
+  <div class="modal" id="create-form" aria-hidden="true">
+    <div>
+      <div class="x"><h4>Send email to:</h4><a href="#">&times;</a></div>
+      <form method="POST" action="{{ url_for('forms') }}">
+        <input type="email" name="email" placeholder="You can point this form to any email address" value="{{ current_user.email }}">
+        <button type="submit">Create</button>
+      </form>
+      <div class="close"><a class="button" href="#">Close</a></div>
+    </div>
   </div>
 {% else %}
   <div class="col-1-1">
-    Please upgrade your account in order to create new forms.
+    Upgrade your account in order to create new forms.
   </div>
 {% endif %}
 </div>

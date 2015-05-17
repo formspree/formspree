@@ -90,11 +90,11 @@ class UserAccountsTestCase(FormspreeTestCase):
         resp = json.loads(r.data)
         self.assertEqual(r.status_code, 200)
         self.assertIn('submission_url', resp)
-        self.assertIn('random_like_string', resp)
-        form_endpoint = resp['random_like_string']
-        self.assertIn(resp['random_like_string'], resp['submission_url'])
+        self.assertIn('hashid', resp)
+        form_endpoint = resp['hashid']
+        self.assertIn(resp['hashid'], resp['submission_url'])
         self.assertEqual(1, Form.query.count())
-        self.assertEqual(Form.query.first().id, Form.get_form_by_random_like_string(resp['random_like_string']).id)
+        self.assertEqual(Form.query.first().id, Form.get_with_hashid(resp['hashid']).id)
 
         # post to form
         r = self.client.post('/' + form_endpoint,
@@ -107,7 +107,7 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # confirm form
         form = Form.query.first()
-        self.client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.get_random_like_string()))
+        self.client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
         self.assertTrue(Form.query.first().confirmed)
 
         # send 5 forms (monthly limits should not apply to the upgraded user)

@@ -177,10 +177,10 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             data=json.dumps({'email': 'hope@springs.com'})
         )
         resp = json.loads(r.data)
-        form_endpoint = resp['random_like_string']
+        form_endpoint = resp['hashid']
 
         # manually confirm the form
-        form = Form.get_form_by_random_like_string(form_endpoint)
+        form = Form.get_with_hashid(form_endpoint)
         form.confirmed = True
         DB.session.add(form)
         DB.session.commit()
@@ -191,7 +191,7 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             data={'name': 'bruce', 'message': 'hi!'}
         )
 
-        # test submissions endpoint (/forms/<random_like_string>/)
+        # test submissions endpoint (/forms/<hashid>/)
         r = self.client.get('/forms/' + form_endpoint + '/',
             headers={'Accept': 'application/json'}
         )

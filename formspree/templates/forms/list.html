@@ -2,21 +2,63 @@
 
 {% block section %}
 
-  <div class="col-1-1">
-    <h2>Your Forms</h2>
+<div class="col-1-1">
+  <h2>Your Forms</h2>
 
-    {% include "forms/create.html" %}
+  {% include "forms/create.html" %}
 
-    <table class="forms">
-      <tbody>
-      {% for form in forms %}
-        {% with %}
-          {% set form_loop = loop %}
-          {% include "forms/list_item.html" %}
-        {% endwith %}
-      {% endfor %}
-      </tbody>
-    </table>
+  <table class="forms">
+    <tbody>
+    {# status icon | host or view-code link | target email | number of submissions #}
+    {% for form in forms %}
+      <tr class="{{ form.status }}">
+        <td>
+        {% if form.is_new %}
+          <span class="tooltip hint--right" data-hint="New form. Place the code generated here in some page and submit it!"><span class="ion-help"></span></span>
+        {% elif form.confirmed %}
+          <span class="tooltip hint--right" data-hint="Confirmed form"><span class="ion-checkmark-round"></span></span>
+        {% elif form.confirm_sent %}
+          <span class="tooltip hint--right" data-hint="Waiting confirmation"><span class="ion-pause"></span></span>
+        {% endif %}
+        </td>
+        <td>
+          {% if form.is_new %}
+            <a role="button" href="#view-code-{{ form.hashid }}">view HTML code</a>
+          {% else %}
+            {{ form.host }}
+          {% endif %}
+        </td>
+        <td>{{ form.email }}</td>
+        <td>
+          {% if form.is_new %}
+            form never submitted
+          {% else %}
+            <a href="/forms/{{ form.hashid }}">{{ form.counter }} submissions</a>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+{# "view HTML code" modals for each form #}
+{% macro showcode(form) %}{% set formcode %}<form action="{{ form.action }}" method="POST">
+  <input type="text" name="_gotcha" style="display: none" />
+  <input type="email" name="email" placeholder="Your email">
+  <textarea name="message" rows="5" placeholder="Your message"></textarea>
+  <input type="submit" value="Send">
+</form>{% endset %}{{ formcode|escape }}{%- endmacro %}
+
+{% for form in forms %}
+  <div class="modal" id="view-code-{{ form.hashid }}" aria-hidden="true">
+    <div>
+      <div class="x"><h4>Place this code in your page's HTML</h4><a href="#">&times;</a></div>
+      <textarea rows="7">{{ showcode(form) }}</textarea>
+      <div class="close"><a class="button" href="#">Close</a></div>
+    </div>
   </div>
+{% endfor %}
 
 {% endblock %}

@@ -18,21 +18,6 @@
   }
 }
 
-.create-form {
-  span {
-    font-size: 32px !important; 
-  }
-
-  .create-form-button {
-    cursor: pointer;
-    float: right;
-  }
-
-  #createFormModal {
-    display: none;
-  }
-}
-
 table {
   text-align: left;
   width: 100%;
@@ -76,10 +61,6 @@ table {
     tr.waiting_confirmation {
       color: $warning-orange;
     }
-  
-    div[id^="codeModal"] {
-      display: none;
-    }
   }
 
   &.emails tr:nth-child(2) td {
@@ -95,4 +76,89 @@ span[class^="ion-"] {
   font-size: 20px;
   text-align: center;
   width: 32px;
+}
+
+.create-form {
+  .create-form-button {
+    cursor: pointer;
+    float: right;
+    span {
+      font-size: 32px !important
+    }
+  }
+  form { clear: both; }
+  form input {
+    clear: both;
+    width: 40%;
+  }
+  form button { margin-top: 2px; }
+
+  .modal:target > * { top: 20%; }
+}
+
+.modal {
+  & > * {
+    background: #fefefe;
+    border: #333333 solid 1px;
+    border-radius: 5px;
+    margin-left: -250px;
+    position: fixed;
+    left: 50%;
+    top: -100%;
+    z-index: 11;
+    width: 500px;
+    -webkit-transform: translate(0, -500%);
+    -ms-transform: translate(0, -500%);
+    transform: translate(0, -500%);
+    -webkit-transition: -webkit-transform 0.3s ease-out;
+    -moz-transition: -moz-transform 0.3s ease-out;
+    -o-transition: -o-transform 0.3s ease-out;
+    transition: transform 0.3s ease-out;
+
+    padding: 10px;
+
+    .x a {
+      float: right;
+      padding: 10px;
+      font-size: 1.2em;
+    }
+    .x h4 {
+      float: left;
+      margin: 0;
+      padding: 0;
+      margin-top: 13px;
+    }
+    .close { margin: 7px; }
+    .close a {
+      min-width: 100px;
+      width: 50%;
+      margin: auto;
+      padding: 7px;
+      display: block;
+    }
+    textarea {
+      min-height: 165px;
+    }
+  }
+  &:target > * {
+    -webkit-transform: translate(0, 0);
+    -ms-transform: translate(0, 0);
+    transform: translate(0, 0);
+    top: 10%;
+  }
+  
+  &:before {
+    content: "";
+    display: none;
+    background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+  }
+  &:target:before {
+    display: block;
+  }
 }

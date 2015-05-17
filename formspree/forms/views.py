@@ -40,10 +40,10 @@ def send(email_or_string):
                                    text='Make sure your form is running on a proper server. For geeks: could not find the "Referrer" header.'), 400
 
     if not IS_VALID_EMAIL(email_or_string):
-        # in this case it can be a random_like_string identifying a
+        # in this case it can be a hashid identifying a
         # form generated from the dashboard
-        random_like_string = email_or_string
-        form = Form.get_form_by_random_like_string(random_like_string)
+        hashid = email_or_string
+        form = Form.get_with_hashid(hashid)
 
         if form:
             email = form.email
@@ -160,7 +160,7 @@ def forms():
                     'is_public': bool(f.hash),
                     'url': '{S}/{E}'.format(
                         S=settings.SERVICE_URL,
-                        E=f.get_random_like_string()
+                        E=f.hashid
                     )
                 } for f in forms]
             })
@@ -180,32 +180,29 @@ def forms():
         if request_wants_json():
             return jsonerror(400, {'error': "The email you sent is not a valid email."})
         else:
-            flash('The email you sent is not a valid email.', 'error')
+            flash('The email you provided is not a valid email.', 'error')
             return redirect(url_for('dashboard'))
 
     form = Form(email, owner=current_user)
     DB.session.add(form)
     DB.session.commit()
 
-    # A unique identifier for the form that maps to its id,
-    # but doesn't seem like a sequential integer
-    random_like_string = form.get_random_like_string()
-
     if request_wants_json():
         return jsonify({
             'ok': True,
-            'random_like_string': random_like_string,
-            'submission_url': settings.API_ROOT + '/' + random_like_string
+            'hashid': form.hashid,
+            'submission_url': settings.API_ROOT + '/' + form.hashid
         })
     else:
-        return redirect(url_for('dashboard'))
+        flash('Your new form endpoint was created!', 'success')
+        return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
 
 @login_required
-def form_submissions(random_like_string):
+def form_submissions(hashid):
     if not current_user.upgraded:
         return jsonerror(402, {'error': "Please upgrade your account."})
 
-    form = Form.get_form_by_random_like_string(random_like_string)
+    form = Form.get_with_hashid(hashid)
 
     if not form.controlled_by(current_user):
         if request_wants_json():

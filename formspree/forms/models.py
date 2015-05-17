@@ -8,16 +8,6 @@ from flask import url_for, render_template
 from sqlalchemy.sql.expression import delete
 from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path
 
-CODE_TEMPLATE = '''
-<form action="{action}" method="POST">
-    <input type="text" name="_gotcha" style="display:none" />
-    <input type="email" name="email" placeholder="Your email">
-    <textarea name="message" rows="5" placeholder="Your message"></textarea>
-    <input type="submit" value="Send">
-</form>
-'''
-
-
 class Form(DB.Model):
     __tablename__ = 'forms'
 
@@ -81,15 +71,11 @@ class Form(DB.Model):
         print 'user.forms:', [f.__dict__ for f in user.forms]
         print 'self:', self.__dict__
         return user.forms.filter(Form.id == self.id).count()
-
-    def get_random_like_string(self):
-        if not self.id:
-            raise Exception("this form doesn't have an id yet, commit it first.")
-        return HASHIDS_CODEC.encode(self.id)
+        
 
     @classmethod
-    def get_form_by_random_like_string(cls, random_like_string):
-        id = HASHIDS_CODEC.decode(random_like_string)[0]
+    def get_with_hashid(cls, hashid):
+        id = HASHIDS_CODEC.decode(hashid)[0]
         return cls.query.get(id)
 
     def send(self, http_form, referrer):
@@ -193,10 +179,10 @@ class Form(DB.Model):
 
         # the nonce for email confirmation will be the hash when it exists
         # (whenever the form was created from a simple submission) or
-        # a concatenation of HASH(email, id) + ':' + random_like_string
+        # a concatenation of HASH(email, id) + ':' + hashid
         # (whenever the form was created from the dashboard)
         id = str(self.id)
-        nonce = self.hash or '%s:%s' % (HASH(self.email, id), self.get_random_like_string())
+        nonce = self.hash or '%s:%s' % (HASH(self.email, id), self.hashid)
         link = url_for('confirm_email', nonce=nonce, _external=True)
 
         def render_content(type):
@@ -229,10 +215,9 @@ class Form(DB.Model):
         if ':' in nonce:
             # form created in the dashboard
             # nonce is another hash and the
-            # random_like_string comes in the
-            # request.
-            nonce, rls = nonce.split(':')
-            form = cls.get_form_by_random_like_string(rls)
+            # hashid comes in the request.
+            nonce, hashid = nonce.split(':')
+            form = cls.get_with_hashid(hashid)
             if HASH(form.email, str(form.id)) == nonce:
                 pass
             else:
@@ -249,11 +234,19 @@ class Form(DB.Model):
 
     @property
     def action(self):
-        return url_for('send', email_or_string=self.get_random_like_string(), _external=True)
+        return url_for('send', email_or_string=self.hashid, _external=True)
 
     @property
-    def code(self):
-        return CODE_TEMPLATE.format(action=self.action)
+    def hashid(self):
+        # A unique identifier for the form that maps to its id,
+        # but doesn't seem like a sequential integer
+        try:
+            return self._hashid
+        except AttributeError:
+            if not self.id:
+                raise Exception("this form doesn't have an id yet, commit it first.")
+            self._hashid = HASHIDS_CODEC.encode(self.id)
+        return self._hashid
 
     @property
     def is_new(self):

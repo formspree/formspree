@@ -26,7 +26,7 @@ def configure_routes(app):
     # Users' forms
     app.add_url_rule('/dashboard', 'dashboard', view_func=forms.views.forms, methods=['GET'])
     app.add_url_rule('/forms', 'forms', view_func=forms.views.forms, methods=['GET', 'POST'])
-    app.add_url_rule('/forms/<random_like_string>/', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
+    app.add_url_rule('/forms/<hashid>/', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
 
     # Webhooks
     app.add_url_rule('/webhooks/stripe', view_func=users.views.stripe_webhook, methods=['POST'])

@@ -6,7 +6,7 @@
     <h2>
       Submissions for
       {% if not form.hash %}
-        <span class="code">/{{ form.get_random_like_string() }}</span>
+        <span class="code">/{{ form.hashid }}</span>
       {% else %}
         <span class="code">/{{ form.email }}</span>
       {% endif %}
@@ -14,7 +14,7 @@
       {% if not form.hash %}
         <br><small>(targeting <span class="code">{{ form.email }}</span>)</small>
       {% else %}
-        <br><small>(you can now replace the email in the URL with <span class="code">/{{ form.get_random_like_string() }}</span>)</small>
+        <br><small>(you can now replace the email in the URL with <span class="code">/{{ form.hashid }}</span>)</small>
       {% endif %}
     </h2>
 
