@@ -23,7 +23,7 @@ class UserAccountsTestCase(FormspreeTestCase):
                   'password': 'canada'}
         )
         self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.location.endswith('/account/confirm'))
+        self.assertTrue(r.location.endswith('/account'))
         self.assertEqual(1, User.query.count())
 
         # email confirmation

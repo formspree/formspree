@@ -28,15 +28,14 @@ def register():
     login_user(user)
 
     sent = Email.send_confirmation(user.email, user.id)
+    res = redirect(request.args.get('next', url_for('account')))
     if sent:
-        res = redirect(url_for('notify-email-confirmation'))
         res.set_cookie('pending-emails', user.email, max_age=10800)
-        flash('Your {SERVICE_NAME} account was created successfully!'.format(**settings.__dict__), 'success')
-        return res
+        flash("We've sent an email confirmation to {addr}. Please go there and click on the confirmation link before you can use your {SERVICE_NAME} account.".format(addr=current_user.email, **settings.__dict__), 'info')
+        flash("Your {SERVICE_NAME} account was created successfully!".format(**settings.__dict__), 'success')
     else:
-        flash("Your account was set up, but we couldn't send a verification email "
-              "to your address, please try doing it again manually later.", "warning")
-        return redirect(request.args.get('next', url_for('account')))
+        flash("Your account was set up, but we couldn't send a verification email to your address, please try doing it again manually later.", "warning")
+    return res
 
 @login_required
 def add_email():
@@ -57,7 +56,7 @@ def add_email():
             flash("We couldn't sent you the verification email at %s. Please "
                   "try again later.", "error")
     except ValueError:
-        flash("%s is not a valid email address." % request.form['email'], "warning")
+        flash("%s is not a valid email address." % request.form['address'], "warning")
     return res
 
 
@@ -176,20 +175,6 @@ def stripe_webhook():
             DB.session.add(user)
             DB.session.commit()
     return 'ok'
-
-
-@login_required
-def notify_email_confirmation():
-    return render_template('info.html',
-        title="Please confirm your email",
-        text="We've sent an email confirmation to {email}. "
-             "Please go there and click on the confirmation "
-             "link before you can use your {SERVICE_NAME} account."\
-             .format(
-            email=current_user.email,
-            **settings.__dict__
-        )
-    )
 
 
 @login_required

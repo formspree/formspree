@@ -92,12 +92,13 @@
   </script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
   <script>
+    /* turning flask flash messages into js popup notifications */
     var messages = {{ get_flashed_messages(with_categories=True) | json | safe }}
     toastr.options = { positionClass: 'toast-top-center' }
-    messages.forEach(function (m) {
+    messages.forEach(function (m, i) {
       var category = m[0] || 'info'
       var text = m[1]
-      toastr[category](text)
+      setTimeout(function () { toastr[category](text) }, (1+i)*1500)
     })
   </script>
   <script src="{{ url_for('static', filename='js/vendor/jquery.tinymodal.js') }}"></script>
