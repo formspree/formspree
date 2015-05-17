@@ -1,5 +1,5 @@
 $navy: #4ca1a7;
-$dark-green: #359173;
+$dark-green: #2A735B;
 $light-green: #4CD1A7;
 
 $dark-blue: #1b3544;
@@ -213,13 +213,19 @@ button, a.button {
     text-transform: uppercase;
     font-weight: 600;
     border: 2px solid $green;
-    color: $dark-green;
+    color: $green;
     background: transparent;
     line-height: 1em;
     padding: 0.6em 0.9em;
     transition: all 0.3s ease-in-out;
     &:hover {
         border-color: $dark-green;
+        color: $dark-green;
+
+        &.emphasis {
+            color: white;
+            background-color: $dark-green;
+        }
     }
 }
 
