@@ -331,7 +331,7 @@ a {
   text-decoration: none;
   transition: color 0.3s ease-in-out; }
   a:hover {
-    color: #359173; }
+    color: #2A735B; }
 
 .center {
   text-align: center; }
@@ -2325,7 +2325,7 @@ table {
       font-family: inherit;
       margin: 0; }
   table.forms .ion-checkmark-round, table.emails .ion-checkmark-round {
-    color: #359173; }
+    color: #2A735B; }
   table.forms tr.new, table.emails tr.new {
     color: #ff1708; }
     table.forms tr.new a, table.emails tr.new a {
@@ -2590,9 +2590,9 @@ body > nav {
     margin-top: 5px;
     float: left; }
   .slicknav_menu .slicknav_btn {
-    background-color: #359173; }
+    background-color: #2A735B; }
   .slicknav_menu .slicknav_menutxt {
-    text-shadow: 0 1px 3px #359173; }
+    text-shadow: 0 1px 3px #2A735B; }
 
 .toast-title {
   font-weight: bold; }
@@ -2899,7 +2899,7 @@ input, textarea {
   transition: all 0.3s ease-in-out;
   width: 100%; }
   input:focus, textarea:focus {
-    border-color: #359173;
+    border-color: #2A735B;
     outline: none;
     box-shadow: 0 0 5px 1px #359173; }
 
@@ -2922,7 +2922,11 @@ button, a.button {
   padding: 0.6em 0.9em;
   transition: all 0.3s ease-in-out; }
   button:hover, a.button:hover {
-    border-color: #359173; }
+    border-color: #2A735B;
+    color: #2A735B; }
+    button:hover.emphasis, a.button:hover.emphasis {
+      color: white;
+      background-color: #2A735B; }
 
 .animate {
   -moz-animation-iteration-count: once;

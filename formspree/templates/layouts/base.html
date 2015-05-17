@@ -93,7 +93,7 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
   <script>
     var messages = {{ get_flashed_messages(with_categories=True) | json | safe }}
-    toastr.options = { positionClass: 'toast-top-left' }
+    toastr.options = { positionClass: 'toast-top-center' }
     messages.forEach(function (m) {
       var category = m[0] || 'info'
       var text = m[1]

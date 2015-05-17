@@ -7,7 +7,7 @@ Link: {{ link }}
 We hope you enjoy using your {{config.SERVICE_NAME}} with your registered address. If you have any questions, feel free to shoot an email to {{config.CONTACT_EMAIL}}
 
 Best,
-Formspree Team
+{{config.SERVICE_NAME}} Team
 
 ---
 

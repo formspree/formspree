@@ -3,7 +3,7 @@
 {% block base %}
   <div class="container narrow card">
     <form action="" method=post class="form-horizontal">
-      <h2>Sign up for Formspree </h2>
+      <h2>Sign up for {{ config.SERVICE_NAME }} </h2>
 
       <div class="control-group">
         <div class="controls">
@@ -28,6 +28,6 @@
       </div>
     </form>
 
-    <p>Already have an account? <a href="/login">Log in</a>.</p>
+    <p>Already have an account? <a href="{{ url_for('login', next=request.args.get('next')) }}">Log in</a>.</p>
   </div>
 {% endblock base %}

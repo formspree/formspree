@@ -20,6 +20,7 @@ ARCHIVED_SUBMISSIONS_LIMIT = int(os.getenv('ARCHIVED_SUBMISSIONS_LIMIT') or 100)
 REDIS_URL = os.getenv('REDISTOGO_URL') or os.getenv('REDISCLOUD_URL')
 
 SERVICE_NAME = os.getenv('SERVICE_NAME') or 'Forms'
+UPGRADED_PLAN_NAME = os.getenv('UPGRADED_PLAN_NAME') or 'Gold'
 SERVICE_URL = os.getenv('SERVICE_URL') or 'http://example.com'
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL') or 'team@example.com'
 DEFAULT_SENDER = os.getenv('DEFAULT_SENDER') or 'Forms Team <submissions@example.com>'
