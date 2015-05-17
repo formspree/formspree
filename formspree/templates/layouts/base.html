@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
   <meta name="viewport" content="initial-scale=1">
 </head>
-<body class="{% block bodyclass %}{% endblock %}" id="card">
+<body class="{% block bodyclass %}{% endblock %}" id="{% block bodyid %}card{% endblock %}">
 
   <noscript>
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -29,18 +29,67 @@
     {% endwith %}
   </noscript>
 
-  <div class="row">
-      {% block base %}
-          <div class="container narrow card">
-              <h1>Nothing to see here</h1>
-          </div>
-      {% endblock base %}
-      <div class="container narrow">
-          <p class="footer">{% block footer %}Powered by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
+  <nav>
+    {% if g.user.is_authenticated()%}
+      <div class="greetings">
+        <h4 class="light">Welcome {{ current_user.email }}
+          (<a href="{{ url_for('logout') }}">logout</a>)
+        </h4>
       </div>
+      <div class="menu">
+        {% if request.path != '/' %}<a href="/">Home</a>{% endif %}
+        <a href="{{ url_for('forms') }}">Your forms</a>
+        <a href="{{ url_for('account') }}">{% if current_user.upgraded %}Your{% else %}Upgrade{% endif %} account</a>
+    {% else %}
+      <div class="menu">
+        {% if request.path != '/' %}<a href="/">Home</a>{% endif %}
+        <a href="{{ url_for('login') }}" class="login">Login</a>
+        or
+        <a href="{{ url_for('register') }}">Sign up</a>
+    {% endif %}
+      </div>
+  </nav>
+
+  <div class="row">
+    {% block base %}
+        <div class="container narrow card">
+            <h1>Nothing to see here</h1>
+        </div>
+    {% endblock base %}
+
+    <div class="container narrow">
+      <p class="footer">{% block footer %}Powered by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
+    </div>
   </div>
 
   <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/SlickNav/1.0.3/jquery.slicknav.min.js"></script>
+  <script>
+    /* top navbar */
+    var nav = $('body > nav')
+    nav.addClass('js')
+    nav.find('.menu').slicknav()
+    nav.find('h4').clone().prependTo('.slicknav_menu')
+
+    /* adding a shadow at the bottom of the menu bar only when not at the top */
+    var w = $(window)
+    w.scroll(function () {
+      var scrollPos = w.scrollTop()
+      if (scrollPos && !nav.hasClass('scrolled')) {
+        nav.addClass('scrolled')
+      }
+      else if (!scrollPos) {
+        nav.removeClass('scrolled')
+      }
+    })
+
+    /* background-color should inherit, but CSS's "inherit" breaks z-index */
+    var bgcolor = $(document.body).css('background-color')
+    if (bgcolor.split(',').length == 4) {
+      bgcolor = 'white'
+    }
+    nav.css('background-color', bgcolor)
+  </script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
   <script>
     var messages = {{ get_flashed_messages(with_categories=True) | json | safe }}
@@ -51,6 +100,7 @@
       toastr[category](text)
     })
   </script>
+  <script src="{{ url_for('static', filename='js/vendor/jquery.tinymodal.js') }}"></script>
 
 </body>
 </html>

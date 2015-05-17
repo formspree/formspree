@@ -1,5 +1,6 @@
 $navy: #4ca1a7;
 $dark-green: #359173;
+$light-green: #4CD1A7;
 
 $dark-blue: #1b3544;
 $accent-blue: #f1f1fa;
@@ -19,6 +20,7 @@ $error-red: #CC3F36;
 @import 'ionicons.min.scss';
 @import 'alertbox.scss';
 @import 'dashboard.scss';
+@import 'nav.scss';
 @import 'toastr.scss';
 
 html {
