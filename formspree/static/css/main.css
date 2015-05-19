@@ -2295,10 +2295,18 @@ a.alert-box.success:hover {
   color: #359173;
   border-color: #359173; }
 
+.login .row {
+  padding: 2.2em 0; }
+.login input, .login button {
+  font-size: 1.2em;
+  margin: 2px 0; }
+
 .dashboard .row:after {
   content: ""; }
 .dashboard .card {
   border-width: 0; }
+.dashboard #header + .row {
+  padding: 2.2em 0; }
 .dashboard span[class^="ion-"] {
   display: inline-block;
   font-size: 20px;
@@ -2345,22 +2353,23 @@ a.alert-box.success:hover {
     clear: both;
     width: 70%; }
   .dashboard .create-form form button {
-    margin-top: 4px;
+    padding: 0.9em;
     width: 27%; }
-  .dashboard .create-form .modal:target > * {
+  .dashboard .create-form .modal:not(.js):target > *,
+  .dashboard .create-form .modal.target > * {
     top: 20%; }
 .dashboard .modal[id^="view-code"] textarea {
-  font-size: 0.6em; }
+  font-size: 15px; }
 .dashboard .modal > * {
   background: #fefefe;
   border: #333333 solid 1px;
   border-radius: 5px;
-  margin-left: -250px;
+  margin-left: -385px;
   position: fixed;
   left: 50%;
   top: -100%;
   z-index: 11;
-  width: 500px;
+  width: 770px;
   -webkit-transform: translate(0, -500%);
   -ms-transform: translate(0, -500%);
   transform: translate(0, -500%);
@@ -2368,27 +2377,19 @@ a.alert-box.success:hover {
   -moz-transition: -moz-transform 0.3s ease-out;
   -o-transition: -o-transform 0.3s ease-out;
   transition: transform 0.3s ease-out;
-  padding: 10px; }
+  padding: 0.3em 1.3em 1.3em 1.3em; }
   .dashboard .modal > * .x a {
     float: right;
     padding: 10px;
-    font-size: 1.2em; }
+    font-size: 1.7em; }
   .dashboard .modal > * .x h4 {
     float: left;
     margin: 0;
     padding: 0;
     margin-top: 13px; }
-  .dashboard .modal > * .close {
-    margin: 7px; }
-  .dashboard .modal > * .close a {
-    min-width: 100px;
-    width: 50%;
-    margin: auto;
-    padding: 7px;
-    display: block; }
   .dashboard .modal > * textarea {
-    min-height: 169px; }
-.dashboard .modal:target > * {
+    min-height: 149px; }
+.dashboard .modal:not(.js):target > *, .dashboard .modal.target > * {
   -webkit-transform: translate(0, 0);
   -ms-transform: translate(0, 0);
   transform: translate(0, 0);
@@ -2403,7 +2404,7 @@ a.alert-box.success:hover {
   right: 0;
   bottom: 0;
   z-index: 10; }
-.dashboard .modal:target:before {
+.dashboard .modal:not(.js):target:before, .dashboard .modal.target:before {
   display: block; }
 
 .slicknav_btn {
@@ -2779,7 +2780,7 @@ html {
   height: 100%; }
 
 body {
-  min-height: 100%; }
+  min-height: 90%; }
 
 body#card {
   background: #f1f1fa;

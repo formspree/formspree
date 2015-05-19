@@ -22,7 +22,7 @@
       </td>
       <td>
         {% if form.is_new %}
-          <a href="#view-code-{{ form.hashid }}">view HTML code</a>
+          <a href="#view-code-{{ form.hashid }}">View HTML code</a>
         {% else %}
           {{ form.host }}
         {% endif %}
@@ -60,7 +60,6 @@
     <div>
       <div class="x"><h4>Place this code in your page's HTML</h4><a href="#">&times;</a></div>
       <textarea rows="7">{{ showcode(form) }}</textarea>
-      <div class="close"><a class="button center" href="#">Close</a></div>
     </div>
   </div>
 {% endfor %}

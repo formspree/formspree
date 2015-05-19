@@ -1,6 +1,16 @@
+.login {
+  .row { padding: 2.2em 0 }
+
+  input, button {
+    font-size: 1.2em;
+    margin: 2px 0;
+  }
+}
+
 .dashboard {
   .row:after { content: "" }
   .card { border-width: 0 }
+  #header + .row { padding: 2.2em 0 }
   
   span[class^="ion-"] {
     display: inline-block;
@@ -64,16 +74,19 @@
       width: 70%;
     }
     form button {
-      margin-top: 4px;
+      padding: 0.9em;
       width: 27%;
     }
   
-    .modal:target > * { top: 20%; }
+    .modal:not(.js):target > *,
+    .modal.target > * {
+        top: 20%;
+    }
   }
   
   .modal[id^="view-code"] {
     textarea {
-      font-size: 0.6em;
+      font-size: 15px;
     }
   }
   
@@ -82,12 +95,12 @@
       background: #fefefe;
       border: #333333 solid 1px;
       border-radius: 5px;
-      margin-left: -250px;
+      margin-left: -385px;
       position: fixed;
       left: 50%;
       top: -100%;
       z-index: 11;
-      width: 500px;
+      width: 770px;
       -webkit-transform: translate(0, -500%);
       -ms-transform: translate(0, -500%);
       transform: translate(0, -500%);
@@ -96,12 +109,12 @@
       -o-transition: -o-transform 0.3s ease-out;
       transition: transform 0.3s ease-out;
   
-      padding: 10px;
+      padding: 0.3em 1.3em 1.3em 1.3em;
   
       .x a {
         float: right;
         padding: 10px;
-        font-size: 1.2em;
+        font-size: 1.7em;
       }
       .x h4 {
         float: left;
@@ -109,19 +122,12 @@
         padding: 0;
         margin-top: 13px;
       }
-      .close { margin: 7px; }
-      .close a {
-        min-width: 100px;
-        width: 50%;
-        margin: auto;
-        padding: 7px;
-        display: block;
-      }
       textarea {
-        min-height: 169px;
+        min-height: 149px;
       }
     }
-    &:target > * {
+    &:not(.js):target > *,
+    &.target > * {
       -webkit-transform: translate(0, 0);
       -ms-transform: translate(0, 0);
       transform: translate(0, 0);
@@ -139,7 +145,8 @@
       bottom: 0;
       z-index: 10;
     }
-    &:target:before {
+    &:not(.js):target:before,
+    &.target:before {
       display: block;
     }
   }

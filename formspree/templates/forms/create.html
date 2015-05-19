@@ -1,7 +1,7 @@
 <div class="col-1-1">
   <div class="create-form">
   {% if current_user.upgraded %}
-    <a href="#create-form" class="button tooltip hint--right" data-hint="Create a form endpoint without disclosing your email" style="cursor: pointer">
+    <a href="#create-form" class="button">
       Create a form
     </a>
   
@@ -12,7 +12,6 @@
           <input type="email" name="email" placeholder="You can point this form to any email address" value="{{ current_user.email }}">
           <button type="submit">Create</button>
         </form>
-        <div class="close"><a class="center button" href="#">Close</a></div>
       </div>
     </div>
   {% else %}

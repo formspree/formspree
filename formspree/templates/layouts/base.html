@@ -83,10 +83,31 @@
 
     /* background-color should inherit, but CSS's "inherit" breaks z-index */
     var bgcolor = $(document.body).css('background-color')
-    if (bgcolor.split(',').length == 4) {
+    if (bgcolor.split(',').length == 4 || bgcolor == 'transparent') {
       bgcolor = 'white'
     }
     nav.css('background-color', bgcolor)
+
+    /* modal */
+    $('.modal').each(function () {
+        var modal = $(this)
+        modal.addClass('js')
+        var id = modal.attr('id')
+        $('[href="#' + id + '"]').click(function (e) {
+          e.preventDefault()
+          modal.toggleClass('target')
+        })
+        modal.click(function (e) {
+          e.preventDefault()
+          if (e.target == modal[0]) {
+            modal.toggleClass('target')
+          }
+        })
+        modal.find('.x a').click(function (e) {
+          e.preventDefault()
+          modal.toggleClass('target')
+        })
+    })
   </script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
   <script>
