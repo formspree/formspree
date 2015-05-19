@@ -147,7 +147,10 @@ def forms():
         '''
 
         # grab all the forms this user controls
-        forms = current_user.forms.order_by(Form.id.desc()).all()
+        if current_user.upgraded:
+            forms = current_user.forms.order_by(Form.id.desc()).all()
+        else:
+            forms = []
 
         if request_wants_json():
             return jsonify({
@@ -167,35 +170,36 @@ def forms():
         else:
             return render_template('forms/list.html', forms=forms)
 
-    # Create a new form
-    if not current_user.upgraded:
-        return jsonerror(402, {'error': "Please upgrade your account."})
+    elif request.method == 'POST':
+        # create a new form
+        if not current_user.upgraded:
+            return jsonerror(402, {'error': "Please upgrade your account."})
 
-    if request.get_json():
-        email = request.get_json().get('email')
-    else:
-        email = request.form.get('email')
-
-    if not IS_VALID_EMAIL(email):
-        if request_wants_json():
-            return jsonerror(400, {'error': "The email you sent is not a valid email."})
+        if request.get_json():
+            email = request.get_json().get('email')
         else:
-            flash('The email you provided is not a valid email.', 'error')
-            return redirect(url_for('dashboard'))
+            email = request.form.get('email')
 
-    form = Form(email, owner=current_user)
-    DB.session.add(form)
-    DB.session.commit()
+        if not IS_VALID_EMAIL(email):
+            if request_wants_json():
+                return jsonerror(400, {'error': "The email you sent is not a valid email."})
+            else:
+                flash('The email you provided is not a valid email.', 'error')
+                return redirect(url_for('dashboard'))
 
-    if request_wants_json():
-        return jsonify({
-            'ok': True,
-            'hashid': form.hashid,
-            'submission_url': settings.API_ROOT + '/' + form.hashid
-        })
-    else:
-        flash('Your new form endpoint was created!', 'success')
-        return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
+        form = Form(email, owner=current_user)
+        DB.session.add(form)
+        DB.session.commit()
+
+        if request_wants_json():
+            return jsonify({
+                'ok': True,
+                'hashid': form.hashid,
+                'submission_url': settings.API_ROOT + '/' + form.hashid
+            })
+        else:
+            flash('Your new form endpoint was created!', 'success')
+            return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
 
 @login_required
 def form_submissions(hashid):

@@ -57,9 +57,7 @@
         </div>
     {% endblock base %}
 
-    <div class="container narrow">
-      <p class="footer">{% block footer %}Powered by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
-    </div>
+    {% block footer %}{% endblock %}
   </div>
 
   <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
@@ -101,7 +99,24 @@
       setTimeout(function () { toastr[category](text) }, (1+i)*1500)
     })
   </script>
-  <script src="{{ url_for('static', filename='js/vendor/jquery.tinymodal.js') }}"></script>
+  <script src="https://checkout.stripe.com/checkout.js"></script>
+  <script>
+    var stripebutton = $('#stripe-upgrade')
+    if (stripebutton.length) {
+      var handler = StripeCheckout.configure(stripebutton.data())
+      stripebutton.on('click', function (e) {
+        handler.open({
+          token: function (token) {
+            stripebutton.closest('form')
+              .append('<input type="hidden" name="stripeToken" value="'+ token.id +'">')
+              .append('<input type="hidden" name="stripeEmail" value="'+ token.email +'">')
+              .submit()
+          }
+        })
+        e.preventDefault()
+      })
+    }
+  </script>
 
 </body>
 </html>

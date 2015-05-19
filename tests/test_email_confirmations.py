@@ -70,6 +70,19 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
         self.client.get(link, query_string=qs)
 
+        # confirm that the user has no access to the form since he is not upgraded
+        r = self.client.get('/forms',
+            headers={'Accept': 'application/json'},
+        )
+        forms = json.loads(r.data)['forms']
+        self.assertEqual(0, len(forms))
+
+        # upgrade user
+        user = User.query.filter_by(email='mark@example.com').first()
+        user.upgraded = True
+        DB.session.add(user)
+        DB.session.commit()
+
         # confirm that the user account has access to the form
         r = self.client.get('/forms',
             headers={'Accept': 'application/json'},

@@ -31,8 +31,8 @@ def register():
     res = redirect(request.args.get('next', url_for('account')))
     if sent:
         res.set_cookie('pending-emails', user.email, max_age=10800)
-        flash("We've sent an email confirmation to {addr}. Please go there and click on the confirmation link before you can use your {SERVICE_NAME} account.".format(addr=current_user.email, **settings.__dict__), 'info')
         flash("Your {SERVICE_NAME} account was created successfully!".format(**settings.__dict__), 'success')
+        flash("We've sent an email confirmation to {addr}. Please go there and click on the confirmation link before you can use your {SERVICE_NAME} account.".format(addr=current_user.email, **settings.__dict__), 'info')
     else:
         flash("Your account was set up, but we couldn't send a verification email to your address, please try doing it again manually later.", "warning")
     return res
@@ -143,6 +143,7 @@ def upgrade():
     current_user.upgraded = True
     DB.session.add(current_user)
     DB.session.commit()
+    flash("Congratulations! You are now a {SERVICE_NAME} {UPGRADED_PLAN_NAME} user!".format(**settings.__dict__), 'success')
 
     return redirect(url_for('dashboard'))
 
@@ -153,13 +154,14 @@ def downgrade():
     sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
 
     if not sub:
-        flash("You are not subscribed to any plan", "warning")
+        flash("You can't do this. You are not subscribed to any plan.", "warning")
 
     sub = sub.delete(at_period_end=True)
-    flash("Your were unregistered from the {SERVICE_NAME} {UPGRADED_PLAN_NAME} plan. Your card will not be charged anymore, but your plan will remain active until {date}.".format(
-        date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y'),
-        **settings.__dict__
-    ))
+    flash("You were unregistered from the {SERVICE_NAME} {UPGRADED_PLAN_NAME} plan."\
+        .format(**settings.__dict__), 'success')
+    flash("Your card will not be charged anymore, but your plan will remain active until {date}."\
+        .format(date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')),
+    'info')
 
     return redirect(url_for('account'))
 
