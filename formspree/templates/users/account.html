@@ -1,10 +1,12 @@
 {% extends 'users/dashboard.html' %}
 
+{% block sectiontitle %}
+  <h1>Your account</h1>
+{% endblock %}
+
 {% block section %}
 
   <div class="col-1-1">
-    <h2>Your Account</h2>
-
     <div class="container block">
       <div class="col-1-2">
         <div class="container block">
@@ -33,7 +35,7 @@
               </tr>
             {% endfor %}
             {% for email in emails.verified %}
-              <tr>
+              <tr class="verified">
                 <td>{{ email }}</td>
                 <td>
                   <span class="tooltip hint--right" data-hint="This address is verified. You can freely control forms that post to it."><span class="ion-checkmark-round"></span>
@@ -50,12 +52,10 @@
 
           {% if current_user.upgraded %}
             <p>You are a {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} user.</p>
-            <form action="/account/downgrade" method="POST">
+            <form action="/account/downgrade" method="POST" class="center">
               <button type="submit">Cancel subscription</button>
             </form>
           {% else %}
-            <p>You are using a free account and should upgrade.</p>
-            <br>
             When you upgrade to <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong> you will get
             <ol style="text-align: left">
               <li>Unlimited submissions</li>
@@ -64,19 +64,18 @@
               <li>Ability to create forms linked to other email accounts</li>
             </ol>
 
-            <form action="/account/upgrade" method="POST">
-              <script
-                src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-                data-key="{{ config.STRIPE_PUBLISHABLE_KEY }}"
-                data-image="/static/img/logo.png"
-                data-name="{{ config.SERVICE_NAME }}"
-                data-description="{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} 1 month"
-                data-amount="999"
-                data-email="{{ current_user.email }}"
-                data-allow-remember-me=false
-                data-label="Upgrade for $9.99 / month"
-                data-panel-label="Subscribe"
-              ></script>
+            <h6 class="light">You are using a free account and should upgrade.</h6>
+
+            <form method="post" action="/account/upgrade">
+              <button id="stripe-upgrade"
+                data-key = "{{ config.STRIPE_PUBLISHABLE_KEY }}"
+                data-image = "/static/img/logo.png"
+                data-name = "{{ config.SERVICE_NAME }}"
+                data-description = "{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} monthly subscription"
+                data-amount = "999"
+                data-email = "{{ current_user.email }}"
+                data-allowRememberMe = false
+              >Upgrade for 9.99 / month</button>
             </form>
           {% endif %}
         </div>

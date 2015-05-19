@@ -1,23 +1,25 @@
 {% extends 'users/dashboard.html' %}
 
+{% block sectiontitle %}
+  <h1>
+    Submissions for
+    {% if not form.hash %}
+      <span class="code">/{{ form.hashid }}</span>
+    {% else %}
+      <span class="code">/{{ form.email }}</span>
+    {% endif %}
+    at <span class="code">{{ form.host }}</span>
+    {% if not form.hash %}
+      <br><small>(targeting <span class="code">{{ form.email }}</span>)</small>
+    {% else %}
+      <br><small>(you can now replace the email in the URL with <span class="code">/{{ form.hashid }}</span>)</small>
+    {% endif %}
+  </h1>
+{% endblock %}
+
 {% block section %}
 
   <div class="col-1-1">
-    <h2>
-      Submissions for
-      {% if not form.hash %}
-        <span class="code">/{{ form.hashid }}</span>
-      {% else %}
-        <span class="code">/{{ form.email }}</span>
-      {% endif %}
-      at <span class="code">{{ form.host }}</span>
-      {% if not form.hash %}
-        <br><small>(targeting <span class="code">{{ form.email }}</span>)</small>
-      {% else %}
-        <br><small>(you can now replace the email in the URL with <span class="code">/{{ form.hashid }}</span>)</small>
-      {% endif %}
-    </h2>
-
     {% if submissions %}
       <table class="submissions">
         <thead>
