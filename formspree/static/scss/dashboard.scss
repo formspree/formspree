@@ -8,7 +8,10 @@
 }
 
 .dashboard {
-  .row:after { content: "" }
+  .row:after {
+    content: "";
+    display: none;
+  }
   .card { border-width: 0 }
   
   span[class^="ion-"] {
@@ -27,8 +30,7 @@
       background: #fff;
   
       th {
-        border-bottom: 1px solid $green;
-        padding: 7px;
+        padding: 7px 0;
       }
       tr:first-child td { padding-top: 10px; }
       td {
