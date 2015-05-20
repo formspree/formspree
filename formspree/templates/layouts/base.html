@@ -98,9 +98,9 @@
           modal.toggleClass('target')
         })
         modal.click(function (e) {
-          e.preventDefault()
           if (e.target == modal[0]) {
             modal.toggleClass('target')
+            e.preventDefault()
           }
         })
         modal.find('.x a').click(function (e) {
