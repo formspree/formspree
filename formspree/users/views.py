@@ -25,7 +25,7 @@ def register():
         flash("An account with this email already exists.", "error")
         return render_template('users/register.html')
 
-    login_user(user)
+    login_user(user, remember=True)
 
     sent = Email.send_confirmation(user.email, user.id)
     res = redirect(request.args.get('next', url_for('account')))
@@ -88,9 +88,6 @@ def login():
         return render_template('users/login.html')
     email = request.form['email']
     password = request.form['password']
-    remember_me = False
-    if 'remember_me' in request.form:
-        remember_me = True
     user = User.query.filter_by(email=email).first()
     if user is None:
         flash("We couldn't find an account related with this email. Please verify the email entered.", "warning")
@@ -98,7 +95,7 @@ def login():
     elif not check_password(user.password, password):
         flash("Invalid Password. Please verify the password entered.", 'warning')
         return redirect(url_for('login'))
-    login_user(user, remember = remember_me)
+    login_user(user, remember=True)
     flash('Logged in successfully!', 'success')
     return redirect(request.args.get('next') or url_for('dashboard'))
 
@@ -113,7 +110,7 @@ def upgrade():
 
     if not current_user:
         user = User.query.filter_by(email=request.form['stripeEmail']).first()
-        login_user(user)
+        login_user(user, remember=True)
 
     sub = None
     try:
