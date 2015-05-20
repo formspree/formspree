@@ -3,14 +3,13 @@
 
   input, button {
     font-size: 1.2em;
-    margin: 2px 0;
+    margin: 2px 0 1em 0;
   }
 }
 
 .dashboard {
   .row:after { content: "" }
   .card { border-width: 0 }
-  #header + .row { padding: 2.2em 0 }
   
   span[class^="ion-"] {
     display: inline-block;
@@ -66,15 +65,17 @@
   }
   
   .create-form {
-    margin: 23px 0;
+    margin: 3em 0;
   
     form { clear: both; }
     form input {
+      margin-top:0;
       clear: both;
       width: 70%;
+      vertical-align: top;
     }
     form button {
-      padding: 0.9em;
+      padding: 0.63em;
       width: 27%;
     }
   

@@ -27,6 +27,9 @@ body > nav {
   & > .menu {
     float: right;
   }
+  & .item {
+    margin-left: .5em;
+  }
 }
 
 @media screen and (max-width: 40em) {

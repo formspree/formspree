@@ -37,15 +37,15 @@
         </h4>
       </div>
       <div class="menu">
-        {% if request.path != '/' %}<a href="/">Home</a>{% endif %}
-        <a href="{{ url_for('forms') }}">Your forms</a>
-        <a href="{{ url_for('account') }}">{% if current_user.upgraded %}Your{% else %}Upgrade{% endif %} account</a>
+        {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
+        <span class="item"><a href="{{ url_for('forms') }}">Your forms</a></span>
+        <span class="item"><a href="{{ url_for('account') }}">{% if current_user.upgraded %}Your{% else %}Upgrade{% endif %} account</a></span>
     {% else %}
       <div class="menu">
-        {% if request.path != '/' %}<a href="/">Home</a>{% endif %}
-        <a href="{{ url_for('login') }}" class="login">Login</a>
-        or
-        <a href="{{ url_for('register') }}">Sign up</a>
+        {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
+        <span class="item"><a href="{{ url_for('login') }}" class="login">Login</a></span>
+        <span class="item">or</span>
+        <span class="item"><a href="{{ url_for('register') }}">Sign up</a></span>
     {% endif %}
       </div>
   </nav>
