@@ -43,9 +43,7 @@
     {% else %}
       <div class="menu">
         {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
-        <span class="item"><a href="{{ url_for('login') }}" class="login">Login</a></span>
-        <span class="item">or</span>
-        <span class="item"><a href="{{ url_for('register') }}">Sign up</a></span>
+        {% if request.path != '/login' %}<span class="item"><a href="{{ url_for('login') }}" class="login">{{ config.UPGRADED_PLAN_NAME }} account login</a></span>{% endif %}
     {% endif %}
       </div>
   </nav>
