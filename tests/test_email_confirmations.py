@@ -21,7 +21,7 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
                   'password': 'canada'}
         )
         self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.location.endswith('/account/confirm'))
+        self.assertTrue(r.location.endswith('/account'))
         self.assertEqual(1, User.query.count())
 
         # add more emails
@@ -69,6 +69,19 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         # verify user email
         link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
         self.client.get(link, query_string=qs)
+
+        # confirm that the user has no access to the form since he is not upgraded
+        r = self.client.get('/forms',
+            headers={'Accept': 'application/json'},
+        )
+        forms = json.loads(r.data)['forms']
+        self.assertEqual(0, len(forms))
+
+        # upgrade user
+        user = User.query.filter_by(email='mark@example.com').first()
+        user.upgraded = True
+        DB.session.add(user)
+        DB.session.commit()
 
         # confirm that the user account has access to the form
         r = self.client.get('/forms',

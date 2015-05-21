@@ -1,47 +1,51 @@
 {% extends 'users/dashboard.html' %}
 
+{% block sectiontitle %}
+  <h1>Your forms</h1>
+{% endblock %}
+
 {% block section %}
 
 <div class="col-1-1">
-  <h2>Your Forms</h2>
-
-  {% include "forms/create.html" %}
-
   <table class="forms">
-    <tbody>
-    {# status icon | host or view-code link | target email | number of submissions #}
-    {% for form in forms %}
-      <tr class="{{ form.status }}">
-        <td>
+  {# status icon | host or view-code link | target email | number of submissions #}
+  {% for form in forms %}
+    <tr class="{% if form.is_new %}new{% elif form.confirmed %}verified{% elif form.confirm_sent %}waiting_confirmation{% endif %}">
+      <td>
+      {% if form.is_new %}
+        <span class="tooltip hint--right" data-hint="New form. Place the code generated here in some page and submit it!"><span class="ion-help"></span></span>
+      {% elif form.confirmed %}
+        <span class="tooltip hint--right" data-hint="Confirmed form"><span class="ion-checkmark-round"></span></span>
+      {% elif form.confirm_sent %}
+        <span class="tooltip hint--right" data-hint="Waiting confirmation"><span class="ion-pause"></span></span>
+      {% endif %}
+      </td>
+      <td>
         {% if form.is_new %}
-          <span class="tooltip hint--right" data-hint="New form. Place the code generated here in some page and submit it!"><span class="ion-help"></span></span>
-        {% elif form.confirmed %}
-          <span class="tooltip hint--right" data-hint="Confirmed form"><span class="ion-checkmark-round"></span></span>
-        {% elif form.confirm_sent %}
-          <span class="tooltip hint--right" data-hint="Waiting confirmation"><span class="ion-pause"></span></span>
+          <a href="#view-code-{{ form.hashid }}">View HTML code</a>
+        {% else %}
+          {{ form.host }}
         {% endif %}
-        </td>
-        <td>
-          {% if form.is_new %}
-            <a role="button" href="#view-code-{{ form.hashid }}">view HTML code</a>
-          {% else %}
-            {{ form.host }}
-          {% endif %}
-        </td>
-        <td>{{ form.email }}</td>
-        <td>
-          {% if form.is_new %}
-            form never submitted
-          {% else %}
-            <a href="/forms/{{ form.hashid }}">{{ form.counter }} submissions</a>
-          {% endif %}
-        </td>
-      </tr>
-    {% endfor %}
-    </tbody>
+      </td>
+      <td>{{ form.email }}</td>
+      <td>
+        {% if form.is_new %}
+          form never submitted
+        {% else %}
+          <a href="/forms/{{ form.hashid }}">{{ form.counter }} submissions</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
   </table>
 
+  {% if not forms and current_user.upgraded %}
+    <h6 class="light">You don't have any forms associated with this account, maybe you should <a href="{{ url_for('account') }}">verify your email</a>.</h6>
+  {% endif %}
 </div>
+
+{% include "forms/create.html" %}
+
 
 {# "view HTML code" modals for each form #}
 {% macro showcode(form) %}{% set formcode %}<form action="{{ form.action }}" method="POST">
@@ -56,7 +60,6 @@
     <div>
       <div class="x"><h4>Place this code in your page's HTML</h4><a href="#">&times;</a></div>
       <textarea rows="7">{{ showcode(form) }}</textarea>
-      <div class="close"><a class="button" href="#">Close</a></div>
     </div>
   </div>
 {% endfor %}

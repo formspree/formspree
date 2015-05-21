@@ -1,164 +1,156 @@
-.navtabs {
-  ul {
-    padding: 0px;
-  }
+.login {
+  .row { padding: 2.2em 0 }
 
-  li {
-    padding: 5px;
-    font-size: 18px;
-    display: inline-block;
-    height: 2em;
-
-    &.active {
-      background-color: $green;
-      a {
-        color: #FFF;
-      }
-    }
+  input, button {
+    font-size: 1.2em;
+    margin: 2px 0 1em 0;
   }
 }
 
-table {
-  text-align: left;
-  width: 100%;
-
-  &.submissions {
-    border: 1px solid $accent;
-    padding: 2px;
-    background: #fff;
-
-    th {
-      border-bottom: 2px solid $green;
-      text-align: center;
-      padding: 7px;
-    }
-    td {
-      border: 1px solid $accent;
-      padding: 1px;
-    }
-    pre {
-      font-family: inherit;
-      margin: 0;
-    }
-  }
-
-  &.forms,
-  &.emails {
-    .ion-checkmark-round { color: $dark-green; }
-  
-    tr.new {
-      color: $red;
-  
-      a {
-        color: inherit;
-  
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-    }
-  
-    tr.waiting_confirmation {
-      color: $warning-orange;
-    }
-  }
-
-  &.emails tr:nth-child(2) td {
-    padding-top: 10px;
-  }
-  &.emails td:last-child {
-    text-align: center;
-  }
-}
-
-span[class^="ion-"] {
-  display: inline-block;
-  font-size: 20px;
-  text-align: center;
-  width: 32px;
-}
-
-.create-form {
-  .create-form-button {
-    cursor: pointer;
-    float: right;
-    span {
-      font-size: 32px !important
-    }
-  }
-  form { clear: both; }
-  form input {
-    clear: both;
-    width: 40%;
-  }
-  form button { margin-top: 2px; }
-
-  .modal:target > * { top: 20%; }
-}
-
-.modal {
-  & > * {
-    background: #fefefe;
-    border: #333333 solid 1px;
-    border-radius: 5px;
-    margin-left: -250px;
-    position: fixed;
-    left: 50%;
-    top: -100%;
-    z-index: 11;
-    width: 500px;
-    -webkit-transform: translate(0, -500%);
-    -ms-transform: translate(0, -500%);
-    transform: translate(0, -500%);
-    -webkit-transition: -webkit-transform 0.3s ease-out;
-    -moz-transition: -moz-transform 0.3s ease-out;
-    -o-transition: -o-transform 0.3s ease-out;
-    transition: transform 0.3s ease-out;
-
-    padding: 10px;
-
-    .x a {
-      float: right;
-      padding: 10px;
-      font-size: 1.2em;
-    }
-    .x h4 {
-      float: left;
-      margin: 0;
-      padding: 0;
-      margin-top: 13px;
-    }
-    .close { margin: 7px; }
-    .close a {
-      min-width: 100px;
-      width: 50%;
-      margin: auto;
-      padding: 7px;
-      display: block;
-    }
-    textarea {
-      min-height: 165px;
-    }
-  }
-  &:target > * {
-    -webkit-transform: translate(0, 0);
-    -ms-transform: translate(0, 0);
-    transform: translate(0, 0);
-    top: 10%;
-  }
-  
-  &:before {
+.dashboard {
+  .row:after {
     content: "";
     display: none;
-    background: rgba(0, 0, 0, 0.6);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10;
   }
-  &:target:before {
-    display: block;
+  .card { border-width: 0 }
+  
+  span[class^="ion-"] {
+    display: inline-block;
+    font-size: 20px;
+    text-align: center;
+    width: 32px;
+  }
+
+  table {
+    text-align: left;
+    width: 100%;
+  
+    &.submissions {
+      padding: 2px;
+      background: #fff;
+  
+      th {
+        padding: 7px 0;
+      }
+      tr:first-child td { padding-top: 10px; }
+      td {
+        padding: 3px 1px;
+      }
+      pre {
+        font-family: inherit;
+        margin: 0;
+      }
+    }
+  
+    &.forms,
+    &.emails {
+      tr.verified span[class^="ion-"] { color: $dark-green }
+      tr.new span[class^="ion-"] { color: $red}
+      tr.waiting_confirmation span[class^="ion-"] { color: $warning-orange }
+  
+      tr.new a:not(*:hover) {
+        color: inherit;
+        display: block;
+        border-bottom: 1px dotted;
+        float: left;
+        margin-bottom: -1px;
+        line-height: 1em;
+      }
+    }
+  
+    &.emails tr:nth-child(2) td {
+      padding-top: 10px;
+    }
+    &.emails td:last-child {
+      text-align: center;
+    }
+  }
+  
+  .create-form {
+    margin: 3em 0;
+  
+    form { clear: both; }
+    form input {
+      margin-top:0;
+      clear: both;
+      width: 70%;
+      vertical-align: top;
+    }
+    form button {
+      padding: 0.63em;
+      width: 27%;
+    }
+  
+    .modal:not(.js):target > *,
+    .modal.target > * {
+        top: 20%;
+    }
+  }
+  
+  .modal[id^="view-code"] {
+    textarea {
+      font-size: 15px;
+    }
+  }
+  
+  .modal {
+    & > * {
+      background: #fefefe;
+      border: #333333 solid 1px;
+      border-radius: 5px;
+      margin-left: -385px;
+      position: fixed;
+      left: 50%;
+      top: -100%;
+      z-index: 11;
+      width: 770px;
+      -webkit-transform: translate(0, -500%);
+      -ms-transform: translate(0, -500%);
+      transform: translate(0, -500%);
+      -webkit-transition: -webkit-transform 0.3s ease-out;
+      -moz-transition: -moz-transform 0.3s ease-out;
+      -o-transition: -o-transform 0.3s ease-out;
+      transition: transform 0.3s ease-out;
+  
+      padding: 0.3em 1.3em 1.3em 1.3em;
+  
+      .x a {
+        float: right;
+        padding: 10px;
+        font-size: 1.7em;
+      }
+      .x h4 {
+        float: left;
+        margin: 0;
+        padding: 0;
+        margin-top: 13px;
+      }
+      textarea {
+        min-height: 149px;
+      }
+    }
+    &:not(.js):target > *,
+    &.target > * {
+      -webkit-transform: translate(0, 0);
+      -ms-transform: translate(0, 0);
+      transform: translate(0, 0);
+      top: 10%;
+    }
+    
+    &:before {
+      content: "";
+      display: none;
+      background: rgba(0, 0, 0, 0.6);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+    }
+    &:not(.js):target:before,
+    &.target:before {
+      display: block;
+    }
   }
 }

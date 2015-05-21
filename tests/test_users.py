@@ -23,7 +23,7 @@ class UserAccountsTestCase(FormspreeTestCase):
                   'password': 'canada'}
         )
         self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.location.endswith('/account/confirm'))
+        self.assertTrue(r.location.endswith('/account'))
         self.assertEqual(1, User.query.count())
 
         # email confirmation
@@ -169,7 +169,7 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # redirect back to /account, the HTML shows that the user is not yet
         # in the free plan, since it will be valid for the next 30 days
-        self.assertIn('<form action="/account/downgrade" method="POST">', r.data)
+        self.assertIn('form action="/account/downgrade" method="POST"', r.data)
 
         user = User.query.filter_by(email='maria@example.com').first()
         self.assertEqual(user.upgraded, True)

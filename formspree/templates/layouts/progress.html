@@ -1,4 +1,4 @@
-{% extends 'layouts/base.html' %}
+{% extends 'layouts/message.html' %}
 
 {% block base %}
   <div class="container narrow card">
@@ -31,5 +31,7 @@
 {% endblock base %}
 
 {% block footer %}
-  Part of the {{ config.SERVICE_NAME }} sign up process. <a href="{{ config.SERVICE_URL }}">Read more</a>.
+<div class="container narrow">
+  <p class="footer">Part of the {{ config.SERVICE_NAME }} sign up process. <a href="{{ config.SERVICE_URL }}">Read more</a>.</p>
+</div>
 {% endblock footer %}

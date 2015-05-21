@@ -1,27 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
+{% extends 'layouts/base.html' %}
 
-  <title>{{config.SERVICE_NAME}} | Functional HTML forms</title>
+{% block bodyid %}{% endblock %}
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
-
-  <script src="//use.typekit.net/htc4dlo.js"></script>
-  <script>try{Typekit.load();}catch(e){}</script>
-
-  <meta name="viewport" content="initial-scale=1">
-
-  <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
-
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-{% if g.user.is_authenticated()%}
-<!--<h4 class="light"><a href="{{ url_for('logout') }}">Logout</a></h3>-->
-{% else %}
-<!--<h4 class="light"><a href="{{ url_for('login') }}" class="btn btn-default btn-lg" role="button">Login</a> or <a href="{{ url_for('register') }}">Sign up</a></h3>-->
-{% endif %}
-</head>
-<body>
-
+{% block base %}
   <div class="row section" id="header">
         <div class="container" id="title">
             <div class="col-1-1">
@@ -98,7 +79,7 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>What about privacy?</h4>
-                    <p>We don't store contents of the form submissions. Emails are sent using Mailgun's API, so on that end their privacy policies apply.</p>
+                    <p>We only store contents of the last 100 form submissions and delete the rest. Emails are sent using SendGrid's API, so on that end their privacy policies apply.</p>
                 </div>
             </div>
       </div>
@@ -107,13 +88,13 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>How much does it cost?</h4>
-                    <p>{{config.SERVICE_NAME}} are free for 1000 submissions per email each month. If you need more, please reach out.</p>
+                    <p>{{config.SERVICE_NAME}} is free for 1000 submissions per email each month. If you need more, there's a <a href="#plans">{{ config.UPGRADED_PLAN_NAME }} Plan</a>.</p>
                 </div>
             </div>
             <div class="col-1-2">
                 <div class="card">
-                    <h4>Are there any limits?</h4>
-                    <p>Yep, for now we cap submissions to 1000 per email for each month. If you need more, please reach out to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</p>
+                    <h4>Can I have X?</h4>
+                    <p>We have various interesting features enabled for our <a href="#plans">{{ config.UPGRADED_PLAN_NAME }} Accounts</a> and we are adding more. Please reach out to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> if you need something we don't have.</p>
                 </div>
             </div>
       </div>
@@ -195,8 +176,52 @@
 
   </div>
 
-  <div class="row section">
+  <div class="row section" id="plans">
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h2>For {{ config.SERVICE_NAME }} power users, we present </strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong></h1>
+                <p class="center">{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} costs</p>
+                <h1 class="center"><a class="button emphasis" href="{{ url_for('account') }}">$ 9.99</a></h1>
+                <p class="center">each month</p>
+                <p>Each {{ config.UPGRADED_PLAN_NAME }} account can have unlimited forms and unlimited verified emails, and all them get the <a href="#features">features listed below</a>.</p>
+                <a style="display: block" class="button center emphasis" href="{{ url_for('account') }}">Upgrade now</a>
+            </div>
+      </div>
+  </div>
 
+  <div class="row section grey" id="features">
+      <div class="container narrow block">
+          <div class="col-1-1">
+            <h2>{{ config.UPGRADED_PLAN_NAME }} features:</h2>
+            <h3 class="light">Extra limits and functionality for power users</h3>
+          </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h3>Invisible emails</h3>
+                <p>Through our dashboard, you will be able to get a random-like string to replace your naked email address in the <span class="code">action</span> attribute of your form. Your email address will remain unknown to spam-bots and also your human visitors.</p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h3>Unlimited form submissions</h3>
+                <p>Getting more than 1000 submissions each month? No problem, upgrading will cover that.</p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
+                <h3>Access to submissions archive</h3>
+                <p>If you ever missed a submission email, for any reason, you can just login and read your last 100 submissions, all listed and timestamped with full data.</p>
+                <p>It even works for submissions made while you were not a {{ config.UPGRADED_PLAN_NAME }} user.</p>
+            </div>
+      </div>
+
+  </div>
+
+  <div class="row section">
       <div class="container narrow block">
           <div class="col-1-2">
             <p>{{config.SERVICE_NAME}} is a tool maintained by the <a href="http://assembly.com/formspree">community at Assembly</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
@@ -210,8 +235,8 @@
             </form>
           </div>
       </div>
-
   </div>
 
-</body>
-</html>
+{% endblock %}
+
+{% block footer %}{% endblock %}

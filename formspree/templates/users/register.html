@@ -1,33 +1,14 @@
-{% extends 'layouts/base.html' %}
+{% extends 'users/login.html' %}
 
-{% block base %}
-  <div class="container narrow card">
-    <form action="" method=post class="form-horizontal">
-      <h2>Sign up for Formspree </h2>
+{% block form %}
+  <form action="" method=post>
+    <h2>Sign up for {{ config.SERVICE_NAME }} </h2>
 
-      <div class="control-group">
-        <div class="controls">
-          <input type="email" id="email" name="email" class="input-xlarge"
-                 placeholder="Enter Email" value="{{ request.form.email }}"
-                 required>
-        </div>
-      </div>
+    <input type="email" id="email" name="email" placeholder="Enter Email" value="{{ request.form.email }}" required>
 
-      <div class="control-group">
-        <div class="controls">
-          <input type="password" id="password" name="password" class="input-xlarge"
-                 placeholder="Enter Password" value="{{ request.form.password }}"
-                 required>
-        </div>
-      </div>
+    <input type="password" id="password" name="password" placeholder="Enter Password" value="{{ request.form.password }}" required>
+    <button type="submit" class="btn btn-success">Sign up</button>
+  </form>
 
-      <div class="control-group">
-        <div class="controls">
-          <button type="submit" class="btn btn-success">Sign up</button>
-        </div>
-      </div>
-    </form>
-
-    <p>Already have an account? <a href="/login">Log in</a>.</p>
-  </div>
-{% endblock base %}
+  <p>Already have an account? <a href="{{ url_for('login', next=request.args.get('next')) }}">Log in</a>.</p>
+{% endblock form %}
