@@ -136,6 +136,13 @@
       })
     }
   </script>
+  <script>
+    /* quick script for showing the resend confirmation form */
+    $('a.resend').on('click', function () {
+      $(this).hide()
+      $('form.resend').show()
+    })
+  </script>
 
 </body>
 </html>
