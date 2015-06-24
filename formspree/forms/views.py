@@ -146,7 +146,7 @@ def resend_confirmation(email):
             else:
                 return render_template('forms/confirmation_sent.html',
                     email=email,
-                    host=host,
+                    host=request.form['host'],
                     resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
                 )
         
