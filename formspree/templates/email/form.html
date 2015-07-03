@@ -10,7 +10,9 @@
     {% for k in keys %}
         <tr>
             <td align="right" valign="top" width="70" style="padding: 5px 5px 5px 0;"><strong>{{k}}:</strong> </td>
-            <td align="left" valign="top" width="*" style="padding: 5px 5px 5px;">{{data.get(k,'')|nl2br|safe}}</td>
+            <td align="left" valign="top" width="*" style="padding: 5px 5px 5px;">
+              <pre style="margin: 0; font-family: inherit;">{{data.get(k,'')}}</pre>
+            </td>
         </tr>
     {% endfor %}
 </table>
