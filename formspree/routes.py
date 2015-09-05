@@ -9,6 +9,7 @@ def configure_routes(app):
 
     # Public forms
     app.add_url_rule('/<email_or_string>', 'send', view_func=forms.views.send, methods=['GET', 'POST'])
+    app.add_url_rule('/resend/<email>', 'resend_confirmation', view_func=forms.views.resend_confirmation, methods=['POST'])
     app.add_url_rule('/confirm/<nonce>', 'confirm_email', view_func=forms.views.confirm_email, methods=['GET'])
     app.add_url_rule('/thanks', 'thanks', view_func=forms.views.thanks, methods=['GET'])
 

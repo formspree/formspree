@@ -1,4 +1,5 @@
 import flask
+import requests
 
 from flask import request, url_for, render_template, redirect, jsonify, flash
 from flask.ext.login import current_user, login_required
@@ -102,11 +103,54 @@ def send(email_or_string):
                                    text=str('<a href="%s">Return to form</a>' % request.referrer)), 400
     elif status['code'] == Form.STATUS_CONFIRMATION_SENT or \
          status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED:
+
         if request_wants_json():
             return jsonify({'success': "confirmation email sent"})
         else:
-            return render_template('forms/confirmation_sent.html', email=email, host=host)
+            return render_template('forms/confirmation_sent.html',
+                email=email,
+                host=host,
+                resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
+            )
 
+    if request_wants_json():
+        return jsonerror(500, {'error': "Unable to send email"})
+    else:
+        return render_template('error.html',
+                               title='Unable to send email',
+                               text='Unable to send email'), 500
+
+
+def resend_confirmation(email):
+    # I'm not sure if this should be available for forms created on the dashboard.
+    form = Form.query.filter_by(hash=HASH(email, request.form['host'])).first()
+    if not form:
+        if request_wants_json():
+            return jsonerror(400, {'error': "This form does not exists"})
+        else:
+            return render_template('error.html',
+                                   title='Check email address',
+                                   text='This form does not exists'), 400
+
+    r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
+        'secret': settings.RECAPTCHA_SECRET,
+        'response': request.form['g-recaptcha-response'],
+        'remoteip': request.remote_addr
+    })
+    if r.ok and r.json()['success']:
+        form.confirm_sent = False
+        status = form.send_confirmation()
+        if status['code'] == Form.STATUS_CONFIRMATION_SENT:
+            if request_wants_json():
+                return jsonify({'success': "confirmation email sent"})
+            else:
+                return render_template('forms/confirmation_sent.html',
+                    email=email,
+                    host=request.form['host'],
+                    resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
+                )
+        
+    # fallback response -- should never happen
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})
     else:

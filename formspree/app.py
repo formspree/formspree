@@ -38,7 +38,6 @@ def create_app():
     routes.configure_routes(app)
     configure_login(app)
 
-    app.jinja_env.filters['nl2br'] = lambda value: value.replace('\n','<br>\n')
     app.jinja_env.filters['json'] = json.dumps
 
     return app
