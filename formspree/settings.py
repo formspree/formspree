@@ -22,6 +22,7 @@ REDIS_URL = os.getenv('REDISTOGO_URL') or os.getenv('REDISCLOUD_URL')
 SERVICE_NAME = os.getenv('SERVICE_NAME') or 'Forms'
 UPGRADED_PLAN_NAME = os.getenv('UPGRADED_PLAN_NAME') or 'Gold'
 SERVICE_URL = os.getenv('SERVICE_URL') or 'http://example.com'
+SERVICE_UPGRADE = os.getenv('SERVICE_UPGRADE') or 'https://formspree.io/account'
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL') or 'team@example.com'
 DEFAULT_SENDER = os.getenv('DEFAULT_SENDER') or 'Forms Team <submissions@example.com>'
 ACCOUNT_SENDER = os.getenv('ACCOUNT_SENDER') or DEFAULT_SENDER
