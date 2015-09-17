@@ -42,12 +42,15 @@ class User(DB.Model):
         self.upgraded = False
         self.registered_on = datetime.utcnow()
 
+    @property
     def is_authenticated(self):
         return True
 
+    @property
     def is_active(self):
         return True
 
+    @property
     def is_anonymous(self):
         return False
 

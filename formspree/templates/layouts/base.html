@@ -30,7 +30,7 @@
   </noscript>
 
   <nav>
-    {% if g.user.is_authenticated()%}
+    {% if g.user.is_authenticated %}
       <div class="greetings">
         <h4 class="light">Welcome {{ current_user.email }}
           (<a href="{{ url_for('logout') }}">logout</a>)

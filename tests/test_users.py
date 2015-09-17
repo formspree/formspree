@@ -13,6 +13,14 @@ from utils import parse_confirmation_link_sent
 
 class UserAccountsTestCase(FormspreeTestCase):
 
+    def test_register_page(self):
+        r = self.client.get('/register')
+        self.assertEqual(200, r.status_code)
+
+    def test_login_page(self):
+        r = self.client.get('/login')
+        self.assertEqual(200, r.status_code)
+
     @httpretty.activate
     def test_user_auth(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
