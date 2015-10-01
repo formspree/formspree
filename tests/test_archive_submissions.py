@@ -188,7 +188,7 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         # submit form
         r = self.client.post('/' + form_endpoint,
             headers={'Referer': 'formspree.io'},
-            data={'name': 'bruce', 'message': 'hi!'}
+            data={'name': 'bruce', 'message': 'hi, my name is bruce!'}
         )
 
         # test submissions endpoint (/forms/<hashid>/)
@@ -196,10 +196,22 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             headers={'Accept': 'application/json'}
         )
         submissions = json.loads(r.data)['submissions']
-
         self.assertEqual(len(submissions), 1)
         self.assertEqual(submissions[0]['name'], 'bruce')
-        self.assertEqual(submissions[0]['message'], 'hi!')
+        self.assertEqual(submissions[0]['message'], 'hi, my name is bruce!')
+
+        # test exporting feature (both json and csv file downloads)
+        r = self.client.get('/forms/' + form_endpoint + '.json')
+        submissions = json.loads(r.data)['submissions']
+        self.assertEqual(len(submissions), 1)
+        self.assertEqual(submissions[0]['name'], 'bruce')
+        self.assertEqual(submissions[0]['message'], 'hi, my name is bruce!')
+
+        r = self.client.get('/forms/' + form_endpoint + '.csv')
+        lines = r.data.splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(lines[0], 'date,message,name')
+        self.assertIn('"hi, my name is bruce!"', lines[1])
 
         # test submissions endpoint with the user downgraded
         user.upgraded = False

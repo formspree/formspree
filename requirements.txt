@@ -18,3 +18,4 @@ httpretty
 fakeredis
 redis
 mock
+unicodecsv==0.14.1
