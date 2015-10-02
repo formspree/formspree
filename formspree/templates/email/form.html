@@ -21,4 +21,8 @@
 
 <hr style="color: #ddd;" />
 
+{% if not current_user.upgraded %}
+<p>Want even more features? You can now upgrade to <a href="{{config.SERVICE_UPGRADE}}">Formspree Gold</a>, featuring unlimited form submissions, invisible emails, and a submissions archive.</p>
+{% endif %}
+
 <p>You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to {{config.CONTACT_EMAIL}}.</p>
