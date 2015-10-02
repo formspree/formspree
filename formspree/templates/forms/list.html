@@ -32,7 +32,7 @@
         {% if form.is_new %}
           form never submitted
         {% else %}
-          <a href="/forms/{{ form.hashid }}">{{ form.counter }} submissions</a>
+          <a href="{{ url_for('form-submissions', hashid=form.hashid) }}">{{ form.counter }} submissions</a>
         {% endif %}
       </td>
     </tr>

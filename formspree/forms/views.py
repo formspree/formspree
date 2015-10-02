@@ -1,7 +1,11 @@
+import unicodecsv as csv
+import json
 import flask
 import requests
+import datetime
+import io
 
-from flask import request, url_for, render_template, redirect, jsonify, flash
+from flask import request, url_for, render_template, redirect, jsonify, flash, Response
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
@@ -246,7 +250,7 @@ def forms():
             return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
 
 @login_required
-def form_submissions(hashid):
+def form_submissions(hashid, format=None):
     if not current_user.upgraded:
         return jsonerror(402, {'error': "Please upgrade your account."})
 
@@ -260,18 +264,55 @@ def form_submissions(hashid):
 
     submissions = form.submissions
 
-    if request_wants_json():
-        return jsonify({
-            'submissions': [s.data for s in submissions]
-        })
-    else:
-        fields = set()
-        for s in submissions:
-            fields.update(s.data.keys())
-        fields -= set(EXCLUDE_KEYS)
+    if not format:
+        # normal request.
+        if request_wants_json():
+            return jsonify({
+                'host': form.host,
+                'email': form.email,
+                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+            })
+        else:
+            fields = set()
+            for s in submissions:
+                fields.update(s.data.keys())
+            fields -= set(EXCLUDE_KEYS)
 
-        return render_template('forms/submissions.html',
-            form=form,
-            fields=sorted(fields),
-            submissions=submissions
-        )
+            return render_template('forms/submissions.html',
+                form=form,
+                fields=sorted(fields),
+                submissions=submissions
+            )
+    elif format:
+        # an export request, format can be json or csv
+        if format == 'json':
+            return Response(
+                json.dumps({
+                    'host': form.host,
+                    'email': form.email,
+                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+                }, sort_keys=True, indent=2),
+                mimetype='application/json',
+                headers={
+                    'Content-Disposition': 'attachment; filename=form-%s-submissions-%s.json' \
+                                % (hashid, datetime.datetime.now().isoformat().split('.')[0])
+                }
+            )
+        elif format == 'csv':
+            out = io.BytesIO()
+            fieldnames = set(field for sub in submissions for field in sub.data.keys())
+            fieldnames = ['date'] + sorted(fieldnames)
+            
+            w = csv.DictWriter(out, fieldnames=fieldnames, encoding='utf-8')
+            w.writeheader()
+            for sub in submissions:
+                w.writerow(dict(sub.data, date=sub.submitted_at.isoformat()))
+
+            return Response(
+                out.getvalue(),
+                mimetype='text/csv',
+                headers={
+                    'Content-Disposition': 'attachment; filename=form-%s-submissions-%s.csv' \
+                                % (hashid, datetime.datetime.now().isoformat().split('.')[0])
+                }
+            )
