@@ -24,8 +24,8 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         self.assertEqual(query.count(), 1)
         form = query.first()
 
-        # this form wasn't confirmed, so it still has no submissions
-        self.assertEqual(form.submissions.count(), 0)
+        # this form wasn't confirmed, but it has this first submission already
+        self.assertEqual(form.submissions.count(), 1)
 
         # confirm form
         form.confirmed = True
@@ -38,9 +38,9 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             data={'_replyto': 'johann@gmail.com', 'name': 'johann'}
         )
 
-        # submissions now must be 1
+        # submissions now must be 2
         form = query.first()
-        self.assertEqual(form.submissions.count(), 1)
+        self.assertEqual(form.submissions.count(), 2)
 
         # submit again
         self.client.post('/alice@example.com',
@@ -49,14 +49,14 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
                   'name': 'johannes', 'message': 'salve!'}
         )
         
-        # submissions now must be 2
+        # submissions now must be 3
         form = query.first()
-        self.assertEqual(form.submissions.count(), 2)
+        self.assertEqual(form.submissions.count(), 3)
 
         # check archived values
         submissions = form.submissions.all()
 
-        self.assertEqual(2, len(submissions))
+        self.assertEqual(3, len(submissions))
         self.assertNotIn('message', submissions[1].data)
         self.assertNotIn('_next', submissions[1].data)
         self.assertIn('_next', submissions[0].data)
@@ -67,13 +67,13 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         self.assertEqual('salve!', submissions[0].data['message'])
 
         # check if submissions over the limit are correctly deleted
-        self.assertEqual(settings.ARCHIVED_SUBMISSIONS_LIMIT, 2)
+        self.assertEqual(settings.ARCHIVED_SUBMISSIONS_LIMIT, 3)
 
         self.client.post('/alice@example.com',
             headers = {'referer': 'http://somewhere.com'},
             data={'which-submission-is-this': 'the third!'}
         )
-        self.assertEqual(2, form.submissions.count())
+        self.assertEqual(3, form.submissions.count())
         newest = form.submissions.first() # first should be the newest
         self.assertEqual(newest.data['which-submission-is-this'], 'the third!')
 
@@ -81,10 +81,10 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             headers = {'referer': 'http://somewhere.com'},
             data={'which-submission-is-this': 'the fourth!'}
         )
-        self.assertEqual(2, form.submissions.count())
-        newest, last = form.submissions.all()
+        self.assertEqual(3, form.submissions.count())
+        newest, previous, _ = form.submissions.all()
         self.assertEqual(newest.data['which-submission-is-this'], 'the fourth!')
-        self.assertEqual(last.data['which-submission-is-this'], 'the third!')
+        self.assertEqual(previous.data['which-submission-is-this'], 'the third!')
 
         #
         # try another form (to ensure that a form is not deleting wrong submissions)
@@ -97,8 +97,7 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         self.assertEqual(query.count(), 1)
         secondform = query.first()
 
-        # this form wasn't confirmed, so it still has no submissions
-        self.assertEqual(secondform.submissions.count(), 0)
+        self.assertEqual(secondform.submissions.count(), 1)
 
         # confirm
         secondform.confirmed = True
@@ -111,7 +110,7 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             data={'name': 'leibniz'}
         )
 
-        self.assertEqual(1, secondform.submissions.count())
+        self.assertEqual(2, secondform.submissions.count())
         self.assertEqual(secondform.submissions.first().data['name'], 'leibniz')
 
         self.client.post('/sokratis@example.com',
@@ -119,40 +118,43 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             data={'name': 'schelling'}
         )
 
-        self.assertEqual(2, secondform.submissions.count())
-        newest, last = secondform.submissions.all()
+        self.assertEqual(3, secondform.submissions.count())
+        newest, previous, last = secondform.submissions.all()
         self.assertEqual(newest.data['name'], 'schelling')
-        self.assertEqual(last.data['name'], 'leibniz')
+        self.assertEqual(previous.data['name'], 'leibniz')
+        self.assertEqual(last.data['name'], 'send me the confirmation!')
 
         self.client.post('/sokratis@example.com',
             headers = {'referer': 'http://here.com'},
             data={'name': 'husserl'}
         )
 
-        self.assertEqual(2, secondform.submissions.count())
-        newest, last = secondform.submissions.all()
+        self.assertEqual(3, secondform.submissions.count())
+        newest, previous, last = secondform.submissions.all()
         self.assertEqual(newest.data['name'], 'husserl')
-        self.assertEqual(last.data['name'], 'schelling')
+        self.assertEqual(previous.data['name'], 'schelling')
+        self.assertEqual(last.data['name'], 'leibniz')
 
         # now check the previous form again
-        newest, last = form.submissions.all()
+        newest, previous, _ = form.submissions.all()
         self.assertEqual(newest.data['which-submission-is-this'], 'the fourth!')
-        self.assertEqual(last.data['which-submission-is-this'], 'the third!')
+        self.assertEqual(previous.data['which-submission-is-this'], 'the third!')
 
         self.client.post('/alice@example.com',
             headers = {'referer': 'http://somewhere.com'},
             data={'which-submission-is-this': 'the fifth!'}
         )
-        self.assertEqual(2, form.submissions.count())
-        newest, last = form.submissions.all()
+        self.assertEqual(3, form.submissions.count())
+        newest, previous, last = form.submissions.all()
         self.assertEqual(newest.data['which-submission-is-this'], 'the fifth!')
-        self.assertEqual(last.data['which-submission-is-this'], 'the fourth!')
+        self.assertEqual(previous.data['which-submission-is-this'], 'the fourth!')
+        self.assertEqual(last.data['which-submission-is-this'], 'the third!')
 
         # just one more time the second form
-        self.assertEqual(2, secondform.submissions.count())
-        newest, last = secondform.submissions.all()
+        self.assertEqual(3, secondform.submissions.count())
+        newest, previous, _ = secondform.submissions.all()
         self.assertEqual(newest.data['name'], 'husserl')
-        self.assertEqual(last.data['name'], 'schelling')
+        self.assertEqual(previous.data['name'], 'schelling')
 
     @httpretty.activate
     def test_upgraded_user_access(self):
