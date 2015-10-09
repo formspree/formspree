@@ -132,6 +132,7 @@ class Form(DB.Model):
                 overlimit = True
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
+        userIsUpgraded = self.owner.upgraded
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
             html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
