@@ -11,3 +11,8 @@ def parse_confirmation_link_sent(request_body):
     qs = matchlink.group(2)
 
     return link, qs
+
+def parse_formspree_gold_info(request_body):
+    request_body = unquote(request_body)
+    found_gold = request_body.find('Formspree Gold', beg=0, end=len(request_body))
+    return found_gold
