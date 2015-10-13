@@ -6,7 +6,6 @@ from flask import url_for, render_template
 from formspree import settings
 from formspree.utils import send_email, IS_VALID_EMAIL
 from formspree.app import DB
-from formspree.forms.models import Form
 from helpers import hash_pwd
 
 class User(DB.Model):
@@ -23,6 +22,7 @@ class User(DB.Model):
 
     @property
     def forms(self):
+        from formspree.forms.models import Form
         by_email = DB.session.query(Form) \
             .join(Email, Email.address == Form.email) \
             .join(User, User.id == Email.owner_id) \

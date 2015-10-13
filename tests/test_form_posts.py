@@ -3,6 +3,7 @@ import httpretty
 from formspree import settings
 from formspree.app import DB
 from formspree.forms.models import Form
+from formspree.users.models import User, Email
 
 from formspree_test_case import FormspreeTestCase
 
@@ -152,3 +153,23 @@ class FormPostsTestCase(FormspreeTestCase):
         f = Form.query.first()
         self.assertEqual(f.counter, 3)
         self.assertEqual(f.get_monthly_counter(), 3) # the counters mark 4
+
+        # the user pays and becomes upgraded
+        r = self.client.post('/register',
+            data={'email': 'luke@example.com',
+                  'password': 'banana'}
+        )
+        user = User.query.filter_by(email='luke@example.com').first()
+        user.upgraded = True
+        user.emails = [Email(address='luke@example.com')]
+        DB.session.add(user)
+        DB.session.commit()
+
+        # the user should receive form posts again
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+        r = self.client.post('/luke@example.com',
+            headers = ajax_headers,
+            data={'name': 'noah'}
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('noah', httpretty.last_request().body)

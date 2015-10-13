@@ -20,9 +20,22 @@ class Form(DB.Model):
     counter = DB.Column(DB.Integer)
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
 
-    owner = DB.relationship('User')
+    owner = DB.relationship('User') # direct owner, defined by 'owner_id'
+                                    # this property is basically useless. use .controllers
     submissions = DB.relationship('Submission',
         backref='form', lazy='dynamic', order_by=lambda: Submission.id.desc())
+
+    @property
+    def controllers(self):
+        from formspree.users.models import User, Email
+        by_email = DB.session.query(User) \
+            .join(Email, User.id == Email.owner_id) \
+            .join(Form, Form.email == Email.address) \
+            .filter(Form.id == self.id)
+        by_creation = DB.session.query(User) \
+            .join(Form, User.id == Form.owner_id) \
+            .filter(Form.id == self.id)
+        return by_email.union(by_creation)
 
     '''
     When the form is created by a spontaneous submission, it is added to
@@ -128,8 +141,12 @@ class Form(DB.Model):
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
         if self.get_monthly_counter(basedate=request_date) > settings.MONTHLY_SUBMISSIONS_LIMIT:
-            if not self.owner or not self.owner.upgraded:
-                overlimit = True
+            overlimit = True
+            if self.controllers:
+                for c in self.controllers:
+                    if c.upgraded:
+                        overlimit = False
+                        break
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
