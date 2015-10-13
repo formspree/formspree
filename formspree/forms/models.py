@@ -25,18 +25,6 @@ class Form(DB.Model):
     submissions = DB.relationship('Submission',
         backref='form', lazy='dynamic', order_by=lambda: Submission.id.desc())
 
-    @property
-    def controllers(self):
-        from formspree.users.models import User, Email
-        by_email = DB.session.query(User) \
-            .join(Email, User.id == Email.owner_id) \
-            .join(Form, Form.email == Email.address) \
-            .filter(Form.id == self.id)
-        by_creation = DB.session.query(User) \
-            .join(Form, User.id == Form.owner_id) \
-            .filter(Form.id == self.id)
-        return by_email.union(by_creation)
-
     '''
     When the form is created by a spontaneous submission, it is added to
     the table with a `host`, an `email` and a `hash` made of these two
@@ -79,12 +67,17 @@ class Form(DB.Model):
     def __repr__(self):
         return '<Form %s, email=%s, host=%s>' % (self.id, self.email, self.host)
 
-    def controlled_by(self, user):
-        print 'user:', user.__dict__
-        print 'user.forms:', [f.__dict__ for f in user.forms]
-        print 'self:', self.__dict__
-        return user.forms.filter(Form.id == self.id).count()
-        
+    @property
+    def controllers(self):
+        from formspree.users.models import User, Email
+        by_email = DB.session.query(User) \
+            .join(Email, User.id == Email.owner_id) \
+            .join(Form, Form.email == Email.address) \
+            .filter(Form.id == self.id)
+        by_creation = DB.session.query(User) \
+            .join(Form, User.id == Form.owner_id) \
+            .filter(Form.id == self.id)
+        return by_email.union(by_creation)
 
     @classmethod
     def get_with_hashid(cls, hashid):

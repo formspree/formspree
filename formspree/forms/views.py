@@ -256,7 +256,9 @@ def form_submissions(hashid, format=None):
 
     form = Form.get_with_hashid(hashid)
 
-    if not form.controlled_by(current_user):
+    for cont in form.controllers:
+        if cont.id == current_user.id: break
+    else:
         if request_wants_json():
             return jsonerror(403, {'error': "You do not control this form."})
         else:
