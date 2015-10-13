@@ -30,6 +30,10 @@ pip-log.txt
 .tox
 nosetests.xml
 
+# Vim backup files
+*.swp
+*.swo
+
 # Translations
 *.mo
 
