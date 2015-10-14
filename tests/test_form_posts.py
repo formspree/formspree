@@ -1,4 +1,5 @@
 import httpretty
+import json
 
 from formspree import settings
 from formspree.app import DB
@@ -126,6 +127,23 @@ class FormPostsTestCase(FormspreeTestCase):
         f.confirmed = True
         DB.session.add(f)
         DB.session.commit()
+
+        # in the meantime we got a request from sendgrid saying this email address is invalid or something
+        # simulate sendgrid webhook
+        self.client.post('/webhooks/sendgrid', data=json.dumps([{
+            'email': 'luke@example.com',
+            'timestamp': 1444830840,
+            'smtp-id': '<14c5d75ce93.dfd.64b469@ismtpd-555>',
+            'event': 'bounce',
+            'category': 'submission',
+            'form': f.id,
+            'host': 'http://example.com',
+            'sg_event_id': '8RaVu-zOQFKLm9Gkk8Il-g==',
+            'sg_message_id': '14c5d75ce93.dfd.64b469.filter0001.16648.5515E0B88.0',
+            'reason': '500 unknown recipient',
+            'status': '5.0.0'
+        }]))
+        # but since the form was confirmed this shouldn't do anything.
 
         # third submission
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')

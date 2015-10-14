@@ -125,7 +125,7 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             'timestamp': 1444830840,
             'smtp-id': '<14c5d75ce93.dfd.64b469@ismtpd-555>',
             'event': 'dropped',
-            'category': 'confirmation',
+            'category': 'submission',
             'form': form.id,
             'host': 'http://here.com',
             'sg_event_id': '8RaVu-zOQFKLm9Gkk8Il-g==',
@@ -271,6 +271,27 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         )
 
         # submissions now must be 2
+        form = query.first()
+        self.assertEqual(form.counter, 2)
+        self.assertEqual(form.submissions.count(), 2)
+
+        # got a request from sendgrid saying other things, not that this email is invalid
+        # simulate sendgrid webhook
+        self.client.post('/webhooks/sendgrid', data=json.dumps([{
+            'email': 'alice@example.com',
+            'timestamp': 1444830840,
+            'smtp-id': '<14c5d75ce93.dfd.64b469@ismtpd-555>',
+            'event': 'deferred',
+            'category': 'confirmation',
+            'form': form.id,
+            'host': 'http://somewhere.com',
+            'sg_event_id': '8RaVu-zOQFKLm9Gkk8Il-g==',
+            'sg_message_id': '14c5d75ce93.dfd.64b469.filter0001.16648.5515E0B88.0',
+            'reason': '400 try again later',
+            'status': '5.0.0'
+        }]))
+
+        # everything continues the same
         form = query.first()
         self.assertEqual(form.counter, 2)
         self.assertEqual(form.submissions.count(), 2)
