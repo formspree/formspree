@@ -123,9 +123,11 @@ class Form(DB.Model):
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
             html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
+            category = 'submission'
         else:
             text = render_template('email/overlimit-notification.txt', host=self.host)
             html = render_template('email/overlimit-notification.html', host=self.host)
+            category = 'overlimit'
 
         result = send_email(to=self.email,
                           subject=subject,
@@ -133,7 +135,9 @@ class Form(DB.Model):
                           html=html,
                           sender=settings.DEFAULT_SENDER,
                           reply_to=reply_to,
-                          cc=cc)
+                          cc=cc,
+                          categories=[category],
+                          data={'host': self.host, 'form': self.id})
 
         if not result[0]:
             return{ 'code': Form.STATUS_EMAIL_FAILED }
@@ -212,7 +216,9 @@ class Form(DB.Model):
                             subject='Confirm email for %s' % settings.SERVICE_NAME,
                             text=render_content('txt'),
                             html=render_content('html'),
-                            sender=settings.DEFAULT_SENDER)
+                            sender=settings.DEFAULT_SENDER,
+                            categories=['confirmation'],
+                            data={'host': self.host, 'form': self.id})
 
         log.debug('Sent')
 

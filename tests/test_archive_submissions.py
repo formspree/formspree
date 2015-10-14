@@ -118,6 +118,23 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
             data={'name': 'schelling'}
         )
 
+        # in the meantime we got a request from sendgrid saying this email address is invalid or something
+        # simulate sendgrid webhook
+        self.client.post('/webhooks/sendgrid', data=json.dumps([{
+            'email': 'sokratis@example.com',
+            'timestamp': 1444830840,
+            'smtp-id': '<14c5d75ce93.dfd.64b469@ismtpd-555>',
+            'event': 'dropped',
+            'category': 'confirmation',
+            'form': form.id,
+            'host': 'http://here.com',
+            'sg_event_id': '8RaVu-zOQFKLm9Gkk8Il-g==',
+            'sg_message_id': '14c5d75ce93.dfd.64b469.filter0001.16648.5515E0B88.0',
+            'reason': 'Bounced Address',
+            'status': '5.0.0'
+        }]))
+        # but since the form was confirmed this shouldn't do anything.
+
         self.assertEqual(3, secondform.submissions.count())
         newest, previous, last = secondform.submissions.all()
         self.assertEqual(newest.data['name'], 'schelling')
@@ -226,3 +243,54 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         self.client.get('/logout')
         r = self.client.get('/forms/' + form_endpoint + '/')
         self.assertEqual(r.status_code, 302) # it should return a redirect (via @user_required)
+
+    @httpretty.activate
+    def test_deleting_unconfirmed_failed_submissions(self):
+        # when the form is not confirmed we still store submissions,
+        # but if sendgrid says it couldn't deliver the confirmation email then
+        # we don't store it anymore.
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # submit a form
+        self.client.post('/alice@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'name': 'john'}
+        )
+        query = Form.query.filter_by(host='somewhere.com',
+                                     email='alice@example.com')
+        self.assertEqual(query.count(), 1)
+        form = query.first()
+
+        # this form wasn't confirmed, but it has this first submission already
+        self.assertEqual(form.submissions.count(), 1)
+
+        # submit again
+        self.client.post('/alice@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'_replyto': 'johann@gmail.com', 'name': 'johann'}
+        )
+
+        # submissions now must be 2
+        form = query.first()
+        self.assertEqual(form.counter, 2)
+        self.assertEqual(form.submissions.count(), 2)
+
+        # got a request from sendgrid saying this email address is invalid or something
+        # simulate sendgrid webhook
+        self.client.post('/webhooks/sendgrid', data=json.dumps([{
+            'email': 'alice@example.com',
+            'timestamp': 1444830840,
+            'smtp-id': '<14c5d75ce93.dfd.64b469@ismtpd-555>',
+            'event': 'dropped',
+            'category': 'confirmation',
+            'form': form.id,
+            'host': 'http://somewhere.com',
+            'sg_event_id': '8RaVu-zOQFKLm9Gkk8Il-g==',
+            'sg_message_id': '14c5d75ce93.dfd.64b469.filter0001.16648.5515E0B88.0',
+            'reason': 'Bounced Address',
+            'status': '5.0.0'
+        }]))
+
+        # submissions must be 0
+        form = query.first()
+        self.assertEqual(form.submissions.count(), 0)

@@ -186,6 +186,34 @@ def confirm_email(nonce):
         return render_template('forms/email_confirmed.html', email=form.email, host=form.host)
 
 
+def sendgrid_webhook():
+    events = json.loads(request.get_data())
+    for event in events:
+        if event['event'] == 'dropped' or event['event'] == 'bounce' and event['reason'].startswith('5'):
+            # this email is invalid. do not keep submissions for it.
+            if 'form' in event:
+                # get the form related to this submission using data set through sendgrid API
+                form = Form.query.get(event['form'])
+                if form and not form.confirmed:
+                    forms = [form]
+                else:
+                    forms = [] # if the form is confirmed, keep the submissions
+            else:
+                # -> this should never happen since we're tagging all emails sent
+                forms = Form.query.filter_by(email=event['email']).all()
+                for form in forms:
+                    # if any of the registered forms for this email is confirmed,
+                    # keep the submissions (we never know)
+                    if form.confirmed:
+                        forms = []
+                        break
+
+            # drop submissions for every form found in the previous process
+            for form in forms:
+                Submission.query.filter_by(form_id=form.id).delete(synchronize_session=False)
+            DB.session.commit()
+    return 'ok'
+
 @login_required
 def forms():
     if request.method == 'GET':
