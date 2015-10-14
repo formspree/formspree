@@ -294,3 +294,31 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         # submissions must be 0
         form = query.first()
         self.assertEqual(form.submissions.count(), 0)
+        self.assertEqual(form.counter, 2) # the counter never goes back.
+
+        # submit again
+        self.client.post('/alice@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'_replyto': 'joh@ann.es', '_next': 'http://google.com',
+                  'name': 'johannes', 'message': 'salve!'}
+        )
+
+        # submissions now must be 0 and the counter must stay at 2
+        # because we will not save submissions for this errored form until its confirmation.
+        form = query.first()
+        self.assertEqual(form.submissions.count(), 0)
+        self.assertEqual(form.counter, 2)
+
+        # confirm form
+        form.confirmed = True
+        DB.session.add(form)
+        DB.session.commit()
+
+        # submit again, now everything should be ok.
+        r = self.client.post('/alice@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'name': 'brahms'}
+        )
+        self.assertIn('brahms', httpretty.last_request().body)
+        self.assertEqual(form.submissions.count(), 1)
+        self.assertEqual(form.counter, 3)

@@ -9,7 +9,7 @@ from flask import request, url_for, render_template, redirect, jsonify, flash, R
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, http_form_to_dict, referrer_to_path, HASH, EXCLUDE_KEYS
+from helpers import ordered_storage, referrer_to_path, http_form_to_dict, HASH, EXCLUDE_KEYS
 
 from formspree.app import DB
 from models import Form, Submission
@@ -90,9 +90,13 @@ def send(email_or_string):
     if form.confirmed:
         status = form.send(request.form, request.referrer)
     else:
-        # save all the submissions even before the email is confirmed
-        data, _ = http_form_to_dict(request.form)
-        form.save_submission(data)
+        # by default we save all the submissions even before the email is confirmed.
+        # however, if the confirmation has already been sent and there is no submissions
+        # saved, that means sendgrid has informed us, via webhook, that the target email
+        # is invalid, we've deleted the submissions and don't have to store them anymore.
+        if not form.confirm_sent or form.submissions.count() > 0:
+            data, _ = http_form_to_dict(request.form)
+            form.save_submission(data)
 
         status = form.send_confirmation()
 
