@@ -106,34 +106,12 @@ class Form(DB.Model):
         if spam:
             return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
 
-        # increase the monthly counter
-        request_date = datetime.datetime.now()
-        self.increase_monthly_counter(basedate=request_date)
-
-        # increment the forms counter
-        self.counter = Form.counter + 1
-        DB.session.add(self)
-
-        # archive the form contents
-        sub = Submission(self.id)
-        sub.data = data
-        DB.session.add(sub)
-
-        # commit changes
-        DB.session.commit()
-
-        # delete all archived submissions over the limit
-        records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
-        newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
-        DB.engine.execute(
-          delete('submissions'). \
-          where(Submission.form_id == self.id). \
-          where(~Submission.id.in_(newest))
-        )
+        # saves submission data to database and increase counters
+        self.save_submission(data)
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
-        if self.get_monthly_counter(basedate=request_date) > settings.MONTHLY_SUBMISSIONS_LIMIT:
+        if self.get_monthly_counter() > settings.MONTHLY_SUBMISSIONS_LIMIT:
             overlimit = True
             if self.controllers:
                 for c in self.controllers:
@@ -145,9 +123,11 @@ class Form(DB.Model):
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
             html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
+            category = 'submission'
         else:
             text = render_template('email/overlimit-notification.txt', host=self.host)
             html = render_template('email/overlimit-notification.html', host=self.host)
+            category = 'overlimit'
 
         result = send_email(to=self.email,
                           subject=subject,
@@ -155,12 +135,39 @@ class Form(DB.Model):
                           html=html,
                           sender=settings.DEFAULT_SENDER,
                           reply_to=reply_to,
-                          cc=cc)
+                          cc=cc,
+                          categories=[category],
+                          data={'host': self.host, 'form': self.id})
 
         if not result[0]:
             return{ 'code': Form.STATUS_EMAIL_FAILED }
 
         return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
+
+    def save_submission(self, data):
+        # increment the forms counter
+        self.counter = Form.counter + 1 if self.id else 1
+
+        # archive the form contents
+        sub = Submission()
+        sub.data = data
+        self.submissions.append(sub)
+
+        # commit changes to database
+        DB.session.add(self)
+        DB.session.commit()
+
+        # increase the monthly counter
+        self.increase_monthly_counter()
+
+        # delete all archived submissions over the limit
+        records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
+        newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
+        DB.engine.execute(
+          delete('submissions'). \
+          where(Submission.form_id == self.id). \
+          where(~Submission.id.in_(newest))
+        )
 
     def get_monthly_counter(self, basedate=None):
         basedate = basedate or datetime.datetime.now()
@@ -170,6 +177,8 @@ class Form(DB.Model):
         return int(counter)
 
     def increase_monthly_counter(self, basedate=None):
+        if not self.id:
+            return
         basedate = basedate or datetime.datetime.now()
         month = basedate.month
         key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
@@ -207,7 +216,9 @@ class Form(DB.Model):
                             subject='Confirm email for %s' % settings.SERVICE_NAME,
                             text=render_content('txt'),
                             html=render_content('html'),
-                            sender=settings.DEFAULT_SENDER)
+                            sender=settings.DEFAULT_SENDER,
+                            categories=['confirmation'],
+                            data={'host': self.host, 'form': self.id})
 
         log.debug('Sent')
 
@@ -270,9 +281,8 @@ class Submission(DB.Model):
 
     id = DB.Column(DB.Integer, primary_key=True)
     submitted_at = DB.Column(DB.DateTime)
-    form_id = DB.Column(DB.Integer, DB.ForeignKey('forms.id'))
+    form_id = DB.Column(DB.Integer, DB.ForeignKey('forms.id'), nullable=False)
     data = DB.Column(MutableDict.as_mutable(JSON))
 
-    def __init__(self, form_id):
+    def __init__(self):
         self.submitted_at = datetime.datetime.utcnow()
-        self.form_id = form_id

@@ -3,6 +3,7 @@ import datetime
 import calendar
 import urlparse
 import string
+import json
 import uuid
 import re
 from datetime import timedelta
@@ -77,7 +78,8 @@ def next_url(referrer=None, next=None):
     return urlparse.urlunparse(parsed)
 
 
-def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
+def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None,
+               categories=[], data={}):
     '''
     Sends email using SendGrid's REST-api
     '''
@@ -90,7 +92,11 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
             'to': to,
             'subject': subject,
             'text': text,
-            'html': html}
+            'html': html,
+            'x-smtpapi': json.dumps({
+                'category': categories,
+                'unique_args': data
+            })}
 
     # parse 'fromname' from 'sender' if it is formatted like "Name <name@email.com>"
     try:

@@ -31,3 +31,4 @@ def configure_routes(app):
 
     # Webhooks
     app.add_url_rule('/webhooks/stripe', view_func=users.views.stripe_webhook, methods=['POST'])
+    app.add_url_rule('/webhooks/sendgrid', view_func=forms.views.sendgrid_webhook, methods=['POST'])

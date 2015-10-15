@@ -15,8 +15,8 @@ class FormspreeTestCase(TestCase):
         self.redis_patcher = mock.patch('flask_redis.RedisClass', new_callable=fakeredis.FakeStrictRedis)
         self.redis_patcher.start()
 
-        settings.MONTHLY_SUBMISSIONS_LIMIT = 2
-        settings.ARCHIVED_SUBMISSIONS_LIMIT = 2
+        settings.MONTHLY_SUBMISSIONS_LIMIT = 3
+        settings.ARCHIVED_SUBMISSIONS_LIMIT = 3
         settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
         settings.SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL')
         settings.STRIPE_PUBLISHABLE_KEY = settings.STRIPE_TEST_PUBLISHABLE_KEY

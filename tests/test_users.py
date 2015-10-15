@@ -119,7 +119,7 @@ class UserAccountsTestCase(FormspreeTestCase):
         self.assertTrue(Form.query.first().confirmed)
 
         # send 5 forms (monthly limits should not apply to the upgraded user)
-        self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
+        self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 3)
         for i in range(5):
             r = self.client.post('/' + form_endpoint,
                 headers={'Referer': 'formspree.io'},
@@ -127,8 +127,8 @@ class UserAccountsTestCase(FormspreeTestCase):
                       'submission': '__%s__' % i}
             )
         form = Form.query.first()
-        self.assertEqual(form.counter, 5)
-        self.assertEqual(form.get_monthly_counter(), 5)
+        self.assertEqual(form.counter, 6)
+        self.assertEqual(form.get_monthly_counter(), 6)
         self.assertIn('ana', httpretty.last_request().body)
         self.assertIn('__4__', httpretty.last_request().body)
         self.assertNotIn('You+are+past+our+limit', httpretty.last_request().body)
