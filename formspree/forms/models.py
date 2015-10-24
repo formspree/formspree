@@ -133,7 +133,8 @@ class Form(DB.Model):
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
-        if self.get_monthly_counter(basedate=request_date) > settings.MONTHLY_SUBMISSIONS_LIMIT:
+        monthly_counter = self.get_monthly_counter()
+        if monthly_counter > settings.MONTHLY_SUBMISSIONS_LIMIT:
             overlimit = True
             if self.controllers:
                 for c in self.controllers:
@@ -146,6 +147,12 @@ class Form(DB.Model):
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
             html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
         else:
+            if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
+                # only send this overlimit notification for the first 25 overlimit emails
+                # after that, return an error so the user can know the website owner is not
+                # going to read his message.
+                return { 'code': Form.STATUS_EMAIL_FAILED }
+
             text = render_template('email/overlimit-notification.txt', host=self.host)
             html = render_template('email/overlimit-notification.html', host=self.host)
 
