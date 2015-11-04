@@ -42,7 +42,7 @@ def send(email_or_string):
         else:
             return render_template('error.html',
                                    title='Unable to submit form',
-                                   text='Make sure your form is running on a proper server. For geeks: could not find the "Referrer" header.'), 400
+                                   text='Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. For geeks: could not find the "Referrer" header.'), 400
 
     if not IS_VALID_EMAIL(email_or_string):
         # in this case it can be a hashid identifying a
@@ -104,7 +104,7 @@ def send(email_or_string):
         else:
             return render_template('error.html',
                                    title='Can\'t send an empty form',
-                                   text=str('<a href="%s">Return to form</a>' % request.referrer)), 400
+                                   text=str('<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank">"name" attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank">"required" property</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input" target="_blank">see more HTML form customization info</a>.</p><p><a href="%s">Return to form</a></p>' % request.referrer)), 400
     elif status['code'] == Form.STATUS_CONFIRMATION_SENT or \
          status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED:
 
@@ -122,7 +122,7 @@ def send(email_or_string):
     else:
         return render_template('error.html',
                                title='Unable to send email',
-                               text='Unable to send email'), 500
+                               text='Unable to send email. If you can, please report this immediately to <b>team@formspree.io</b>'), 500
 
 
 def resend_confirmation(email):
