@@ -2,25 +2,23 @@
 
 <p>All you have to do is click the link below to confirm your email. To prevent spamming, you'll have to repeat this step for every page where you insert your form. Note that you won't be receiving any emails from the site before you confirm your email.</p>
 
-<p><a href="{{nonce_link}}">Click here to confirm</a></p>
+<p style="text-align: center"><a href="{{nonce_link}}" style="font-size: 20px;">Click here to confirm</a></p>
 
 {% if data and keys %}
-    <hr style="color: #ddd;" />
-    
-    <p>In case it wasn't yourself the one who submitted this, here are the contents of the form:</p>
-    
-    <table border="0" width="100%">
-        {% for k in keys %}
-            <tr>
-                <td align="right" valign="top" width="70" style="padding: 5px 5px 5px 0;"><strong>{{k}}:</strong> </td>
-                <td align="left" valign="top" width="*" style="padding: 5px 5px 5px;">
-                  <pre style="margin: 0; font-family: inherit;">{{data.get(k,'')}}</pre>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-    
-    <hr style="color: #ddd;" />
+    <div style="padding: 9px; border: 1px solid #359173;">
+        <small>In case it wasn't yourself the one who submitted this, here are the contents of the form:</small>
+
+        <table border="0" width="100%" style="font-size: 11px;">
+            {% for k in keys %}
+                <tr>
+                    <td align="right" valign="top" width="70"><strong>{{k}}:</strong> </td>
+                    <td align="left" valign="top" width="*">
+                      <pre style="margin: 0; font-family: inherit;">{{data.get(k,'')}}</pre>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endif %}
 
 <p>We hope you enjoy using {{config.SERVICE_NAME}}. If you have any questions, feel free to shoot an email to {{config.CONTACT_EMAIL}}</p>
@@ -28,7 +26,7 @@
 <p>Best,<br />
 Lauri and Cole</p>
 
-<hr />
+<hr style="color: #359173; border: 1px dashed #359173;" />
 
 <p><strong>Why did I receive this email?</strong><br />
 Someone (hopefully you?) used your email with the {{config.SERVICE_NAME}} API on {{host}}. If this wasn't you, no worries. This is the only email you'll get.</p>
