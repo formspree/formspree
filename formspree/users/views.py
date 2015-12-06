@@ -54,7 +54,7 @@ def add_email():
             flash("We've sent a message with a verification link to %s." % address, 'info')
         else:
             flash("We couldn't sent you the verification email at %s. Please "
-                  "try again later.", "error")
+                  "try again later." % address, "error")
     except ValueError:
         flash("%s is not a valid email address." % request.form['address'], "warning")
     return res
