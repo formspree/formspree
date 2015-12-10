@@ -116,6 +116,15 @@ def send(email_or_string):
                 host=host,
                 resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
             )
+    elif status['code'] == Form.STATUS_OVERLIMIT:
+
+        if request_wants_json():
+            return jsonify({'error': "form over quota"})
+        else:
+            return render_template('error.html',
+                                   title='Form over quota',
+                                   text='It looks like this form is getting a lot of submissions and ran out of its quota. Try contacting this website through other means or try submitting again later.'
+            )
 
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})

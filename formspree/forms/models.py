@@ -46,6 +46,7 @@ class Form(DB.Model):
     STATUS_EMAIL_SENT              = 0
     STATUS_EMAIL_EMPTY             = 1
     STATUS_EMAIL_FAILED            = 2
+    STATUS_OVERLIMIT               = 3
 
     STATUS_CONFIRMATION_SENT       = 10
     STATUS_CONFIRMATION_DUPLICATED = 11
@@ -151,7 +152,7 @@ class Form(DB.Model):
                 # only send this overlimit notification for the first 25 overlimit emails
                 # after that, return an error so the user can know the website owner is not
                 # going to read his message.
-                return { 'code': Form.STATUS_EMAIL_FAILED }
+                return { 'code': Form.STATUS_OVERLIMIT }
 
             text = render_template('email/overlimit-notification.txt', host=self.host)
             html = render_template('email/overlimit-notification.html', host=self.host)
