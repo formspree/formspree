@@ -82,8 +82,11 @@ class Form(DB.Model):
 
     @classmethod
     def get_with_hashid(cls, hashid):
-        id = HASHIDS_CODEC.decode(hashid)[0]
-        return cls.query.get(id)
+        try:
+            id = HASHIDS_CODEC.decode(hashid)[0]
+            return cls.query.get(id)
+        except IndexError:
+            return None
 
     def send(self, http_form, referrer):
         '''
