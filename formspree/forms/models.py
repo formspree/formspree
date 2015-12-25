@@ -169,7 +169,7 @@ class Form(DB.Model):
                           cc=cc)
 
         if not result[0]:
-            return{ 'code': Form.STATUS_EMAIL_FAILED }
+            return{ 'code': Form.STATUS_EMAIL_FAILED, 'mailer-code': result[2], 'error-message': result[1] }
 
         return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
 
