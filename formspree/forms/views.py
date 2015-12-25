@@ -126,12 +126,13 @@ def send(email_or_string):
                                    text='It looks like this form is getting a lot of submissions and ran out of its quota. Try contacting this website through other means or try submitting again later.'
             )
 
+    # error fallback -- shouldn't happen
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})
     else:
         return render_template('error.html',
                                title='Unable to send email',
-                               text='Unable to send email. If you can, please report this immediately to <b>team@formspree.io</b>'), 500
+                               text='Unable to send email. If you can, please report this immediately to <b>team@formspree.io</b>. And send them the following: <p><pre><code>' + json.dumps(status) + '</code></pre></p>'), 500
 
 
 def resend_confirmation(email):
