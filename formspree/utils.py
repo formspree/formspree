@@ -124,4 +124,4 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
             errmsg = result.text
         log.warning(errmsg)
 
-    return result.status_code / 100 == 2, errmsg
+    return result.status_code / 100 == 2, errmsg, result.status_code
