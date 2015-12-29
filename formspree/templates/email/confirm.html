@@ -21,7 +21,9 @@
     </div>
 {% endif %}
 
-<p style="text-align: center; font-size: 25px;">Attention: you will not receive any more emails unless you click <a href="{{nonce_link}}">here</a> and confirm your address.</p>
+<div style="color:#a94442; background-color: #f2dede; border-color: #f2dede; padding: 30px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 36px; line-height: 1.42857143;box-sizing:border-box;text-align:center;">
+<strong>ALERT:</strong> You will not receive any more emails unless you click <a href="{{ nonce_link }}" style="color:#499BC9;text-decoration:none;font-weight:bold;">here</a> and confirm your address.
+</div>
 
 <p>We hope you enjoy using {{config.SERVICE_NAME}}. If you have any questions, feel free to shoot an email to {{config.CONTACT_EMAIL}}</p>
 
