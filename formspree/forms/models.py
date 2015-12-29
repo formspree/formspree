@@ -187,7 +187,7 @@ class Form(DB.Model):
         redis_store.incr(key)
         redis_store.expireat(key, unix_time_for_12_months_from_now(basedate))
 
-    def send_confirmation(self):
+    def send_confirmation(self, with_data=None):
         '''
         Helper that actually creates confirmation nonce
         and sends the email to associated email. Renders
@@ -207,10 +207,15 @@ class Form(DB.Model):
         link = url_for('confirm_email', nonce=nonce, _external=True)
 
         def render_content(type):
+            data, keys = None, None
+            if with_data:
+                data, keys = http_form_to_dict(with_data)
             return render_template('email/confirm.%s' % type,
                                       email=self.email,
                                       host=self.host,
-                                      nonce_link=link)
+                                      nonce_link=link,
+                                      data=data,
+                                      keys=keys)
 
         log.debug('Sending email')
 
