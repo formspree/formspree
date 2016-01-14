@@ -130,7 +130,7 @@ def send(email_or_string):
         if request_wants_json():
             return jsonerror(500, {'error': "_replyto or email field has not been sent correctly"})
         else:
-            return render_template('error.html', title='Unable to send email', text='Unable to send email. The _replyto field was not set correctly. This may be the result of you have multiple _replyto fields. Error message: <p><pre><code>' + status['error-message'] + '</code></pre></p>'), 500
+            return render_template('error.html', title='Unable to send email', text='Unable to send email. The _replyto field was not set correctly. This may be the result of you have multiple _replyto fields. If you cannot find your error, please contact <b>team@formspree.io</b> with a link to your form. Error message: <p><pre><code>' + status['error-message'] + '</code></pre></p>'), 500
 
     # error fallback -- shouldn't happen
     if request_wants_json():
@@ -138,7 +138,7 @@ def send(email_or_string):
     else:
         return render_template('error.html',
                                title='Unable to send email',
-                               text='Unable to send email. If you can, please report this immediately to <b>team@formspree.io</b>. And send them the following: <p><pre><code>' + json.dumps(status) + '</code></pre></p>'), 500
+                               text='Unable to send email. If you can, please send the link to your form and the error information to  <b>team@formspree.io</b>. And send them the following: <p><pre><code>' + json.dumps(status) + '</code></pre></p>'), 500
 
 
 def resend_confirmation(email):
