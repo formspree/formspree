@@ -126,6 +126,12 @@ def send(email_or_string):
                                    text='It looks like this form is getting a lot of submissions and ran out of its quota. Try contacting this website through other means or try submitting again later.'
             )
 
+    elif status['code'] == Form.STATUS_REPLYTO_ERROR:
+        if request_wants_json():
+            return jsonerror(500, {'error': "_replyto or email field has not been sent correctly"})
+        else:
+            return render_template('error.html', title='Unable to send email', text='Unable to send email. The _replyto field was not set correctly. This may be the result of you have multiple _replyto fields. Error message: <p><pre><code>' + status['error-message'] + '</code></pre></p>'), 500
+
     # error fallback -- shouldn't happen
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})
