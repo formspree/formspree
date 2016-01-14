@@ -73,7 +73,7 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>Who are you guys?</h4>
-                    <p>We're a community of developers that work together to create products. You can contribute on <a href="https://github.com/asm-products/formspree">GitHub</a>. {{config.SERVICE_NAME}} is a project that solves a problem many of us have faced: easily adding forms to otherwise static HTML pages.</p>
+                    <p>We're a community of developers that work together to create products. You can contribute on <a href="https://github.com/formspree/formspree">GitHub</a>. {{config.SERVICE_NAME}} is a project that solves a problem many of us have faced: easily adding forms to otherwise static HTML pages.</p>
             	</div>
             </div>
             <div class="col-1-2">
@@ -214,8 +214,8 @@
       <div class="container narrow block">
             <div class="col-1-1">
                 <h3>Access to submissions archive</h3>
-                <p>If you ever missed a submission email, for any reason, you can just login and read your last 100 submissions, all listed and timestamped with full data.</p>
-                <p>It even works for submissions made while you were not a {{ config.UPGRADED_PLAN_NAME }} user.</p>
+                <p>If you ever missed a submission email, for any reason, you can just login and read your last 1000 submissions, all listed and timestamped with full data. Also, the submissions can be exported to CSV or JSON!</p>
+                <p>It even works for submissions made while you were not a {{ config.UPGRADED_PLAN_NAME }} user (the last 100, in this case).</p>
             </div>
       </div>
 
@@ -224,12 +224,12 @@
   <div class="row section">
       <div class="container narrow block">
           <div class="col-1-2">
-            <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/asm-products/formspree">managed on Github</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
+            <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/formspree/formspree">managed on Github</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
           </div>
           <div class="col-1-2">
             <form method="POST" action="//{{config.API_ROOT}}/{{config.CONTACT_EMAIL}}">
               <input type="email" name="_replyto" placeholder="Your email" />
-              <textarea name="message" rows="5" placeholder="Your message"></textarea>
+              <textarea name="message" rows="5" placeholder="Your message (when sending support requests, please include the URL to your form if that is relevant)"></textarea>
               <input type="text" name="_gotcha" style="display:none">
               <button type="submit">Send</button>
             </form>
