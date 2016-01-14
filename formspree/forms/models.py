@@ -47,6 +47,7 @@ class Form(DB.Model):
     STATUS_EMAIL_EMPTY             = 1
     STATUS_EMAIL_FAILED            = 2
     STATUS_OVERLIMIT               = 3
+    STATUS_REPLYTO_ERROR           = 4
 
     STATUS_CONFIRMATION_SENT       = 10
     STATUS_CONFIRMATION_DUPLICATED = 11
@@ -169,6 +170,8 @@ class Form(DB.Model):
                           cc=cc)
 
         if not result[0]:
+            if result[1].startswith('Invalid replyto email address'):
+                return { 'code': Form.STATUS_REPLYTO_ERROR}
             return{ 'code': Form.STATUS_EMAIL_FAILED, 'mailer-code': result[2], 'error-message': result[1] }
 
         return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
