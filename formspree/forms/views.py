@@ -212,7 +212,7 @@ def forms():
 
         # grab all the forms this user controls
         if current_user.upgraded:
-            forms = current_user.forms.order_by(Form.id.desc()).all()
+            forms = current_user.forms.order_by(Form.host).all()
         else:
             forms = []
 
