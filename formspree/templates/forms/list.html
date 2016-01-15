@@ -27,7 +27,7 @@
           {{ form.host }}
         {% endif %}
       </td>
-      <td>{{ form.email }}</td>
+      <td><span class="hint--top" data-hint="{{ request.url_root.replace('http://', 'https://') }}{% if form.hash %}{{ form.email }}{% else %}{{ form.hashid }}{% endif %}">{{ form.email }}</span></td>
       <td>
         {% if form.is_new %}
           form never submitted
