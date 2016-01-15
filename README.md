@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/asm-products/formspree.svg?branch=master)](https://travis-ci.org/asm-products/formspree)
+[![Build Status](https://travis-ci.org/formspree/formspree.svg?branch=master)](https://travis-ci.org/formspree/formspree)
 
 FORMSPREE.IO
 ------------
