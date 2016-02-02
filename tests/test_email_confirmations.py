@@ -70,6 +70,9 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
         self.client.get(link, query_string=qs)
 
+        # confirm user sees upgrade message
+        self.assertEqual(parse_formspree_gold_info(httpretty.last_request().body), True)
+
         # confirm that the user has no access to the form since he is not upgraded
         r = self.client.get('/forms',
             headers={'Accept': 'application/json'},
