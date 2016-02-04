@@ -67,7 +67,7 @@ You can use Formspree via AJAX. This even works cross-origin. The trick is to se
 
 --------
 
-If you are experiencing issues, please take a look at the [FAQ](/wiki/Frequently-Asked-Questions) in the wiki
+If you are experiencing issues, please take a look at the [FAQ](../../wiki/Frequently-Asked-Questions) in the wiki
 
 
 Running your own copy of Formspree
