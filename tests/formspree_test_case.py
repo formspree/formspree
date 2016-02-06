@@ -22,6 +22,8 @@ class FormspreeTestCase(TestCase):
 
         settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
 
+        settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
+
         return create_app()
 
     def setUp(self):

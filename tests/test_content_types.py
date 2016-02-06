@@ -2,6 +2,7 @@ import httpretty
 import json
 
 from formspree.forms.models import Form
+from formspree import settings
 from formspree.app import DB
 
 from formspree_test_case import FormspreeTestCase
@@ -57,6 +58,10 @@ class ContentTypeTestCase(FormspreeTestCase):
             (None, 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8', ishtml)
         ]
 
+        # for this test only we will relax this limit.
+        default_limit = settings.MONTHLY_SUBMISSIONS_LIMIT
+        settings.MONTHLY_SUBMISSIONS_LIMIT = len(types)
+
         for ct, acc, check in types:
             headers = {'Referer': 'http://example.com'}
             if ct:
@@ -82,3 +87,6 @@ class ContentTypeTestCase(FormspreeTestCase):
                 data=data
             )
             isjson(res)
+
+        # then we put the default limit back
+        settings.MONTHLY_SUBMISSIONS_LIMIT = default_limit

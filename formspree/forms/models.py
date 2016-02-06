@@ -6,18 +6,8 @@ from formspree import settings, log
 from formspree.utils import unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
 from sqlalchemy.sql.expression import delete
-from werkzeug.datastructures import ImmutableMultiDict
-from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path, send_email
-
-CODE_TEMPLATE = '''
-<form action="{action}" method="POST">
-    <input type="text" name="_gotcha" style="display:none" />
-    <input type="email" name="email" placeholder="Your email">
-    <textarea name="message" rows="5" placeholder="Your message"></textarea>
-    <input type="submit" value="Send">
-</form>
-'''
-
+from werkzeug.datastructures import ImmutableMultiDict, ImmutableOrderedMultiDict
+from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path
 
 class Form(DB.Model):
     __tablename__ = 'forms'
@@ -82,9 +72,12 @@ class Form(DB.Model):
         return HASHIDS_CODEC.encode(self.id)
 
     @classmethod
-    def get_form_by_random_like_string(cls, random_like_string):
-        id = HASHIDS_CODEC.decode(random_like_string)[0]
-        return cls.query.get(id)
+    def get_with_hashid(cls, hashid):
+        try:
+            id = HASHIDS_CODEC.decode(hashid)[0]
+            return cls.query.get(id)
+        except IndexError:
+            return None
 
     def send(self, submitted_data, referrer):
         '''
@@ -92,7 +85,7 @@ class Form(DB.Model):
         Assumes sender's email has been verified.
         '''
 
-        if type(submitted_data) is ImmutableMultiDict:
+        if type(submitted_data) in (ImmutableMultiDict, ImmutableOrderedMultiDict):
             data, keys = http_form_to_dict(submitted_data)
         else:
             data, keys = submitted_data, submitted_data.keys()
@@ -275,3 +268,7 @@ class Submission(DB.Model):
     def __init__(self, form_id):
         self.submitted_at = datetime.datetime.utcnow()
         self.form_id = form_id
+
+    def __repr__(self):
+        return '<Submission %s, form=%s, date=%s, keys=%s>' % \
+            (self.id or 'with an id to be assigned', self.form_id, self.submitted_at.isoformat(), self.data.keys())
