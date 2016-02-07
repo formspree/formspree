@@ -16,6 +16,12 @@
       >
         <style>.g-recaptcha div { width: auto !important; height: auto !important; }</style>
         <input type="hidden" name="host" value="{{ host }}">
+        {% if request.cookies.get('has_been_notified_of_bounce') %}
+          <label>
+            <input type="checkbox" name="bounce_problem_solved" value="true">
+            I confirm that my mailbox is receiving email correctly
+          </label>
+        {% endif %}
         <script src='https://www.google.com/recaptcha/api.js'></script>
         <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_KEY }}"></div>
         <button type="submit">Resend</button>
