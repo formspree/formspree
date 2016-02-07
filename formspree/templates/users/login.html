@@ -1,22 +1,37 @@
 {% extends 'layouts/base.html' %}
 
-{% block bodyclass %}dashboard login{% endblock%}
-{% block bodyid %}{% endblock%}
-
 {% block base %}
-  <div class="row">
-    <div class="container narrow card">
-      {% block form %}
-        <form action="" method=post>
-          <h2>Log in to {{ config.SERVICE_NAME }}</h2>
-          <input type="text" id="email" name="email" placeholder="Enter Email" required>
-          <input type="password" id="password" name="password" placeholder="Enter Password" required>
-          <button type="submit">Sign in</button>
-        </form>
+  <div class="container narrow card">
+    <form action="" method=post class="form-horizontal">
+      <h2>Log in to Formspree</h2>
 
-        <p>Don't have an account? <a href="{{ url_for('register', next=request.args.get('next')) }}">Register</a>!</p>
-      {% endblock %}
-    </div>
+      <div class="control-group">
+        <div class="controls">
+          <input type="text" id="email" name="email" class="input-xlarge"
+                 placeholder="Enter Email" required>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="controls">
+          <input type="password" id="password" name="password" class="input-xlarge"
+                 placeholder="Enter Password" required>
+        </div>
+      </div>
+
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" id="remember_me" name="remember_me">Remember me
+        </label>
+      </div>
+
+      <div class="control-group">
+        <div class="controls">
+          <button type="submit" class="btn btn-success">Sign in</button>
+        </div>
+      </div>
+    </form>
+
+    <p>Don't have an account? <a href="/register">Register</a>!</p>
   </div>
-
 {% endblock base %}

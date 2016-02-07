@@ -8,18 +8,4 @@
     <p>We've sent a link to your email. To prevent spam, you'll have to confirm your email before things start working.</p>
     <p class="small"><strong>Email: </strong> {{email}}, <strong>Site</strong> {{host}}</p>
 
-    {% if resend %}
-      <a href="#" class="resend">Resend confirmation email?</a>
-      <form class="resend" style="display: none"
-        action="{{ url_for('resend_confirmation', email=email) }}"
-        method="POST"
-      >
-        <style>.g-recaptcha div { width: auto !important; height: auto !important; }</style>
-        <input type="hidden" name="host" value="{{ host }}">
-        <script src='https://www.google.com/recaptcha/api.js'></script>
-        <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_KEY }}"></div>
-        <button type="submit">Resend</button>
-      </form>
-    {% endif %}
-
 {% endblock %}

@@ -1,21 +1,30 @@
-<div class="col-1-1">
-  <div class="create-form">
-  {% if current_user.upgraded %}
-    <a href="#create-form" class="button">
-      Create a form
-    </a>
-  
-    <div class="modal" id="create-form" aria-hidden="true">
-      <div>
-        <div class="x"><h4>Send email to:</h4><a href="#">&times;</a></div>
-        <form method="POST" action="{{ url_for('forms') }}">
-          <input type="email" name="email" placeholder="You can point this form to any email address" value="{{ current_user.email }}">
-          <button type="submit">Create</button>
-        </form>
+<div class="create-form">
+{% if current_user.upgraded %}
+  <a role="button" href="#" class="create-form-button tooltip hint--left" data-hint="Create new form"
+     onclick="$.tinyModal({
+        title: 'New Form',
+        html: '#createFormModal',
+        buttons: ['Create', 'Close'],
+        Create: function() {
+            $('#createForm').submit();
+        }
+     });">
+    <span class="ion-plus-circled"></span>
+  </a>
+
+  <div class="modal fade" id="createFormModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <form method="POST" action="{{ url_for('forms-api') }}" id="createForm">
+      <div class="form-group">
+          <label>
+            <label for="createFormEmail">Send email to:</label>
+            <input type="email" name="email" id="createFormEmail" class="form-control" placeholder="johnny@example.com"/>
+          </label>
       </div>
-    </div>
-  {% else %}
-    <h6 class="light">Please <a href="{{ url_for('account') }}">upgrade</a> your account in order to create forms from the dashboard and manage the forms currently associated with your emails.</h6>
-  {% endif %}
+    </form>
   </div>
+{% else %}
+  <div class="col-1-1">
+    Please upgrade your account in order to create new forms.
+  </div>
+{% endif %}
 </div>

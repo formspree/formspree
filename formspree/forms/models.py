@@ -3,7 +3,7 @@ import datetime
 
 from formspree.app import DB, redis_store
 from formspree import settings, log
-from formspree.utils import send_email, unix_time_for_12_months_from_now, next_url
+from formspree.utils import unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
 from sqlalchemy.sql.expression import delete
 from werkzeug.datastructures import ImmutableMultiDict, ImmutableOrderedMultiDict
@@ -21,8 +21,6 @@ class Form(DB.Model):
     counter = DB.Column(DB.Integer)
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
 
-    owner = DB.relationship('User') # direct owner, defined by 'owner_id'
-                                    # this property is basically useless. use .controllers
     submissions = DB.relationship('Submission',
         backref='form', lazy='dynamic', order_by=lambda: Submission.id.desc())
 
@@ -47,8 +45,6 @@ class Form(DB.Model):
     STATUS_EMAIL_SENT              = 0
     STATUS_EMAIL_EMPTY             = 1
     STATUS_EMAIL_FAILED            = 2
-    STATUS_OVERLIMIT               = 3
-    STATUS_REPLYTO_ERROR           = 4
 
     STATUS_CONFIRMATION_SENT       = 10
     STATUS_CONFIRMATION_DUPLICATED = 11
@@ -70,17 +66,10 @@ class Form(DB.Model):
     def __repr__(self):
         return '<Form %s, email=%s, host=%s>' % (self.id, self.email, self.host)
 
-    @property
-    def controllers(self):
-        from formspree.users.models import User, Email
-        by_email = DB.session.query(User) \
-            .join(Email, User.id == Email.owner_id) \
-            .join(Form, Form.email == Email.address) \
-            .filter(Form.id == self.id)
-        by_creation = DB.session.query(User) \
-            .join(Form, User.id == Form.owner_id) \
-            .filter(Form.id == self.id)
-        return by_email.union(by_creation)
+    def get_random_like_string(self):
+        if not self.id:
+            raise Exception("this form doesn't have an id yet, commit it first.")
+        return HASHIDS_CODEC.encode(self.id)
 
     @classmethod
     def get_with_hashid(cls, hashid):
@@ -90,7 +79,7 @@ class Form(DB.Model):
         except IndexError:
             return None
 
-    def send(self, http_form, referrer):
+    def send(self, submitted_data, referrer):
         '''
         Sends form to user's email.
         Assumes sender's email has been verified.
@@ -134,34 +123,19 @@ class Form(DB.Model):
         # delete all archived submissions over the limit
         records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
         newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
-        DB.engine.execute(
-          delete('submissions'). \
-          where(Submission.form_id == self.id). \
-          where(~Submission.id.in_(newest))
-        )
+        DB.engine.execute(delete('submissions').where(~Submission.id.in_(newest)))
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
-        monthly_counter = self.get_monthly_counter()
-        if monthly_counter > settings.MONTHLY_SUBMISSIONS_LIMIT:
-            overlimit = True
-            if self.controllers:
-                for c in self.controllers:
-                    if c.upgraded:
-                        overlimit = False
-                        break
+        if self.get_monthly_counter(basedate=request_date) > settings.MONTHLY_SUBMISSIONS_LIMIT:
+            if not self.owner or not self.owner.upgraded:
+                overlimit = True
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
             html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
         else:
-            if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
-                # only send this overlimit notification for the first 25 overlimit emails
-                # after that, return an error so the user can know the website owner is not
-                # going to read his message.
-                return { 'code': Form.STATUS_OVERLIMIT }
-
             text = render_template('email/overlimit-notification.txt', host=self.host)
             html = render_template('email/overlimit-notification.html', host=self.host)
 
@@ -174,9 +148,7 @@ class Form(DB.Model):
                           cc=cc)
 
         if not result[0]:
-            if result[1].startswith('Invalid replyto email address'):
-                return { 'code': Form.STATUS_REPLYTO_ERROR}
-            return{ 'code': Form.STATUS_EMAIL_FAILED, 'mailer-code': result[2], 'error-message': result[1] }
+            return{ 'code': Form.STATUS_EMAIL_FAILED }
 
         return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
 
@@ -194,7 +166,7 @@ class Form(DB.Model):
         redis_store.incr(key)
         redis_store.expireat(key, unix_time_for_12_months_from_now(basedate))
 
-    def send_confirmation(self, with_data=None):
+    def send_confirmation(self):
         '''
         Helper that actually creates confirmation nonce
         and sends the email to associated email. Renders
@@ -207,22 +179,17 @@ class Form(DB.Model):
 
         # the nonce for email confirmation will be the hash when it exists
         # (whenever the form was created from a simple submission) or
-        # a concatenation of HASH(email, id) + ':' + hashid
+        # a concatenation of HASH(email, id) + ':' + random_like_string
         # (whenever the form was created from the dashboard)
         id = str(self.id)
-        nonce = self.hash or '%s:%s' % (HASH(self.email, id), self.hashid)
+        nonce = self.hash or '%s:%s' % (HASH(self.email, id), self.get_random_like_string())
         link = url_for('confirm_email', nonce=nonce, _external=True)
 
         def render_content(type):
-            data, keys = None, None
-            if with_data:
-                data, keys = http_form_to_dict(with_data)
             return render_template('email/confirm.%s' % type,
                                       email=self.email,
                                       host=self.host,
-                                      nonce_link=link,
-                                      data=data,
-                                      keys=keys)
+                                      nonce_link=link)
 
         log.debug('Sending email')
 
@@ -248,9 +215,10 @@ class Form(DB.Model):
         if ':' in nonce:
             # form created in the dashboard
             # nonce is another hash and the
-            # hashid comes in the request.
-            nonce, hashid = nonce.split(':')
-            form = cls.get_with_hashid(hashid)
+            # random_like_string comes in the
+            # request.
+            nonce, rls = nonce.split(':')
+            form = cls.get_form_by_random_like_string(rls)
             if HASH(form.email, str(form.id)) == nonce:
                 pass
             else:
@@ -267,23 +235,24 @@ class Form(DB.Model):
 
     @property
     def action(self):
-        return url_for('send', email_or_string=self.hashid, _external=True)
+        return url_for('send', email_or_string=self.get_random_like_string(), _external=True)
 
     @property
-    def hashid(self):
-        # A unique identifier for the form that maps to its id,
-        # but doesn't seem like a sequential integer
-        try:
-            return self._hashid
-        except AttributeError:
-            if not self.id:
-                raise Exception("this form doesn't have an id yet, commit it first.")
-            self._hashid = HASHIDS_CODEC.encode(self.id)
-        return self._hashid
+    def code(self):
+        return CODE_TEMPLATE.format(action=self.action)
 
     @property
     def is_new(self):
         return not self.host
+
+    @property
+    def status(self):
+        if self.is_new:
+            return 'new'
+        elif self.confirmed:
+            return 'confirmed'
+        elif self.confirm_sent:
+            return 'awaiting_confirmation'
 
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.ext.mutable import MutableDict

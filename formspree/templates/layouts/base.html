@@ -1,17 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>{% block title %}{{config.SERVICE_NAME}}{% endblock %}</title>
-  <script src="//use.typekit.net/htc4dlo.js"></script>
-  <script>try{Typekit.load();}catch(e){}</script>
-  <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
-  <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
-  <meta name="viewport" content="initial-scale=1">
-</head>
-<body class="{% block bodyclass %}{% endblock %}" id="{% block bodyid %}card{% endblock %}">
+    <meta charset="UTF-8">
+    <title>{% block title %}{{config.SERVICE_NAME}}{% endblock %}</title>
 
-  <noscript>
+    <script src="//use.typekit.net/htc4dlo.js"></script>
+    <script>try{Typekit.load();}catch(e){}</script>
+
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+
+
+    <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
+
+    <meta name="viewport" content="initial-scale=1">
+
+</head>
+<body class="" id="card">
+
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
       <div class="row">
@@ -27,121 +32,19 @@
       </div>
       {% endif %}
     {% endwith %}
-  </noscript>
 
-  <nav>
-    {% if g.user.is_authenticated %}
-      <div class="greetings">
-        <h4 class="light">Welcome {{ current_user.email }}
-          (<a href="{{ url_for('logout') }}">logout</a>)
-        </h4>
-      </div>
-      <div class="menu">
-        {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
-        <span class="item"><a href="{{ url_for('forms') }}">Your forms</a></span>
-        <span class="item"><a href="{{ url_for('account') }}">{% if current_user.upgraded %}Your{% else %}Upgrade{% endif %} account</a></span>
-    {% else %}
-      <div class="menu">
-        {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
-        {% if request.path != '/login' %}<span class="item"><a href="{{ url_for('login') }}" class="login">{{ config.UPGRADED_PLAN_NAME }} account login</a></span>{% endif %}
-    {% endif %}
-      </div>
-  </nav>
-
-  <div class="row">
-    {% block base %}
-        <div class="container narrow card">
-            <h1>Nothing to see here</h1>
+    <div class="row">
+        {% block base %}
+            <div class="container narrow card">
+                <h1>Nothing to see here</h1>
+            </div>
+        {% endblock base %}
+        <div class="container narrow">
+            <p class="footer">{% block footer %}Powered by {{config.SERVICE_NAME}}. <a href="{{config.SERVICE_URL}}">Read more.</a>{% endblock %}</p>
         </div>
-    {% endblock base %}
+    </div>
 
-    {% block footer %}{% endblock %}
-  </div>
-
-  <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/SlickNav/1.0.3/jquery.slicknav.min.js"></script>
-  <script>
-    /* top navbar */
-    var nav = $('body > nav')
-    nav.addClass('js')
-    nav.find('.menu').slicknav()
-    nav.find('h4').clone().prependTo('.slicknav_menu')
-
-    /* adding a shadow at the bottom of the menu bar only when not at the top */
-    var w = $(window)
-    w.scroll(function () {
-      var scrollPos = w.scrollTop()
-      if (scrollPos && !nav.hasClass('scrolled')) {
-        nav.addClass('scrolled')
-      }
-      else if (!scrollPos) {
-        nav.removeClass('scrolled')
-      }
-    })
-
-    /* background-color should inherit, but CSS's "inherit" breaks z-index */
-    var bgcolor = $(document.body).css('background-color')
-    if (bgcolor.split(',').length == 4 || bgcolor == 'transparent') {
-      bgcolor = 'white'
-    }
-    nav.css('background-color', bgcolor)
-
-    /* modal */
-    $('.modal').each(function () {
-        var modal = $(this)
-        modal.addClass('js')
-        var id = modal.attr('id')
-        $('[href="#' + id + '"]').click(function (e) {
-          e.preventDefault()
-          modal.toggleClass('target')
-        })
-        modal.click(function (e) {
-          if (e.target == modal[0]) {
-            modal.toggleClass('target')
-            e.preventDefault()
-          }
-        })
-        modal.find('.x a').click(function (e) {
-          e.preventDefault()
-          modal.toggleClass('target')
-        })
-    })
-  </script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
-  <script>
-    /* turning flask flash messages into js popup notifications */
-    var messages = {{ get_flashed_messages(with_categories=True) | json | safe }}
-    toastr.options = { positionClass: 'toast-top-center' }
-    messages.forEach(function (m, i) {
-      var category = m[0] || 'info'
-      var text = m[1]
-      setTimeout(function () { toastr[category](text) }, (1+i)*1500)
-    })
-  </script>
-  <script src="https://checkout.stripe.com/checkout.js"></script>
-  <script>
-    var stripebutton = $('#stripe-upgrade')
-    if (stripebutton.length) {
-      var handler = StripeCheckout.configure(stripebutton.data())
-      stripebutton.on('click', function (e) {
-        handler.open({
-          token: function (token) {
-            stripebutton.closest('form')
-              .append('<input type="hidden" name="stripeToken" value="'+ token.id +'">')
-              .append('<input type="hidden" name="stripeEmail" value="'+ token.email +'">')
-              .submit()
-          }
-        })
-        e.preventDefault()
-      })
-    }
-
-    /* quick script for showing the resend confirmation form */
-    $('a.resend').on('click', function () {
-      $(this).hide()
-      $('form.resend').show()
-    })
-  </script>
-
+    <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vendor/jquery.tinymodal.js') }}"></script>
 </body>
 </html>

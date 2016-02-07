@@ -1,34 +1,25 @@
-{% extends 'static_pages/index.html' %}
-
-{% block bodyclass %}dashboard{% endblock%}
+{% extends 'layouts/base.html' %}
 
 {% block base %}
   <div class="row section" id="header">
     <div class="container center">
-      {% block sectiontitle %}{% endblock %}
+      <h1>Hello {{ current_user.email }}</h1>
     </div>
   </div>
 
-  <div class="row section">
+  <div class="container block navtabs">
+    <div class="col-1-1">
+      <ul>
+        <li><a href="/dashboard">Your Forms</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row">
     <div class="container block">
       {% block section %}
       {% endblock %}
-    </div>
-  </div>
-
-  <div class="row section grey">
-    <div class="container narrow block">
-        <div class="col-1-2">
-          <p>{{config.SERVICE_NAME}} is a tool maintained by the <a href="http://assembly.com/formspree">community at Assembly</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
-        </div>
-        <div class="col-1-2">
-          <form method="POST" action="//{{config.API_ROOT}}/{{config.CONTACT_EMAIL}}">
-            <input type="email" name="_replyto" placeholder="Your email" />
-            <textarea name="message" rows="5" placeholder="Your message"></textarea>
-            <input type="text" name="_gotcha" style="display:none">
-            <button type="submit">Send</button>
-          </form>
-        </div>
     </div>
   </div>
 

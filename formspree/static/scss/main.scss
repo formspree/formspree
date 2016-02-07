@@ -1,6 +1,5 @@
-$navy: #4ca1a7;
-$dark-green: #2A735B;
-$light-green: #4CD1A7;
+$green: #4ca1a7;
+$dark-green: #359173;
 
 $dark-blue: #1b3544;
 $accent-blue: #f1f1fa;
@@ -9,10 +8,6 @@ $accent: #ddd;
 $red: #ff1708;
 $green: #359173;
 
-$warning-orange: #D87431;
-$info-blue: $navy;
-$error-red: #CC3F36;
-
 @import 'normalize.scss';
 @import 'grid.scss';
 @import 'typography.scss';
@@ -20,14 +15,14 @@ $error-red: #CC3F36;
 @import 'ionicons.min.scss';
 @import 'alertbox.scss';
 @import 'dashboard.scss';
-@import 'nav.scss';
-@import 'toastr.scss';
+@import 'tinymodal.scss';
+
 
 html {
     height: 100%;
 }
 body {
-    min-height: 90%;
+    min-height: 100%;
 }
 
 body#card {
@@ -35,10 +30,6 @@ body#card {
     padding-top: 4em;
     font-size: 0.9em;
     text-align: center;
-
-    &.dashboard {
-        padding-top: 0;
-    }
 }
 
 .tooltip {
@@ -213,19 +204,13 @@ button, a.button {
     text-transform: uppercase;
     font-weight: 600;
     border: 2px solid $green;
-    color: $green;
+    color: $dark-green;
     background: transparent;
     line-height: 1em;
     padding: 0.6em 0.9em;
     transition: all 0.3s ease-in-out;
     &:hover {
         border-color: $dark-green;
-        color: $dark-green;
-
-        &.emphasis {
-            color: white;
-            background-color: $dark-green;
-        }
     }
 }
 
@@ -355,11 +340,4 @@ body.showOverlay {
 body.showOverlay .toggleOverlay {
     -moz-animation-name: rotate;
     -webkit-animation-name: rotate;
-}
-
-
-#toast-container {
-  right: 30%;
-  left: 30%;
-  width: 40%;
 }

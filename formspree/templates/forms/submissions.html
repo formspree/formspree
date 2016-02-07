@@ -1,26 +1,23 @@
 {% extends 'users/dashboard.html' %}
 
-{% block sectiontitle %}
-  <h1>Submission History</h1>
-{% endblock %}
-
 {% block section %}
 
   <div class="col-1-1">
     <h2>
       Submissions for
       {% if not form.hash %}
-        <span class="code">/{{ form.hashid }}</span>
+        <span class="code">/{{ form.get_random_like_string() }}</span>
       {% else %}
         <span class="code">/{{ form.email }}</span>
       {% endif %}
       at <span class="code">{{ form.host }}</span>
       {% if not form.hash %}
-        <br><small>targeting <span class="code">{{ form.email }}</span></small>
+        (targeting <span class="code">{{ form.email }}</span>)
       {% else %}
-        <br><small>you can now replace the email in the URL with <span class="code">/{{ form.hashid }}</span></small>
+        <br><small>(you can now replace the email in the URL with <span class="code">/{{ form.get_random_like_string() }}</span>)</small>
       {% endif %}
     </h2>
+
     {% if submissions %}
       <table class="submissions">
         <thead>
@@ -45,12 +42,5 @@
     {% else %}
       <h3>No submissions archived yet.</h3>
     {% endif %}
-  </div>
-</div>
-<div class="container block">
-  <div class="col-1-1 right">
-    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='csv') }}" target="_blank" class="button">Export as CSV</a>
-    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='json') }}" target="_blank" class="button">Export as JSON</a>
-  </div>
 
 {% endblock %}

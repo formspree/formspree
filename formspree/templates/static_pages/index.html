@@ -1,8 +1,27 @@
-{% extends 'layouts/base.html' %}
+<!doctype html>
+<html lang="en">
+<head>
 
-{% block bodyid %}{% endblock %}
+  <title>{{config.SERVICE_NAME}} | Functional HTML forms</title>
 
-{% block base %}
+  <link rel="stylesheet" href="/static/css/main.css" />
+
+  <script src="//use.typekit.net/htc4dlo.js"></script>
+  <script>try{Typekit.load();}catch(e){}</script>
+
+  <meta name="viewport" content="initial-scale=1">
+
+  <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/favicon.ico">
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+{% if g.user.is_authenticated()%}
+<!--<h4 class="light"><a href="{{ url_for('logout') }}">Logout</a></h3>-->
+{% else %}
+<!--<h4 class="light"><a href="{{ url_for('login') }}" class="btn btn-default btn-lg" role="button">Login</a> or <a href="{{ url_for('register') }}">Sign up</a></h3>-->
+{% endif %}
+</head>
+<body>
+
   <div class="row section" id="header">
         <div class="container" id="title">
             <div class="col-1-1">
@@ -19,7 +38,7 @@
             <div class="col-1-2">
                 <p>Example:</p>
                 <p class="card code" style="font-size: small">
-                    &lt;form <span class="tooltip hint--top" data-hint="Use our URL as form's action">action="<span class="attr">{{config.API_ROOT}}/your@email.com</span>"</span><br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tooltip hint--top" data-hint="Forms must POST">method="<span class="attr">POST</span>"</span>&gt;<br />
+                    &lt;form <span class="tooltip hint--top" data-hint="Use our URL as form's action">action="<span class="attr">{{config.API_ROOT}}/you@email.com</span>"</span>&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="<span class="attr">text</span>" name="<span class="attr">name</span>"&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="<span class="attr">email</span>" <span class="tooltip hint--top" data-hint="Use advanced attributes">name="<span class="attr">_replyto</span>"</span>&gt;<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;<span class="tooltip hint--bottom" data-hint="When user submits, we'll email data to you">&lt;input type="<span class="attr">submit</span>" value="<span class="attr">Send</span>"&gt;</span><br />
@@ -73,13 +92,13 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>Who are you guys?</h4>
-                    <p>We're a community of developers that work together to create products. You can contribute on <a href="https://github.com/formspree/formspree">GitHub</a>. {{config.SERVICE_NAME}} is a project that solves a problem many of us have faced: easily adding forms to otherwise static HTML pages.</p>
-            	</div>
+                    <p>We're a community of developers that work together to create products. You can find us on <a href="https://assembly.com/formspree">assembly</a>. {{config.SERVICE_NAME}} is a project that solves a problem many of us have faced: easily adding forms to otherwise static HTML pages.</p>
+                </div>
             </div>
             <div class="col-1-2">
                 <div class="card">
                     <h4>What about privacy?</h4>
-                    <p>We only store contents of the last 100 form submissions and delete the rest. Emails are sent using SendGrid's API, so on that end their privacy policies apply.</p>
+                    <p>We don't store contents of the form submissions. Emails are sent using Mailgun's API, so on that end their privacy policies apply.</p>
                 </div>
             </div>
       </div>
@@ -88,13 +107,13 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>How much does it cost?</h4>
-                    <p>{{config.SERVICE_NAME}} is free for 1000 submissions per email each month. If you need more, there's a <a href="#plans">{{ config.UPGRADED_PLAN_NAME }} Plan</a>.</p>
+                    <p>{{config.SERVICE_NAME}} are free for 1000 submissions per email each month. If you need more, please reach out.</p>
                 </div>
             </div>
             <div class="col-1-2">
                 <div class="card">
-                    <h4>Can I have X?</h4>
-                    <p>We have various interesting features enabled for our <a href="#plans">{{ config.UPGRADED_PLAN_NAME }} Accounts</a> and we are adding more. Please reach out to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> if you need something we don't have.</p>
+                    <h4>Are there any limits?</h4>
+                    <p>Yep, for now we cap submissions to 1000 per email for each month. If you need more, please reach out to {{config.CONTACT_EMAIL}}.</p>
                 </div>
             </div>
       </div>
@@ -176,67 +195,23 @@
 
   </div>
 
-  <div class="row section" id="plans">
-      <div class="container narrow block">
-            <div class="col-1-1">
-                <h2>For {{ config.SERVICE_NAME }} power users, we present </strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong></h1>
-                <p class="center">{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} costs</p>
-                <h1 class="center"><a class="button emphasis" href="{{ url_for('account') }}">$ 9.99</a></h1>
-                <p class="center">each month</p>
-                <p>Each {{ config.UPGRADED_PLAN_NAME }} account can have unlimited forms and unlimited verified emails, and all them get the <a href="#features">features listed below</a>.</p>
-                <a style="display: block" class="button center emphasis" href="{{ url_for('account') }}">Upgrade now</a>
-            </div>
-      </div>
-  </div>
-
-  <div class="row section grey" id="features">
-      <div class="container narrow block">
-          <div class="col-1-1">
-            <h2>{{ config.UPGRADED_PLAN_NAME }} features:</h2>
-            <h3 class="light">Extra limits and functionality for power users</h3>
-          </div>
-      </div>
-
-      <div class="container narrow block">
-            <div class="col-1-1">
-                <h3>Invisible emails</h3>
-                <p>Through our dashboard, you will be able to get a random-like string to replace your naked email address in the <span class="code">action</span> attribute of your form. Your email address will remain unknown to spam-bots and also your human visitors.</p>
-            </div>
-      </div>
-
-      <div class="container narrow block">
-            <div class="col-1-1">
-                <h3>Unlimited form submissions</h3>
-                <p>Getting more than 1000 submissions each month? No problem, upgrading will cover that.</p>
-            </div>
-      </div>
-
-      <div class="container narrow block">
-            <div class="col-1-1">
-                <h3>Access to submissions archive</h3>
-                <p>If you ever missed a submission email, for any reason, you can just login and read your last 1000 submissions, all listed and timestamped with full data. Also, the submissions can be exported to CSV or JSON!</p>
-                <p>It even works for submissions made while you were not a {{ config.UPGRADED_PLAN_NAME }} user (the last 100, in this case).</p>
-            </div>
-      </div>
-
-  </div>
-
   <div class="row section">
+
       <div class="container narrow block">
           <div class="col-1-2">
-            <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/formspree/formspree">managed on Github</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
+            <p>{{config.SERVICE_NAME}} is a tool maintained by the <a href="http://assembly.com/formspree">community at Assembly</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
           </div>
           <div class="col-1-2">
             <form method="POST" action="//{{config.API_ROOT}}/{{config.CONTACT_EMAIL}}">
               <input type="email" name="_replyto" placeholder="Your email" />
-              <textarea name="message" rows="5" placeholder="Your message (when sending support requests, please include the URL to your form if that is relevant)"></textarea>
+              <textarea name="message" rows="5" placeholder="Your message"></textarea>
               <input type="text" name="_gotcha" style="display:none">
               <button type="submit">Send</button>
             </form>
           </div>
       </div>
+
   </div>
 
-{% endblock %}
-
-{% block footer %}{% endblock %}
+</body>
+</html>

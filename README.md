@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/formspree/formspree.svg?branch=master)](https://travis-ci.org/formspree/formspree)
+[![Build Status](https://travis-ci.org/asm-products/formspree.svg?branch=master)](https://travis-ci.org/asm-products/formspree)
 
 FORMSPREE.IO
 ------------
@@ -59,7 +59,7 @@ Add this "honeypot" field to avoid spam by fooling scrapers. If a value is provi
 You can use Formspree via AJAX. This even works cross-origin. The trick is to set the Accept header to application/json. If you're using jQuery this can be done like so:
 
     $.ajax({
-        url: "//formspree.io/you@email.com",
+        url: "//formspree.io/you@email.com", 
         method: "POST",
         data: {message: "hello!"},
         dataType: "json"
@@ -67,10 +67,8 @@ You can use Formspree via AJAX. This even works cross-origin. The trick is to se
 
 --------
 
-If you are experiencing issues, please take a look at the [FAQ](../../wiki/Frequently-Asked-Questions) in the wiki
 
-
-Running your own copy of Formspree
+Running your own copy of Formspree 
 ----------------------------------
 
 ### Running on localhost
@@ -107,7 +105,7 @@ Make sure you have a postgresql database called `formspree` and create the neces
 And you are ready to run the server:
 
     python manage.py runserver
-
+    
 ### Running tests
 
     REDISTOGO_URL='0.0.0.0:6379' \
@@ -123,7 +121,7 @@ You will need to install the [heroku toolbelt](https://toolbelt.heroku.com/).
 
 Once your environment is setup, clone the source and cd into the root of the Formspree repository. Then run:
 
-    heroku apps:create [your project name]
+    heroku app:create [your project name]
 
 then
 
@@ -141,7 +139,7 @@ Formspree requires a Postgres database and uses SendGrid to send emails. If you'
 
 ### Configuring Formspree
 
-Take a look at the `formspree/settings.py` file for a list of environment variables that should be set in order for Formspree to work correctly.
+Take a look at the `forms/settings.py` file for a list of environment variables that should be set in order for Forms to work correctly.
 
 
 
@@ -150,3 +148,4 @@ Contributing
 
 Formspree is being managed from Assembly. Check out the discussion and get involved at [assembly.com/formspree](http://www.assembly.com/formspree).
 <a href="https://assembly.com/formspree/bounties?utm_campaign=assemblage&utm_source=formspree&utm_medium=repo_badge"><img src="http://badger.asm.co/formspree/badges/tasks.svg" height="24px" alt="Open Tasks" /></a>
+
