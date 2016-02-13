@@ -6,7 +6,6 @@ from formspree import settings, log
 from formspree.utils import unix_time_for_12_months_from_now, next_url
 from flask import url_for, render_template
 from sqlalchemy.sql.expression import delete
-from werkzeug.datastructures import ImmutableMultiDict, ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path
 
 class Form(DB.Model):
@@ -85,10 +84,7 @@ class Form(DB.Model):
         Assumes sender's email has been verified.
         '''
 
-        if type(submitted_data) in (ImmutableMultiDict, ImmutableOrderedMultiDict):
-            data, keys = http_form_to_dict(submitted_data)
-        else:
-            data, keys = submitted_data, submitted_data.keys()
+        data, keys = http_form_to_dict(http_form)
 
         subject = data.get('_subject', 'New submission from %s' % referrer_to_path(referrer))
         reply_to = data.get('_replyto', data.get('email', data.get('Email', None)))
@@ -268,7 +264,3 @@ class Submission(DB.Model):
     def __init__(self, form_id):
         self.submitted_at = datetime.datetime.utcnow()
         self.form_id = form_id
-
-    def __repr__(self):
-        return '<Submission %s, form=%s, date=%s, keys=%s>' % \
-            (self.id or 'with an id to be assigned', self.form_id, self.submitted_at.isoformat(), self.data.keys())

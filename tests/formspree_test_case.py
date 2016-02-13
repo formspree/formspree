@@ -20,10 +20,6 @@ class FormspreeTestCase(TestCase):
         settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
         settings.SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL')
 
-        settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
-
-        settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
-
         return create_app()
 
     def setUp(self):
