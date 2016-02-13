@@ -1,0 +1,65 @@
+@import 'slicknav/core';
+@import 'slicknav/theme';
+
+.slicknav_menu {
+  display:none;
+}
+
+body > nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: inherit;
+  z-index: 9;
+  padding: 7px 10px;
+
+  height: 41px;
+  & + * { margin-top: 41px; }
+
+  &.scrolled {
+    box-shadow: 0 0 .6em rgba(17,17,17,0.3);
+  }
+
+  & > .greetings {
+    float: left;
+  }
+  & > .menu {
+    float: right;
+  }
+  & .item {
+    margin-left: .5em;
+  }
+}
+
+@media screen and (max-width: 40em) {
+  body > nav.js {
+    display: none;
+  }
+
+  .slicknav_menu {
+    display: block;
+  }
+}
+
+.slicknav_menu {
+  background: $light-green;
+
+  a { color: white; }
+  & > a {
+    float: right;
+  }
+ 
+  /* our transcluded menu header ("Welcome...") */
+  h4 {
+    padding: 0;
+    margin: 0;
+    line-height: 33px;
+    margin-top: 5px;
+    float: left;
+  }
+
+  .slicknav_btn { background-color: $dark-green }
+  .slicknav_menutxt { text-shadow: 0 1px 3px $dark-green }
+}
+

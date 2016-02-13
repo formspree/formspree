@@ -1,7 +1,12 @@
 language: python
 python:
   - "2.7"
+sudo: false
 install: "pip install -r requirements.txt"
-script: "python manage.py test"
+script: "python -m unittest discover"
+addons:
+  postgresql: "9.3"
+before_script:
+  - psql -c 'create database formspree_test;' -U postgres
 env:
-  - REDISTOGO_URL='0.0.0.0:6379' TEST_DATABASE_URL=sqlite:// NONCE_SECRET='y0ur_n0nc3_s3cr3t' SECRET_KEY='y0ur_s3cr3t_k3y' HASHIDS_SALT=doesntmatter
+  - REDISTOGO_URL='0.0.0.0:6379' TEST_DATABASE_URL=postgres:///formspree_test NONCE_SECRET='y0ur_n0nc3_s3cr3t' SECRET_KEY='y0ur_s3cr3t_k3y' HASHIDS_SALT=doesntmatter STRIPE_TEST_PUBLISHABLE_KEY=pk_test_XebfAaLvLpHeO2txAgqWgJPf STRIPE_TEST_SECRET_KEY=sk_test_MLGQEdAHgWy4Rces4khaIxuc

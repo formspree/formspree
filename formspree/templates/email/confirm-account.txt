@@ -1,0 +1,15 @@
+Thank you for registering {{ email }} with {{config.SERVICE_NAME}}.
+
+To successfully add this address to your account, please click the link below to confirm it. Besides this, you can add how many addresses you want to your {{config.SERVICE_NAME}} account and you'll get a email like this for each.
+
+Link: {{ link }}
+
+We hope you enjoy using your {{config.SERVICE_NAME}} with your registered address. If you have any questions, feel free to shoot an email to {{config.CONTACT_EMAIL}}
+
+Best,
+{{config.SERVICE_NAME}} Team
+
+---
+
+- Why did I receive this email?
+Someone (hopefully you?) registered an account at {{config.SERVICE_NAME}} with this email. If this wasn't you, no worries. This is the only email you'll get.

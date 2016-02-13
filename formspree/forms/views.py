@@ -1,10 +1,15 @@
+import unicodecsv as csv
+import json
 import flask
+import requests
+import datetime
+import io
 
-from flask import request, url_for, render_template, redirect, jsonify, flash
+from flask import request, url_for, render_template, redirect, jsonify, flash, Response
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
-from formspree.utils import request_wants_json, jsonerror
-from helpers import ordered_storage, referrer_to_path, IS_VALID_EMAIL, HASH, EXCLUDE_KEYS
+from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
+from helpers import ordered_storage, referrer_to_path, HASH, EXCLUDE_KEYS
 
 from formspree.app import DB
 from models import Form, Submission
@@ -37,13 +42,13 @@ def send(email_or_string):
         else:
             return render_template('error.html',
                                    title='Unable to submit form',
-                                   text='Make sure your form is running on a proper server. For geeks: could not find the "Referrer" header.'), 400
+                                   text='Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. For geeks: could not find the "Referrer" header.'), 400
 
     if not IS_VALID_EMAIL(email_or_string):
-        # in this case it can be a random_like_string identifying a
+        # in this case it can be a hashid identifying a
         # form generated from the dashboard
-        random_like_string = email_or_string
-        form = Form.get_form_by_random_like_string(random_like_string)
+        hashid = email_or_string
+        form = Form.get_with_hashid(hashid)
 
         if form:
             email = form.email
@@ -85,7 +90,7 @@ def send(email_or_string):
     if form.confirmed:
         status = form.send(request.form, request.referrer)
     else:
-        status = form.send_confirmation()
+        status = form.send_confirmation(with_data=request.form)
 
     # Respond to the request accordingly to the status code
     if status['code'] == Form.STATUS_EMAIL_SENT:
@@ -99,14 +104,73 @@ def send(email_or_string):
         else:
             return render_template('error.html',
                                    title='Can\'t send an empty form',
-                                   text=str('<a href="%s">Return to form</a>' % request.referrer)), 400
+                                   text=str('<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank">"name" attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank">"required" property</a> or <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input" target="_blank">see more HTML form customization info</a>.</p><p><a href="%s">Return to form</a></p>' % request.referrer)), 400
     elif status['code'] == Form.STATUS_CONFIRMATION_SENT or \
          status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED:
+
         if request_wants_json():
             return jsonify({'success': "confirmation email sent"})
         else:
-            return render_template('forms/confirmation_sent.html', email=email, host=host)
+            return render_template('forms/confirmation_sent.html',
+                email=email,
+                host=host,
+                resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
+            )
+    elif status['code'] == Form.STATUS_OVERLIMIT:
 
+        if request_wants_json():
+            return jsonify({'error': "form over quota"})
+        else:
+            return render_template('error.html',
+                                   title='Form over quota',
+                                   text='It looks like this form is getting a lot of submissions and ran out of its quota. Try contacting this website through other means or try submitting again later.'
+            )
+
+    elif status['code'] == Form.STATUS_REPLYTO_ERROR:
+        if request_wants_json():
+            return jsonerror(500, {'error': "_replyto or email field has not been sent correctly"})
+        else:
+            return render_template('error.html', title='Unable to send email', text='Unable to send email. The field with a name attribute _replyto or email was not set correctly. This may be the result of you have multiple _replyto or email fields. If you cannot find your error, please contact <b>team@formspree.io</b> with a link to your form and this error message: <p><pre><code>' + status['error-message'] + '</code></pre></p>'), 500
+
+    # error fallback -- shouldn't happen
+    if request_wants_json():
+        return jsonerror(500, {'error': "Unable to send email"})
+    else:
+        return render_template('error.html',
+                               title='Unable to send email',
+                               text='Unable to send email. If you can, please send the link to your form and the error information to  <b>team@formspree.io</b>. And send them the following: <p><pre><code>' + json.dumps(status) + '</code></pre></p>'), 500
+
+
+def resend_confirmation(email):
+    # I'm not sure if this should be available for forms created on the dashboard.
+    form = Form.query.filter_by(hash=HASH(email, request.form['host'])).first()
+    if not form:
+        if request_wants_json():
+            return jsonerror(400, {'error': "This form does not exists"})
+        else:
+            return render_template('error.html',
+                                   title='Check email address',
+                                   text='This form does not exists'), 400
+
+    r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
+        'secret': settings.RECAPTCHA_SECRET,
+        'response': request.form['g-recaptcha-response'],
+        'remoteip': request.remote_addr
+    })
+    if r.ok and r.json()['success']:
+        form.confirm_sent = False
+        status = form.send_confirmation()
+        if status['code'] == Form.STATUS_CONFIRMATION_SENT:
+            if request_wants_json():
+                return jsonify({'success': "confirmation email sent"})
+            else:
+                return render_template('forms/confirmation_sent.html',
+                    email=email,
+                    host=request.form['host'],
+                    resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
+                )
+        
+    # fallback response -- should never happen
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})
     else:
@@ -137,70 +201,136 @@ def confirm_email(nonce):
 @login_required
 def forms():
     if request.method == 'GET':
-        if request_wants_json():
-            return jsonerror(501, {'error': "This endpoint may return the list of forms for the logged user."})
+        '''
+        A reminder: this is the /forms endpoint, but for GET requests
+        it is also the /dashboard endpoint.
+
+        The /dashboard endpoint, the address gave by url_for('dashboard'),
+        is the target of a lot of redirects around the app, but it can
+        be changed later to point to somewhere else.
+        '''
+
+        # grab all the forms this user controls
+        if current_user.upgraded:
+            forms = current_user.forms.order_by(Form.host).all()
         else:
-            return redirect(url_for('dashboard'))
+            forms = []
 
-    # Create a new form
-    if not current_user.upgraded:
-        return jsonerror(402, {'error': "Please upgrade your account."})
-
-    if request.get_json():
-        email = request.get_json().get('email')
-    else:
-        email = request.form.get('email')
-
-    if not IS_VALID_EMAIL(email):
         if request_wants_json():
-            return jsonerror(400, {'error': "The email you sent is not a valid email."})
+            return jsonify({
+                'ok': True,
+                'forms': [{
+                    'email': f.email,
+                    'host': f.host,
+                    'confirm_sent': f.confirm_sent,
+                    'confirmed': f.confirmed,
+                    'is_public': bool(f.hash),
+                    'url': '{S}/{E}'.format(
+                        S=settings.SERVICE_URL,
+                        E=f.hashid
+                    )
+                } for f in forms]
+            })
         else:
-            flash('The email you sent is not a valid email.', 'error')
-            return redirect(url_for('dashboard'))
+            return render_template('forms/list.html', forms=forms)
 
-    form = Form(email, owner=current_user)
-    DB.session.add(form)
-    DB.session.commit()
+    elif request.method == 'POST':
+        # create a new form
+        if not current_user.upgraded:
+            return jsonerror(402, {'error': "Please upgrade your account."})
 
-    # A unique identifier for the form that maps to its id,
-    # but doesn't seem like a sequential integer
-    random_like_string = form.get_random_like_string()
+        if request.get_json():
+            email = request.get_json().get('email')
+        else:
+            email = request.form.get('email')
 
-    if request_wants_json():
-        return jsonify({
-            'ok': True,
-            'random_like_string': random_like_string,
-            'submission_url': settings.API_ROOT + '/' + random_like_string
-        })
-    else:
-        return redirect(url_for('dashboard'))
+        if not IS_VALID_EMAIL(email):
+            if request_wants_json():
+                return jsonerror(400, {'error': "The email you sent is not a valid email."})
+            else:
+                flash('The email you provided is not a valid email.', 'error')
+                return redirect(url_for('dashboard'))
+
+        form = Form(email, owner=current_user)
+        DB.session.add(form)
+        DB.session.commit()
+
+        if request_wants_json():
+            return jsonify({
+                'ok': True,
+                'hashid': form.hashid,
+                'submission_url': settings.API_ROOT + '/' + form.hashid
+            })
+        else:
+            flash('Your new form endpoint was created!', 'success')
+            return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
 
 @login_required
-def form_submissions(random_like_string):
+def form_submissions(hashid, format=None):
     if not current_user.upgraded:
         return jsonerror(402, {'error': "Please upgrade your account."})
 
-    form = Form.get_form_by_random_like_string(random_like_string)
-    submissions = form.submissions
+    form = Form.get_with_hashid(hashid)
 
-    if request_wants_json():
-        if current_user.id != form.owner_id:
-            return jsonerror(403, {'error': "You're not the owner of this form."})
-
-        return jsonify({
-            'submissions': [s.data for s in submissions]
-        })
+    for cont in form.controllers:
+        if cont.id == current_user.id: break
     else:
-        if current_user.id != form.owner_id:
+        if request_wants_json():
+            return jsonerror(403, {'error': "You do not control this form."})
+        else:
             return redirect(url_for('dashboard'))
 
-        fields = set()
-        for s in submissions:
-            fields.update(s.data.keys())
-        fields -= set(EXCLUDE_KEYS)
+    submissions = form.submissions
 
-        return render_template('forms/submissions.html',
-            form=form,
-            fields=sorted(fields),
-            submissions=submissions
-        )
+    if not format:
+        # normal request.
+        if request_wants_json():
+            return jsonify({
+                'host': form.host,
+                'email': form.email,
+                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+            })
+        else:
+            fields = set()
+            for s in submissions:
+                fields.update(s.data.keys())
+            fields -= set(EXCLUDE_KEYS)
+
+            return render_template('forms/submissions.html',
+                form=form,
+                fields=sorted(fields),
+                submissions=submissions
+            )
+    elif format:
+        # an export request, format can be json or csv
+        if format == 'json':
+            return Response(
+                json.dumps({
+                    'host': form.host,
+                    'email': form.email,
+                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+                }, sort_keys=True, indent=2),
+                mimetype='application/json',
+                headers={
+                    'Content-Disposition': 'attachment; filename=form-%s-submissions-%s.json' \
+                                % (hashid, datetime.datetime.now().isoformat().split('.')[0])
+                }
+            )
+        elif format == 'csv':
+            out = io.BytesIO()
+            fieldnames = set(field for sub in submissions for field in sub.data.keys())
+            fieldnames = ['date'] + sorted(fieldnames)
+            
+            w = csv.DictWriter(out, fieldnames=fieldnames, encoding='utf-8')
+            w.writeheader()
+            for sub in submissions:
+                w.writerow(dict(sub.data, date=sub.submitted_at.isoformat()))
+
+            return Response(
+                out.getvalue(),
+                mimetype='text/csv',
+                headers={
+                    'Content-Disposition': 'attachment; filename=form-%s-submissions-%s.csv' \
+                                % (hashid, datetime.datetime.now().isoformat().split('.')[0])
+                }
+            )
