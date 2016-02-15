@@ -22,6 +22,8 @@ class FormspreeTestCase(TestCase):
         settings.STRIPE_PUBLISHABLE_KEY = settings.STRIPE_TEST_PUBLISHABLE_KEY
         settings.STRIPE_SECRET_KEY = settings.STRIPE_TEST_SECRET_KEY
 
+        settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
+
         return create_app()
 
     def setUp(self):
