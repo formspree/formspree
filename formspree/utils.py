@@ -18,11 +18,29 @@ IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 def request_wants_json():
     if request.headers.get('X_REQUESTED_WITH','').lower() == 'xmlhttprequest':
         return True
-    best = request.accept_mimetypes \
-        .best_match(['application/json', 'text/html'])
-    return best == 'application/json' and \
-        request.accept_mimetypes[best] > \
-        request.accept_mimetypes['text/html']
+    if accept_better('json', 'html'):
+        return True
+    if 'json' in request.headers.get('Content-Type', '') and \
+            not accept_better('html', 'json'):
+        return True
+
+
+def accept_better(subject, against):
+    if 'Accept' in request.headers:
+        accept = request.headers['Accept'].lower()
+        try:
+            isub = accept.index(subject)
+        except ValueError:
+            return False
+
+        try:
+            iaga = accept.index(against)
+        except ValueError:
+            return True
+
+        return isub < iaga
+    else:
+        return False
 
 
 def jsonerror(code, *args, **kwargs):

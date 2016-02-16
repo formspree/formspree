@@ -88,7 +88,7 @@ def send(email_or_string):
     # If form exists and is confirmed, send email
     # otherwise send a confirmation email
     if form.confirmed:
-        status = form.send(request.form, request.referrer)
+        status = form.send(request.form or request.get_json(), request.referrer)
     else:
         status = form.send_confirmation(with_data=request.form)
 
@@ -212,7 +212,7 @@ def forms():
 
         # grab all the forms this user controls
         if current_user.upgraded:
-            forms = current_user.forms.order_by(Form.host).all()
+            forms = current_user.forms.order_by(Form.id.desc()).all()
         else:
             forms = []
 
