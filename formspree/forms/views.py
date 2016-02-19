@@ -5,7 +5,7 @@ import requests
 import datetime
 import io
 
-from flask import request, url_for, render_template, redirect, jsonify, flash, Response
+from flask import request, url_for, render_template, redirect, jsonify, flash, make_response, Response
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
@@ -142,22 +142,53 @@ def send(email_or_string):
 
 
 def resend_confirmation(email):
-    # I'm not sure if this should be available for forms created on the dashboard.
-    form = Form.query.filter_by(hash=HASH(email, request.form['host'])).first()
-    if not form:
-        if request_wants_json():
-            return jsonerror(400, {'error': "This form does not exists"})
-        else:
-            return render_template('error.html',
-                                   title='Check email address',
-                                   text='This form does not exists'), 400
-
+    # the first thing to do is to check the captcha
     r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
         'secret': settings.RECAPTCHA_SECRET,
         'response': request.form['g-recaptcha-response'],
         'remoteip': request.remote_addr
     })
-    if r.ok and r.json()['success']:
+    if r.ok and r.json().get('success'):
+        # then proceed to check for bounced addresses
+
+        if request.form.get('bounce_problem_solved') == 'true':
+            # delete bounce from SendGrid then proceed
+            requests.delete('https://api.sendgrid.com/v3/suppression/bounces/',
+                            auth=(settings.SENDGRID_USERNAME, settings.SENDGRID_PASSWORD),
+                            data={'emails': [email]})
+        else:
+            # check if this email is listed on SendGrid's bounces
+            r = requests.get('https://api.sendgrid.com/v3/suppression/bounces/' + email,
+                             auth=(settings.SENDGRID_USERNAME, settings.SENDGRID_PASSWORD))
+            if r.ok and len(r.json()) and 'reason' in r.json()[0]:
+                # tell the user to verify his mailbox
+                # and, at the same time, let him mark the checkbox that says he has already
+                #      made his mailbox available in the next time he tries to resend
+                #      confirmation.
+                reason = r.json()[0]['reason']
+                if request_wants_json():
+                    resp = jsonify({'error': "Verify your mailbox, we can't reach it.", 'reason': reason})
+                else:
+                    resp = make_response(render_template('info.html',
+                        title='Verify the availability of your mailbox',
+                        text="We encountered an error when trying to deliver the confirmation message to <b>" + email + "</b> at the first time we tried. For spam reasons, we will not try again until we are sure the problem is fixed. Here's the reason:</p><p><center><i>" + reason + "</i></center></p><p>Please make sure this problem is not happening still, then come here and try to resend your confirmation message again."
+                    ))
+                resp.set_cookie('has_been_notified_of_bounce', 'true', max_age=345600)
+                return resp
+        # ~~~
+
+        # if there's no bounce or the bounce problem has been solved, we proceed to resend
+        # the confirmation.
+
+        # I'm not sure if this should be available for forms created on the dashboard.
+        form = Form.query.filter_by(hash=HASH(email, request.form['host'])).first()
+        if not form:
+            if request_wants_json():
+                return jsonerror(400, {'error': "This form does not exists"})
+            else:
+                return render_template('error.html',
+                                       title='Check email address',
+                                       text='This form does not exists'), 400
         form.confirm_sent = False
         status = form.send_confirmation()
         if status['code'] == Form.STATUS_CONFIRMATION_SENT:
