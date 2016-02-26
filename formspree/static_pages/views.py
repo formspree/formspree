@@ -13,4 +13,4 @@ def page_not_found(e):
     return render_template('error.html', title='Oops, page not found'), 404
 
 def favicon():
-    return redirect(url_for('static', filename='img/favicon.ico', _scheme='https'))
+    return redirect(url_for('static', filename='img/favicon.ico'))
