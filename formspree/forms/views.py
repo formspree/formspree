@@ -87,10 +87,11 @@ def send(email_or_string):
 
     # If form exists and is confirmed, send email
     # otherwise send a confirmation email
+    received_data = request.form or request.get_json() or {}
     if form.confirmed:
-        status = form.send(request.form or request.get_json(), request.referrer)
+        status = form.send(received_data, request.referrer)
     else:
-        status = form.send_confirmation(with_data=request.form)
+        status = form.send_confirmation(received_data)
 
     # Respond to the request accordingly to the status code
     if status['code'] == Form.STATUS_EMAIL_SENT:

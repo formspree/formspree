@@ -213,11 +213,15 @@ class Form(DB.Model):
         nonce = self.hash or '%s:%s' % (HASH(self.email, id), self.hashid)
         link = url_for('confirm_email', nonce=nonce, _external=True)
 
-        def render_content(type):
+        def render_content(ext):
             data, keys = None, None
             if with_data:
-                data, keys = http_form_to_dict(with_data)
-            return render_template('email/confirm.%s' % type,
+                if type(with_data) in (ImmutableMultiDict, ImmutableOrderedMultiDict):
+                    data, keys = http_form_to_dict(with_data)
+                else:
+                    data, keys = with_data, with_data.keys()
+
+            return render_template('email/confirm.%s' % ext,
                                       email=self.email,
                                       host=self.host,
                                       nonce_link=link,
