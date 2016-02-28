@@ -2886,12 +2886,14 @@ span.code {
 
 input, textarea {
   font-size: 0.8em;
-  font-family: "source-code-pro", monospace;
+  font-family: 'proxima-nova-soft', sans-serif;
   border: 1px solid #ddd;
   background: #fff;
   padding: 0.9em;
   transition: all 0.3s ease-in-out;
   width: 100%; }
+  input.code, textarea.code {
+    font-family: "source-code-pro", monospace; }
   input:focus, textarea:focus {
     border-color: #2A735B;
     outline: none;
@@ -3015,3 +3017,5 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
+
+/*# sourceMappingURL=main.css.map */

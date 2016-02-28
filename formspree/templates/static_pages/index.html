@@ -42,7 +42,7 @@
             <div class="col-1-1">
                 <h3>1. Setup the HTML form</h3>
                 <p>Change your form's <span class="code">action</span>-attribute to this and replace your@email.com with your own email.</p>
-                <p><input type="text" value="http:{{config.API_ROOT}}/your@email.com" /></p>
+                <p><input type="text" class="code" value="http:{{config.API_ROOT}}/your@email.com" /></p>
             </div>
       </div>
 
@@ -122,7 +122,7 @@
             <div class="col-1-1">
                 <h4><span class="code">_replyto</span> or <span class="code">email</span></h4>
                 <p>This value is used for the email's Reply-To field. This way you can directly "Reply" to the email to respond to the person who originally submitted the form.</p>
-                <p><input type="text" value='<input type="text" name="_replyto" placeholder="Your email" />'></p>
+                <p><input type="text" class="code" value='<input type="text" name="_replyto" placeholder="Your email" />'></p>
             </div>
       </div>
 
@@ -130,7 +130,7 @@
             <div class="col-1-1">
                 <h4><span class="code">_next</span></h4>
                 <p>By default, after submitting a form the user is shown the {{config.SERVICE_NAME}} "Thank You" page. You can provide an alternative URL for that page.</p>
-                <p><input type="text" value='<input type="hidden" name="_next" value="//site.io/thanks.html" />'></p>
+                <p><input type="text" class="code" value='<input type="hidden" name="_next" value="//site.io/thanks.html" />'></p>
             </div>
       </div>
 
@@ -138,7 +138,7 @@
             <div class="col-1-1">
                 <h4><span class="code">_subject</span></h4>
                 <p>This value is used for the email's subject, so that you can quickly reply to submissions without having to edit the subject line each time.</p>
-                <p><input type="text" value='<input type="hidden" name="_subject" value="New submission!" />'></p>
+                <p><input type="text" class="code" value='<input type="hidden" name="_subject" value="New submission!" />'></p>
             </div>
       </div>
 
@@ -146,7 +146,7 @@
             <div class="col-1-1">
                 <h4><span class="code">_cc</span></h4>
                 <p>This value is used for the email's CC Field. This lets you send a copy of each submission to another email address.</p>
-                <p><input type="text" value='<input type="hidden" name="_cc" value="another@email.com" />'></p>
+                <p><input type="text" class="code" value='<input type="hidden" name="_cc" value="another@email.com" />'></p>
             </div>
       </div>
 
@@ -154,7 +154,7 @@
             <div class="col-1-1">
                 <h4><span class="code">_gotcha</span></h4>
                 <p>Add this "honeypot" field to avoid spam by fooling scrapers. If a value is provided, the submission will be silently ignored. The input should be hidden with CSS.</p>
-                <p><input type="text" value='<input type="text" name="_gotcha" style="display:none" />'></p>
+                <p><input type="text" class="code" value='<input type="text" name="_gotcha" style="display:none" />'></p>
             </div>
       </div>
 
@@ -232,7 +232,7 @@
   <div class="row section">
       <div class="container narrow block">
           <div class="col-1-2">
-            <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/formspree/formspree">managed on Github</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
+            <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/formspree/formspree">managed on GitHub</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
           </div>
           <div class="col-1-2">
             <form method="POST" action="//{{config.API_ROOT}}/{{config.CONTACT_EMAIL}}">
@@ -243,6 +243,15 @@
             </form>
           </div>
       </div>
+	  <div class="container block">
+      	<div class="col-1-1 center">
+          <a href="//facebook.com/formspree"><i class="fa fa-facebook-official fa-2x"></i></a>
+          <a href="//twitter.com/formspree"><i class="fa fa-twitter fa-2x"></i></a>
+          <a href="//github.com/formspree/formspree"><i class="fa fa-github fa-2x"></i></a>
+
+        </div>
+      </div>
+
   </div>
 
 {% endblock %}
