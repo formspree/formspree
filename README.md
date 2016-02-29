@@ -148,5 +148,4 @@ Take a look at the `formspree/settings.py` file for a list of environment variab
 Contributing
 ----------------------------------
 
-Formspree is being managed from Assembly. Check out the discussion and get involved at [assembly.com/formspree](http://www.assembly.com/formspree).
-<a href="https://assembly.com/formspree/bounties?utm_campaign=assemblage&utm_source=formspree&utm_medium=repo_badge"><img src="http://badger.asm.co/formspree/badges/tasks.svg" height="24px" alt="Open Tasks" /></a>
+Formspree is an open source project managed on GitHub. We welcome all contributions from the community, but please be sure to take a look at the [contributor guidelines](/.github/CONTRIBUTING.md) before opening an issue or pull request.
