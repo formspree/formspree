@@ -1,63 +1,67 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-<meta name="viewport" content="width=device-width" />
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Overlimit notification</title>
-<link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
+	<meta name="viewport" content="width=device-width" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Overlimit notification</title>
+	<link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
 </head>
 
 <body itemscope itemtype="http://schema.org/EmailMessage">
 
-<table class="body-wrap">
-	<tr>
-		<td></td>
-		<td class="container" width="600">
-			<div class="content">
-				<table class="main" width="100%" cellpadding="0" cellspacing="0">
-					<tr>
-						<td class="alert alert-bad">
-							You've passed the {{config.SERVICE_NAME}} monthly limit
-						</td>
-					</tr>
-					<tr>
-						<td class="content-wrap">
-							<table width="100%" cellpadding="0" cellspacing="0">
-								<tr>
-									<td class="content-block">
-										Hey there,
-									</td>
-								</tr>
-								<tr>
-									<td class="content-block">
-										Someone just submitted your form on {{host}}.
-									</td>
-								</tr>
-								<tr>
-									<td class="content-block">
-										You are past our limit of {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per month. Never fear! We have safely stored the contents of this form in our databases, and you can access them by logging into your account, using the link below and upgrading your account.
-									</td>
-								</tr>
-								<tr>
-									<td class="content-block">
-										<a href="{{ config.SERVICE_URL }}/register" class="btn-primary">Retrieve submissions</a>
-									</td>
-								</tr>
-							</table>
-						</td>
-					</tr>
-				</table>
-				<div class="footer">
-					<table width="100%">
+	<table class="body-wrap">
+		<tr>
+			<td></td>
+			<td class="container" width="600">
+				<div class="content">
+					<table class="main" width="100%" cellpadding="0" cellspacing="0">
 						<tr>
-							<td class="aligncenter content-block">You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</td>
+							<td class="alert alert-bad">
+								<img src="{{config.SERVICE_URL}/static/img/logo.png">
+								<br /> You've passed the {{config.SERVICE_NAME}} monthly limit
+							</td>
+						</tr>
+						<tr>
+							<td class="content-wrap">
+								<table width="100%" cellpadding="0" cellspacing="0">
+									<tr>
+										<td class="content-block">
+											Hey there,
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											Someone just submitted your form on {{host}}.
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											You are past our limit of {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per month. Never fear! We have safely stored the contents of this form in our databases, and you can access them by logging into your account, using the link below and upgrading your account.
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											<a href="{{ config.SERVICE_URL }}/register" class="btn-primary">Retrieve submissions</a>
+										</td>
+									</tr>
+								</table>
+							</td>
 						</tr>
 					</table>
-				</div></div>
-		</td>
-		<td></td>
-	</tr>
-</table>
+					<div class="footer">
+						<table width="100%">
+							<tr>
+								<td class="aligncenter content-block">You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</td>
+			<td></td>
+		</tr>
+	</table>
 
 </body>
+
 </html>
