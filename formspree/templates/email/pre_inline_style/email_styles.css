@@ -196,9 +196,12 @@ a {
   text-align: center;
   border-radius: 3px 3px 0 0;
 }
+.alert.straight-edge {
+	border-radius: 0;
+}
 .alert a {
   color: #fff;
-  text-decoration: none;
+/*  text-decoration: none;*/
   font-weight: 500;
   font-size: 16px;
 }
