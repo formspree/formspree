@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta name="viewport" content="width=device-width" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>New form submission</title>
+	<link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
+</head>
+
+<body itemscope itemtype="http://schema.org/EmailMessage">
+
+	<table class="body-wrap">
+		<tr>
+			<td></td>
+			<td class="container" width="600">
+				<div class="content">
+					<table class="main" width="100%" cellpadding="0" cellspacing="0">
+						<tr>
+							<td class="alert alert-neutral">
+								<img src="{{config.SERVICE_URL}}/static/img/logo.png">
+								<br /> New submission on {{host}}
+							</td>
+						</tr>
+						<tr>
+							<td class="content-wrap">
+								<table width="100%" cellpadding="0" cellspacing="0">
+									<tr>
+										<td class="content-block">
+											Hey there,
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											Someone just submitted your form on {{host}}. Here's what they had to say:
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block aligncenter">
+											<table class="form">
+												<tr>
+													<td>
+														<table class="form-items" cellpadding="0" cellspacing="0">
+															{% for k in keys %}
+															<tr>
+																<td width="30%">{{k}}</td>
+																<td class="alignright">{{data.get(k,'')}}</td>
+															</tr>
+															{% endfor %}
+														</table>
+													</td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											This form was submitted at {{ now }}.
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+					<div class="footer">
+						<table width="100%">
+							<tr>
+								<td class="aligncenter content-block">You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</td>
+							</tr>
+							<tr>
+								<td class="aligncenter content-block">
+									<a href="//facebook.com/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/fb.png"></a>
+									<a href="//twitter.com/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/twitter.png"</a>
+									<a href="//github.com/formspree/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/github.png"</a>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</td>
+			<td></td>
+		</tr>
+	</table>
+
+</body>
+
+</html>
