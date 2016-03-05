@@ -156,7 +156,7 @@ class Form(DB.Model):
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
             # check if the user wants a new or old version of the email
-            if format is "text":
+            if format is 'text':
                 html = render_template('email/text_form.html', data=data, host=self.host, keys=keys, now=now)
             else:
                 html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
