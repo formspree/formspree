@@ -106,7 +106,7 @@ class Form(DB.Model):
         cc = data.get('_cc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
-        text_version = data.get('_text', None)
+        format = data.get('_format', None)
 
         # prevent submitting empty form
         if not any(data.values()):
@@ -155,7 +155,8 @@ class Form(DB.Model):
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
-            if text_version:
+            # check if the user wants a new or old version of the email
+            if format is "text":
                 html = render_template('email/text_form.html', data=data, host=self.host, keys=keys, now=now)
             else:
                 html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
