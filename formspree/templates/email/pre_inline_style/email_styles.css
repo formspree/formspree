@@ -32,11 +32,11 @@ table td {
     BODY & CONTAINER
 ------------------------------------- */
 body {
-  background-color: #f6f6f6;
+  background-color: #FFF;
 }
 
 .body-wrap {
-  background-color: #f6f6f6;
+  background-color: #FFF;
   width: 100%;
 }
 
@@ -60,7 +60,7 @@ body {
 ------------------------------------- */
 .main {
   background-color: #fff;
-  border: 1px solid #e9e9e9;
+/*  border: 1px solid #e9e9e9;*/
   border-radius: 3px;
 }
 
@@ -183,6 +183,25 @@ a {
 .clear {
   clear: both;
 }
+/* -------------------------------------
+    HEADER
+    Display Formspree logo and wordmark
+------------------------------------- */
+.header {
+	font-size: 16px;
+	color: black;
+	font-weight: 500;
+	padding: 20px;
+	border-bottom: 1px solid;
+	text-align: center;
+/*	border-style: solid;*/
+	border-color: #359173;
+}
+
+.logo {
+	max-width: 70px;
+}
+
 
 /* -------------------------------------
     ALERTS
@@ -190,11 +209,11 @@ a {
 ------------------------------------- */
 .alert {
   font-size: 16px;
-  color: #fff;
+  color: #ffffff;
   font-weight: 500;
   padding: 20px;
   text-align: center;
-  border-radius: 3px 3px 0 0;
+/*  border-radius: 3px 3px 0 0;*/
 }
 .alert.straight-edge {
 	border-radius: 0;
