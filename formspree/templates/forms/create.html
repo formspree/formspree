@@ -6,11 +6,26 @@
     </a>
   
     <div class="modal" id="create-form" aria-hidden="true">
-      <div>
-        <div class="x"><h4>Send email to:</h4><a href="#">&times;</a></div>
-        <form method="POST" action="{{ url_for('forms') }}">
-          <input type="email" name="email" placeholder="You can point this form to any email address" value="{{ current_user.email }}">
-          <button type="submit">Create</button>
+      <div class="container">
+        <div class="x"><a href="#">&times;</a></div>
+        <form method="POST" action="{{ url_for('create-form') }}">
+          <div class="col-1-1">
+            <h4>Send email to:</h4>
+            <input type="email" name="email" placeholder="You can point this form to any email address" value="{{ current_user.email }}">
+          </div>
+          <div class="col-1-1">
+            <h4>From URL:</h4>
+            <input type="url" name="url" placeholder="Leave blank to send confirmation email when first submitted">
+          </div>
+          <div class="col-1-3">
+            &#8203;
+          </div>
+          <div class="col-1-3">
+            &#8203;
+          </div>
+          <div class="col-1-3">
+            <button type="submit">Create form</button>
+          </div>
         </form>
       </div>
     </div>

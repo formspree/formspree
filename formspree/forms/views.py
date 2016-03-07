@@ -232,70 +232,92 @@ def confirm_email(nonce):
 
 @login_required
 def forms():
-    if request.method == 'GET':
-        '''
-        A reminder: this is the /forms endpoint, but for GET requests
-        it is also the /dashboard endpoint.
+    '''
+    A reminder: this is the /forms endpoint, but for GET requests
+    it is also the /dashboard endpoint.
 
-        The /dashboard endpoint, the address gave by url_for('dashboard'),
-        is the target of a lot of redirects around the app, but it can
-        be changed later to point to somewhere else.
-        '''
+    The /dashboard endpoint, the address gave by url_for('dashboard'),
+    is the target of a lot of redirects around the app, but it can
+    be changed later to point to somewhere else.
+    '''
 
-        # grab all the forms this user controls
-        if current_user.upgraded:
-            forms = current_user.forms.order_by(Form.id.desc()).all()
-        else:
-            forms = []
+    # grab all the forms this user controls
+    if current_user.upgraded:
+        forms = current_user.forms.order_by(Form.id.desc()).all()
+    else:
+        forms = []
 
+    if request_wants_json():
+        return jsonify({
+            'ok': True,
+            'forms': [{
+                'email': f.email,
+                'host': f.host,
+                'confirm_sent': f.confirm_sent,
+                'confirmed': f.confirmed,
+                'is_public': bool(f.hash),
+                'url': '{S}/{E}'.format(
+                    S=settings.SERVICE_URL,
+                    E=f.hashid
+                )
+            } for f in forms]
+        })
+    else:
+        return render_template('forms/list.html', forms=forms)
+
+
+@login_required
+def create_form():
+    # create a new form
+    if not current_user.upgraded:
+        return jsonerror(402, {'error': "Please upgrade your account."})
+
+    if request.get_json():
+        email = request.get_json().get('email')
+        url = request.get_json().get('url')
+    else:
+        email = request.form.get('email')
+        url = request.form.get('url')
+
+    if not IS_VALID_EMAIL(email):
         if request_wants_json():
-            return jsonify({
-                'ok': True,
-                'forms': [{
-                    'email': f.email,
-                    'host': f.host,
-                    'confirm_sent': f.confirm_sent,
-                    'confirmed': f.confirmed,
-                    'is_public': bool(f.hash),
-                    'url': '{S}/{E}'.format(
-                        S=settings.SERVICE_URL,
-                        E=f.hashid
-                    )
-                } for f in forms]
-            })
+            return jsonerror(400, {'error': "The provided email address is not valid."})
         else:
-            return render_template('forms/list.html', forms=forms)
+            flash('The provided email address is not valid.', 'error')
+            return redirect(url_for('dashboard'))
 
-    elif request.method == 'POST':
-        # create a new form
-        if not current_user.upgraded:
-            return jsonerror(402, {'error': "Please upgrade your account."})
+    form = Form(email, owner=current_user)
+    if url:
+        url = 'http://' + url if not url.startswith('http') else url
+        form.host = referrer_to_path(url)
 
-        if request.get_json():
-            email = request.get_json().get('email')
+    DB.session.add(form)
+    DB.session.commit()
+
+    # when the email and url are provided, we can automatically confirm the form
+    # but only if the email is registered for this account
+    if form.host:
+        for email in current_user.emails:
+            if email.address == form.email:
+                form.confirmed = True
+                DB.session.add(form)
+                DB.session.commit()
+                break
         else:
-            email = request.form.get('email')
+            # in case the email isn't registered for this user
+            # we automatically send the email confirmation
+            form.send_confirmation()
 
-        if not IS_VALID_EMAIL(email):
-            if request_wants_json():
-                return jsonerror(400, {'error': "The email you sent is not a valid email."})
-            else:
-                flash('The email you provided is not a valid email.', 'error')
-                return redirect(url_for('dashboard'))
-
-        form = Form(email, owner=current_user)
-        DB.session.add(form)
-        DB.session.commit()
-
-        if request_wants_json():
-            return jsonify({
-                'ok': True,
-                'hashid': form.hashid,
-                'submission_url': settings.API_ROOT + '/' + form.hashid
-            })
-        else:
-            flash('Your new form endpoint was created!', 'success')
-            return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
+    if request_wants_json():
+        return jsonify({
+            'ok': True,
+            'hashid': form.hashid,
+            'submission_url': settings.API_ROOT + '/' + form.hashid,
+            'confirmed': form.confirmed
+        })
+    else:
+        flash('Your new form endpoint was created!', 'success')
+        return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
 
 @login_required
 def form_submissions(hashid, format=None):

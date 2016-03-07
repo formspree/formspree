@@ -2350,11 +2350,11 @@ a.alert-box.success:hover {
   .dashboard .create-form form input {
     margin-top: 0;
     clear: both;
-    width: 70%;
+    width: 100%;
     vertical-align: top; }
   .dashboard .create-form form button {
-    padding: 0.63em;
-    width: 27%; }
+    padding: 0.63em 32px;
+    text-align: center; }
   .dashboard .create-form .modal:not(.js):target > *,
   .dashboard .create-form .modal.target > * {
     top: 20%; }
@@ -2382,8 +2382,7 @@ a.alert-box.success:hover {
     float: right;
     padding: 10px;
     font-size: 1.7em; }
-  .dashboard .modal > * .x h4 {
-    float: left;
+  .dashboard .modal > * h4 {
     margin: 0;
     padding: 0;
     margin-top: 13px; }
@@ -3017,5 +3016,3 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
-
-/*# sourceMappingURL=main.css.map */

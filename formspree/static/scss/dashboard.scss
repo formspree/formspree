@@ -73,12 +73,12 @@
     form input {
       margin-top:0;
       clear: both;
-      width: 70%;
+      width: 100%;
       vertical-align: top;
     }
     form button {
-      padding: 0.63em;
-      width: 27%;
+      padding: 0.63em 32px;
+      text-align: center;
     }
   
     .modal:not(.js):target > *,
@@ -119,8 +119,7 @@
         padding: 10px;
         font-size: 1.7em;
       }
-      .x h4 {
-        float: left;
+      h4 {
         margin: 0;
         padding: 0;
         margin-top: 13px;

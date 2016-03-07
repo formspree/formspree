@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build-js": "browserify formspree/static/js/main.js --outfile formspree/static/js/bundle.js",
-    "build": "npm run build-js"
+    "build-css": "scss --sourcemap=none formspree/static/scss/main.scss formspree/static/css/main.css",
+    "build": "npm run build-js && npm run build-css"
   }
 }
