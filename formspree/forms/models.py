@@ -151,6 +151,14 @@ class Form(DB.Model):
                         overlimit = False
                         break
 
+		# check if user wants to cc multiple email addresses
+		if cc.index(',') != -1:
+			emails = [email.strip() for email in cc.split(',')]
+			all_emails = ""
+			for email in emails:
+				all_emails += "cc[]=%s&" % email
+			cc = all_emails[:-1]
+
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
