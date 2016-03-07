@@ -93,7 +93,7 @@ body {
 ------------------------------------- */
 h1, h2, h3 {
   font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-  color: #000;
+  color: #1b3544;
   margin: 40px 0 0;
   line-height: 1.2em;
   font-weight: 400;
@@ -189,7 +189,7 @@ a {
 ------------------------------------- */
 .header {
 	font-size: 16px;
-	color: black;
+	color: #1b3544;
 	font-weight: 500;
 	padding: 20px;
 	border-bottom: 1px solid;
