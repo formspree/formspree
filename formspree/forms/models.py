@@ -104,8 +104,14 @@ class Form(DB.Model):
         subject = data.get('_subject', 'New submission from %s' % referrer_to_path(referrer))
         reply_to = data.get('_replyto', data.get('email', data.get('Email', None)))
         cc = data.get('_cc', None)
+        bcc = data.get('_bcc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
+        format = data.get('_format', None)
+        if cc:
+			cc = [email.strip() for email in cc.split(',')]
+        if bcc:
+			bcc = [email.strip() for email in bcc.split(',')]
 
         # prevent submitting empty form
         if not any(data.values()):
@@ -151,18 +157,15 @@ class Form(DB.Model):
                         overlimit = False
                         break
 
-		# check if user wants to cc multiple email addresses
-		if cc.index(',') != -1:
-			emails = [email.strip() for email in cc.split(',')]
-			all_emails = ""
-			for email in emails:
-				all_emails += "cc[]=%s&" % email
-			cc = all_emails[:-1]
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
-            html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
+            # check if the user wants a new or old version of the email
+            if format == 'text':
+                html = render_template('email/text_form.html', data=data, host=self.host, keys=keys, now=now)
+            else:
+                html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
         else:
             if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
                 # only send this overlimit notification for the first 25 overlimit emails
