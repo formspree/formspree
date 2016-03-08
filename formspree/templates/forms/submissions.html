@@ -14,7 +14,7 @@
       {% else %}
         <span class="code">/{{ form.email }}</span>
       {% endif %}
-      at <span class="code">{{ form.host }}</span>
+      at <span class="code">{{ form.host }}</span>{% if form.sitewide %} and all its subpaths.{% endif %}
       {% if not form.hash %}
         <br><small>targeting <span class="code">{{ form.email }}</span></small>
       {% else %}

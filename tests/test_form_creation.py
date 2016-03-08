@@ -5,7 +5,7 @@ from formspree import settings
 from formspree.app import DB
 from formspree.forms.helpers import HASH
 from formspree.users.models import User, Email
-from formspree.forms.models import Form
+from formspree.forms.models import Form, Submission
 
 from formspree_test_case import FormspreeTestCase
 from utils import parse_confirmation_link_sent
@@ -55,10 +55,10 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
 
         # post to form
         r = self.client.post('/' + form_endpoint,
-            headers={'Referer': 'formspree.io'},
+            headers={'Referer': 'http://formspree.io'},
             data={'name': 'bruce'}
         )
-        self.assertIn("We've sent a link to your email", r.data)
+        self.assertIn("sent an email confirmation", r.data)
         self.assertIn('confirm+your+email', httpretty.last_request().body)
         self.assertEqual(1, Form.query.count())
 
@@ -92,7 +92,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         self.assertIn('__4__', httpretty.last_request().body)
 
     @httpretty.activate
-    def test_form_creation_without_a_registered_email(self):
+    def test_form_creation_with_a_registered_email(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
 
         # register user
@@ -106,8 +106,10 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         DB.session.add(user)
         DB.session.commit()
 
-        # create form without providing an url should not send verification email
         httpretty.reset()
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # create form without providing an url should not send verification email
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'email@formspree.io'})
@@ -115,7 +117,6 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         self.assertEqual(httpretty.has_request(), False)
 
         # create form without a confirmed email should send a verification email
-        httpretty.reset()
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'email@formspree.io',
@@ -135,7 +136,6 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         DB.session.commit()
 
         # create a form with the verified email address
-        httpretty.reset()
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'owned-by@formspree.io',
@@ -143,7 +143,76 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         )
         resp = json.loads(r.data)
         self.assertEqual(resp['confirmed'], True)
-        self.assertEqual(httpretty.has_request(), False)
+        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body) # same as the last, means no new request was made
 
         # should have three created forms in the end
         self.assertEqual(Form.query.count(), 3)
+
+    @httpretty.activate
+    def test_sitewide_forms(self):
+        httpretty.register_uri(httpretty.GET,
+                               'http://mysite.com/formspree_verify_myemail@email.com.txt',
+                               status=200)
+
+        # register user
+        r = self.client.post('/register',
+            data={'email': 'user@formspree.io',
+                  'password': 'banana'}
+        )
+        # upgrade user manually
+        user = User.query.filter_by(email='user@formspree.io').first()
+        user.upgraded = True
+        DB.session.add(user)
+        DB.session.commit()
+
+        # manually verify an email
+        email = Email()
+        email.address = 'myemail@email.com'
+        email.owner_id = user.id
+        DB.session.add(email)
+        DB.session.commit()
+
+        # create a sitewide form with the verified email address
+        r = self.client.post('/forms',
+            headers={'Accept': 'application/json', 'Content-type': 'application/json'},
+            data=json.dumps({'email': 'myemail@email.com',
+                             'url': 'http://mysite.com',
+                             'sitewide': 'true'})
+        )
+        resp = json.loads(r.data)
+
+        self.assertEqual(httpretty.has_request(), True)
+        self.assertEqual(resp['confirmed'], True)
+
+        self.assertEqual(1, Form.query.count())
+        forms = Form.query.all()
+        form = forms[0]
+        self.assertEqual(form.sitewide, True)
+        self.assertEqual(form.host, 'mysite.com')
+
+        # submit form
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        r = self.client.post('/' + form.hashid,
+            headers = {'Referer': 'http://mysite.com/hipopotamo', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'alice'})
+        )
+        self.assertIn('alice', httpretty.last_request().body)
+
+        self.client.post('/' + form.hashid,
+            headers = {'Referer': 'http://mysite.com/baleia/urso?w=2', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'maria'})
+        )
+        self.assertIn('maria', httpretty.last_request().body)
+
+        self.client.post('/' + form.hashid,
+            headers = {'Referer': 'http://mysite.com', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'ellen'})
+        )
+        self.assertIn('ellen', httpretty.last_request().body)
+
+        self.client.post('/' + form.hashid,
+            headers = {'Referer': 'http://mysite.com/', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'laura'})
+        )
+        self.assertIn('laura', httpretty.last_request().body)

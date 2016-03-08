@@ -8,12 +8,13 @@ import io
 from flask import request, url_for, render_template, redirect, jsonify, flash, make_response, Response
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
-from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, HASH, EXCLUDE_KEYS
+from urlparse import urljoin
 
+from formspree import settings, log
 from formspree.app import DB
+from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
+from helpers import ordered_storage, referrer_to_path, sitewide_file_exists, HASH, EXCLUDE_KEYS
 from models import Form, Submission
-from formspree import settings
 
 def thanks():
     return render_template('forms/thanks.html')
@@ -58,8 +59,13 @@ def send(email_or_string):
                 form.host = host
                 DB.session.add(form)
                 DB.session.commit()
-            elif form.host != host:
-                # if the form submission came from a different host, it is an error
+
+                # it is an error when
+                #   form is sitewide, but submission came from a host rooted somewhere else, or
+                #   form is not sitewide, and submission came from a different host
+            elif (form.sitewide and not host.startswith(form.host)) or \
+                 (not form.sitewide and form.host != host):
+                log.debug('Submission rejected at %s' % host)
                 if request_wants_json():
                     return jsonerror(403, {'error': "Submission from different host than confirmed",
                                            'submitted': host, 'confirmed': form.host})
@@ -67,7 +73,7 @@ def send(email_or_string):
                     return render_template('error.html',
                                            title='Check form address',
                                            text='This submission came from "%s" but the form was\
-                                                 confirmed for the address "%s"' % (host, form.host)), 403
+                                                 confirmed for address "%s"' % (host, form.host)), 403
         else:
             # no form row found. it is an error.
             if request_wants_json():
@@ -275,9 +281,11 @@ def create_form():
     if request.get_json():
         email = request.get_json().get('email')
         url = request.get_json().get('url')
+        sitewide = request.get_json().get('sitewide')
     else:
         email = request.form.get('email')
         url = request.form.get('url')
+        sitewide = request.form.get('sitewide')
 
     if not IS_VALID_EMAIL(email):
         if request_wants_json():
@@ -291,12 +299,20 @@ def create_form():
         url = 'http://' + url if not url.startswith('http') else url
         form.host = referrer_to_path(url)
 
+        # sitewide forms, verified with a file at the root of the target domain
+        if sitewide:
+            if sitewide_file_exists(url, email):
+                form.host = referrer_to_path(urljoin(url, '/'))[:-1]
+                form.sitewide = True
+            else:
+                return jsonerror(403, {'error': "Couldn't find the verification file."})
+
     DB.session.add(form)
     DB.session.commit()
 
-    # when the email and url are provided, we can automatically confirm the form
-    # but only if the email is registered for this account
     if form.host:
+        # when the email and url are provided, we can automatically confirm the form
+        # but only if the email is registered for this account
         for email in current_user.emails:
             if email.address == form.email:
                 form.confirmed = True
@@ -318,6 +334,16 @@ def create_form():
     else:
         flash('Your new form endpoint was created!', 'success')
         return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
+
+@login_required
+def sitewide_check():
+    email = request.args.get('email')
+    url = request.args.get('url')
+
+    if sitewide_file_exists(url, email):
+        return '', 200
+    else:
+        return '', 404
 
 @login_required
 def form_submissions(hashid, format=None):

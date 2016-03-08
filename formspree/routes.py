@@ -27,6 +27,7 @@ def configure_routes(app):
     app.add_url_rule('/dashboard', 'dashboard', view_func=forms.views.forms, methods=['GET'])
     app.add_url_rule('/forms', 'forms', view_func=forms.views.forms, methods=['GET'])
     app.add_url_rule('/forms', 'create-form', view_func=forms.views.create_form, methods=['POST'])
+    app.add_url_rule('/forms/sitewide-check', view_func=forms.views.sitewide_check, methods=['GET'])
     app.add_url_rule('/forms/<hashid>/', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
     app.add_url_rule('/forms/<hashid>.<format>', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
 
