@@ -58,6 +58,13 @@ def http_form_to_dict(data):
 
     return ret, ordered_keys
 
+
+def remove_www(host):
+    if host.startswith('www.'):
+        return host[4:]
+    return host
+
+
 def sitewide_file_exists (url, email):
     url = urljoin(url, '/' + 'formspree_verify_{0}.txt'.format(email))
     log.debug('Checking sitewide file: %s' % url)

@@ -153,6 +153,9 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         httpretty.register_uri(httpretty.GET,
                                'http://mysite.com/formspree_verify_myemail@email.com.txt',
                                status=200)
+        httpretty.register_uri(httpretty.GET,
+                               'http://www.naive.com/formspree_verify_myemail@email.com.txt',
+                               status=200)
 
         # register user
         r = self.client.post('/register',
@@ -194,7 +197,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
 
         r = self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://mysite.com/hipopotamo', 'content-type': 'application/json'},
+            headers = {'Referer': 'http://www.mysite.com/hipopotamo', 'content-type': 'application/json'},
             data=json.dumps({'name': 'alice'})
         )
         self.assertIn('alice', httpretty.last_request().body)
@@ -206,13 +209,46 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         self.assertIn('maria', httpretty.last_request().body)
 
         self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://mysite.com', 'content-type': 'application/json'},
-            data=json.dumps({'name': 'ellen'})
+            headers = {'Referer': 'http://mysite.com/', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'laura'})
         )
-        self.assertIn('ellen', httpretty.last_request().body)
+        self.assertIn('laura', httpretty.last_request().body)
+
+        # another form, now with a www prefix that will be stripped
+        r = self.client.post('/forms',
+            headers={'Accept': 'application/json', 'Content-type': 'application/json'},
+            data=json.dumps({'email': 'myemail@email.com',
+                             'url': 'http://www.naive.com',
+                             'sitewide': 'true'})
+        )
+        resp = json.loads(r.data)
+
+        self.assertEqual(httpretty.has_request(), True)
+        self.assertEqual(resp['confirmed'], True)
+
+        self.assertEqual(2, Form.query.count())
+        forms = Form.query.all()
+        form = forms[1]
+        self.assertEqual(form.sitewide, True)
+        self.assertEqual(form.host, 'naive.com')
+
+        # submit form
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        r = self.client.post('/' + form.hashid,
+            headers = {'Referer': 'http://naive.com/hipopotamo', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'alice'})
+        )
+        self.assertIn('alice', httpretty.last_request().body)
 
         self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://mysite.com/', 'content-type': 'application/json'},
+            headers = {'Referer': 'http://www.naive.com/baleia/urso?w=2', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'maria'})
+        )
+        self.assertIn('maria', httpretty.last_request().body)
+
+        self.client.post('/' + form.hashid,
+            headers = {'Referer': 'http://www.naive.com/', 'content-type': 'application/json'},
             data=json.dumps({'name': 'laura'})
         )
         self.assertIn('laura', httpretty.last_request().body)

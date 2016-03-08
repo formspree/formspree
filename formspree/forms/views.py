@@ -13,7 +13,7 @@ from urlparse import urljoin
 from formspree import settings, log
 from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, sitewide_file_exists, HASH, EXCLUDE_KEYS
+from helpers import ordered_storage, referrer_to_path, remove_www, sitewide_file_exists, HASH, EXCLUDE_KEYS
 from models import Form, Submission
 
 def thanks():
@@ -63,9 +63,13 @@ def send(email_or_string):
                 # it is an error when
                 #   form is sitewide, but submission came from a host rooted somewhere else, or
                 #   form is not sitewide, and submission came from a different host
-            elif (form.sitewide and not host.startswith(form.host)) or \
-                 (not form.sitewide and form.host != host):
-                log.debug('Submission rejected at %s' % host)
+            elif (not form.sitewide and form.host != host) or (
+                   form.sitewide and (
+                     not host.startswith(form.host) and \
+                     not remove_www(host).startswith(form.host)
+                   )
+                 ):
+                log.debug('Submission rejected from %s to %s' % (host, email))
                 if request_wants_json():
                     return jsonerror(403, {'error': "Submission from different host than confirmed",
                                            'submitted': host, 'confirmed': form.host})
@@ -302,7 +306,7 @@ def create_form():
         # sitewide forms, verified with a file at the root of the target domain
         if sitewide:
             if sitewide_file_exists(url, email):
-                form.host = referrer_to_path(urljoin(url, '/'))[:-1]
+                form.host = remove_www(referrer_to_path(urljoin(url, '/'))[:-1])
                 form.sitewide = True
             else:
                 return jsonerror(403, {'error': "Couldn't find the verification file."})
