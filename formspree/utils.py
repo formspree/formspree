@@ -130,13 +130,6 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
 				valid_emails.append(email)
 		data.update({'cc': valid_emails})
 
-	if bcc:
-		valid_emails = []
-		for email in bcc:
-			if IS_VALID_EMAIL(email):
-				valid_emails.append(email)
-		data.update({'bcc': valid_emails})
-
     log.info('Queuing message to %s' % str(to))
 
     result = requests.post(

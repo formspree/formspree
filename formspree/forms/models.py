@@ -104,15 +104,12 @@ class Form(DB.Model):
         subject = data.get('_subject', 'New submission from %s' % referrer_to_path(referrer))
         reply_to = data.get('_replyto', data.get('email', data.get('Email', None)))
         cc = data.get('_cc', None)
-        bcc = data.get('_bcc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
 
-		# turn cc and bcc emails into array
+		# turn cc emails into array
         if cc:
             cc = [email.strip() for email in cc.split(',')]
-        if bcc:
-            bcc = [email.strip() for email in bcc.split(',')]
 
         # prevent submitting empty form
         if not any(data.values()):
