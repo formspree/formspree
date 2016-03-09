@@ -9,12 +9,13 @@
       {% block form %}
         <form action="" method=post>
           <h2>Log in to {{ config.SERVICE_NAME }}</h2>
-          <input type="text" id="email" name="email" placeholder="Enter Email" required>
+          <input type="email" id="email" name="email" placeholder="Enter Email" required>
           <input type="password" id="password" name="password" placeholder="Enter Password" required>
           <button type="submit">Sign in</button>
         </form>
 
         <p>Don't have an account? <a href="{{ url_for('register', next=request.args.get('next')) }}">Register</a>!</p>
+        <p>Forgot your password? <a href="{{ url_for('forgot-password', next=request.args.get('next')) }}">Reset it</a>!</p>
       {% endblock %}
     </div>
   </div>
