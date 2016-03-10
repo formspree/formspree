@@ -57,6 +57,39 @@ class User(DB.Model):
     def get_id(self):
         return unicode(self.id)
 
+    def reset_password_digest(self):
+        return hmac.new(
+            settings.NONCE_SECRET,
+            'id={0}&password={1}'.format(self.id, self.password),
+            hashlib.sha256
+        ).hexdigest()
+
+    def send_password_reset(self):
+        digest = self.reset_password_digest()
+        link = url_for('reset-password', digest=digest, email=self.email, _external=True)
+        res = send_email(
+            to=self.email,
+            subject='Reset your %s password!' % settings.SERVICE_NAME,
+            text=render_template('email/reset-password.txt', addr=self.email, link=link),
+            sender=settings.ACCOUNT_SENDER
+        )
+        if not res[0]:
+            return False
+        else:
+            return True
+
+    @classmethod
+    def from_password_reset(cls, email, digest):
+        user = User.query.filter_by(email=email).first()
+        if not user: return None
+
+        what_should_be = user.reset_password_digest()
+        if digest == what_should_be:
+            return user
+        else:
+            return None
+
+
 class Email(DB.Model):
     __tablename__ = 'emails'
 

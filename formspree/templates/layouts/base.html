@@ -21,7 +21,7 @@
             <div class="col-1-1">
             {% for category, message in messages %}
               <div class="alert-box {{ category }} banner">
-               {{ message }}
+               {{ message|safe }}
               </div>
             {% endfor %}
            </div>

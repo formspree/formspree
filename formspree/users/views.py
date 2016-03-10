@@ -4,7 +4,7 @@ import datetime
 from flask import request, flash, url_for, render_template, redirect, abort
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from sqlalchemy.exc import IntegrityError
-from helpers import check_password
+from helpers import check_password, hash_pwd
 from formspree.app import DB
 from formspree import settings
 from models import User, Email
@@ -103,6 +103,46 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+def forgot_password():
+    if request.method == 'GET':
+        return render_template('users/forgot.html')
+    elif request.method == 'POST':
+        user = User.query.filter_by(email=request.form['email']).first()
+        if user.send_password_reset():
+            return render_template('info.html', title='Reset email sent', text="We've sent a link to {addr}. Click on the link to be prompted to a new password.".format(addr=user.email))
+        else:
+            flash("Something is wrong, please report this to us.", 'error')
+        return redirect(url_for('login', next=request.args.get('next')))
+
+
+def reset_password(digest):
+    if request.method == 'GET':
+        user = User.from_password_reset(request.args['email'], digest)
+        if user:
+            login_user(user, remember=True)
+            return render_template('users/reset.html', digest=digest)
+        else:
+            flash('The link you used to come to this screen has expired. Please try the reset process again.', 'error')
+            return redirect(url_for('login', next=request.args.get('next')))
+
+    elif request.method == 'POST':
+        email = current_user.email # at this point the user is already logged
+        user = User.from_password_reset(current_user.email, digest)
+        if user and user.id == current_user.id:
+            if request.form['password1'] == request.form['password2']:
+                user.password = hash_pwd(request.form['password1'])
+                DB.session.add(user)
+                DB.session.commit()
+                flash('Changed password successfully!', 'success')
+                return redirect(request.args.get('next') or url_for('dashboard'))
+            else:
+                flash("The passwords don't match!", 'warning')
+                return redirect(url_for('reset-password', digest=digest, next=request.args.get('next')))
+        else:
+            flash('<b>Failed to reset password</b>. The link you used to come to this screen has expired. Please try the reset process again.', 'error')
+            return redirect(url_for('login', next=request.args.get('next')))
 
 
 def upgrade():
