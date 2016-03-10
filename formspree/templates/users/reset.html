@@ -1,0 +1,20 @@
+{% extends 'layouts/base.html' %}
+
+{% block bodyclass %}dashboard login{% endblock%}
+{% block bodyid %}{% endblock%}
+
+{% block base %}
+  <div class="row">
+    <div class="container narrow card">
+      {% block form %}
+        <form action="{{ url_for('reset-password', digest=digest, next=request.args.get('next')) }}" method=post>
+          <h2>Set a new password for {{ current_user.email }}</h2>
+          <input type="password" name="password1" placeholder="Enter Password" required>
+          <input type="password" name="password2" placeholder="Enter it again, to make sure you'll not forget" required>
+          <button type="submit">Done</button>
+        </form>
+      {% endblock %}
+    </div>
+  </div>
+
+{% endblock base %}

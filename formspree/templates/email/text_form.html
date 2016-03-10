@@ -1,0 +1,24 @@
+<p>Hey there,</p>
+
+</p>Someone just submitted your form on {{host}}.</p>
+
+<p>Here's what they had to say:</p>
+
+<hr style="color: #359173; border: 1px dashed #359173;">
+
+<table border="0" width="100%">
+    {% for k in keys %}
+        <tr>
+            <td align="right" valign="top" width="70" style="padding: 5px 5px 5px 0;"><strong>{{k}}:</strong> </td>
+            <td align="left" valign="top" width="*" style="padding: 5px 5px 5px;">
+              <pre style="margin: 0; font-family: inherit;">{{data.get(k,'')}}</pre>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+
+<small style="margin-left: 10px; font-size: 10px;">This form was submitted at {{ now }}.</small>
+
+<hr style="color: #359173; border: 1px dashed #359173;" />
+
+<p>You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to {{config.CONTACT_EMAIL}}.</p>

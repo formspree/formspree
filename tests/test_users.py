@@ -21,6 +21,10 @@ class UserAccountsTestCase(FormspreeTestCase):
         r = self.client.get('/login')
         self.assertEqual(200, r.status_code)
 
+    def test_forgot_password_page(self):
+        r = self.client.get('/login/reset')
+        self.assertEqual(200, r.status_code)
+
     @httpretty.activate
     def test_user_auth(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
@@ -62,6 +66,49 @@ class UserAccountsTestCase(FormspreeTestCase):
         self.assertEqual(r.status_code, 302)
         self.assertTrue(r.location.endswith('/dashboard'))
         self.assertEqual(1, User.query.count())
+
+    @httpretty.activate
+    def test_forgot_password(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # register
+        r = self.client.post('/register',
+            data={'email': 'fragile@yes.com',
+                  'password': 'roundabout'}
+        )
+        self.assertEqual(1, User.query.count())
+        initial_password = User.query.all()[0].password
+
+        # logout
+        self.client.get('/logout')
+
+        # forget password
+        r = self.client.post('/login/reset',
+            data={'email': 'fragile@yes.com'}
+        )
+        self.assertEqual(r.status_code, 200)
+
+        # click on the email link
+        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
+        r = self.client.get(
+            link,
+            query_string=qs,
+            follow_redirects=True
+        )
+        self.assertEqual(r.status_code, 200)
+
+        # send new passwords (not matching)
+        r = self.client.post(link, data={'password1': 'verdes', 'password2': 'roxas'})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.location, link)
+        self.assertEqual(User.query.all()[0].password, initial_password)
+
+        # again, now matching
+        r = self.client.post(link, data={'password1': 'amarelas', 'password2': 'amarelas'})
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(r.location.endswith('/dashboard'))
+        self.assertNotEqual(User.query.all()[0].password, initial_password)
+        
 
     @httpretty.activate
     def test_form_creation(self):
