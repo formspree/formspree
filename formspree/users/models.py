@@ -71,6 +71,7 @@ class User(DB.Model):
             to=self.email,
             subject='Reset your %s password!' % settings.SERVICE_NAME,
             text=render_template('email/reset-password.txt', addr=self.email, link=link),
+            html=render_template('email/reset-password.html', add=self.email, link=link),
             sender=settings.ACCOUNT_SENDER
         )
         if not res[0]:
