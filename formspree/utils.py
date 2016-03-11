@@ -123,12 +123,9 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
     if reply_to and IS_VALID_EMAIL(reply_to):
         data.update({'replyto': reply_to})
 
-	if cc:
-		valid_emails = []
-		for email in cc:
-			if IS_VALID_EMAIL(email):
-				valid_emails.append(email)
-		data.update({'cc': valid_emails})
+    if cc:
+        valid_emails = [email for email in cc if IS_VALID_EMAIL(email)]
+        data.update({'cc': valid_emails})
 
     log.info('Queuing message to %s' % str(to))
 
