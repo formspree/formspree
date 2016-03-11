@@ -366,3 +366,19 @@ def form_submissions(hashid, format=None):
                                 % (hashid, datetime.datetime.now().isoformat().split('.')[0])
                 }
             )
+
+@login_required
+def form_deletion(hashid):
+	form = Form.get_with_hashid(hashid)
+
+	if not form:
+		return render_template('error.html',
+                               title='Not a valid form',
+                               text='That form does not exist.<br />Please check the link and try again.'), 400
+	else:
+		for submission in form.submissions:
+			DB.session.delete(submission)
+		DB.session.delete(form)
+		DB.session.commit()
+		flash('Form successfully deleted', 'success')
+		return redirect(url_for('dashboard'))

@@ -35,6 +35,9 @@
           <a href="{{ url_for('form-submissions', hashid=form.hashid) }}">{{ form.counter }} submissions</a>
         {% endif %}
       </td>
+		<td>
+		<a href="{{ url_for('form-deletion', hashid=form.hashid) }}">Delete</a>
+		</td>
     </tr>
   {% endfor %}
   </table>
