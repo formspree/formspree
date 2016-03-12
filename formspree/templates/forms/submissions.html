@@ -38,7 +38,7 @@
               {% for f in fields %}
                 <td><pre>{{ submission.data[f] }}</pre></td>
               {% endfor %}
-			<td><a href="#">Delete</a></td>
+			<td><a href="{{ url_for('submission-deletion', hashid=form.hashid, submissionid=submission.id) }}">Delete</a></td>
             </tr>
           {% endfor %}
         </tbody>

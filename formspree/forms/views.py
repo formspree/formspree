@@ -382,3 +382,23 @@ def form_deletion(hashid):
 		DB.session.commit()
 		flash('Form successfully deleted', 'success')
 		return redirect(url_for('dashboard'))
+
+@login_required
+def submission_deletion(hashid, submissionid):
+    submission = Submission.get_by_submissionid(submissionid)
+    form = Form.get_with_hashid(hashid)
+    if not submission:
+        return render_template('error.html',
+                              title='Not a valid submission',
+                              text='That submission does not exist.<br />Please check the link and try again.'), 400
+    elif submission.form_id != form.id:
+        return render_template('error.html',
+                              title='Not a valid submissions',
+                              text='That submission does not match the form provided.<br />Please check the link and try again.'), 400
+    else:
+        DB.session.delete(submission)
+        form.counter -= 1
+        DB.session.add(form)
+        DB.session.commit()
+        flash('Submission successfully deleted', 'success')
+        return redirect(url_for('form-submissions', hashid=hashid))

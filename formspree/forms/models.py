@@ -312,3 +312,10 @@ class Submission(DB.Model):
     def __repr__(self):
         return '<Submission %s, form=%s, date=%s, keys=%s>' % \
             (self.id or 'with an id to be assigned', self.form_id, self.submitted_at.isoformat(), self.data.keys())
+
+    @classmethod
+    def get_by_submissionid(cls, submissionid):
+        try:
+            return Submission.query.filter_by(id=submissionid).first()
+        except IndexError:
+            return None
