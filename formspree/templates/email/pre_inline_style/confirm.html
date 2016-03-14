@@ -28,7 +28,7 @@
                                     </tr>
                                     <tr>
                                         <td class="content-block">
-                                            All you have to do is click the link below to confirm your email. To prevent spamming, you'll have to repeat this step for every page where you insert your form. Note that you won't be receiving any emails from the site before you confirm your email.
+                                            All you have to do is click the link below to confirm your email. To prevent spamming, you'll have to repeat this step for every page where you insert your form. Note that you won't receive any further emails until you confirm.
                                         </td>
                                     </tr>
                                     <tr>
@@ -63,12 +63,7 @@
                                     {% endif %}
                                     <tr>
                                         <td class="alert straight-edge alert-bad">
-                                            <strong>ALERT:</strong> You will not receive any more emails unless you click <a href="{{ nonce_link }}">here</a> and confirm your address.
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="content-block">
-                                            We hope you enjoy using {{config.SERVICE_NAME}}. If you have any questions, feel free to shoot an email to {{config.CONTACT_EMAIL}}
+                                            <strong>ALERT:</strong> You will not receive further emails until you confirm.
                                         </td>
                                     </tr>
                                 </table>
@@ -79,7 +74,7 @@
                         <table width="100%">
                             <tr>
                                 <td class="aligncenter content-block">Why did I receive this?
-                                    <br>Someone (hopefully you?) used your email with the {{config.SERVICE_NAME}} API on {{host}}. If this wasn't you, no worries. This is the only email you'll get.</td>
+                                    <br>Someone (hopefully you?) used your email with the {{config.SERVICE_NAME}} API on {{host}}. If this wasn't you, no worries. This is the only email you'll get. If you have any questions, feel free to shoot an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</td>
                                 <br>
                             </tr>
                             <tr>
