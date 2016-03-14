@@ -1,0 +1,19 @@
+{% extends 'layouts/base.html' %}
+
+{% block bodyclass %}dashboard login{% endblock%}
+{% block bodyid %}{% endblock%}
+
+{% block base %}
+  <div class="row">
+    <div class="container narrow card">
+      {% block form %}
+        <form action="{{ url_for('forgot-password', next=request.args.get('next')) }}" method=post>
+          <h2>Enter your registered email</h2>
+          <input type="email" name="email" placeholder="me@email.com" required>
+          <button type="submit">Done</button>
+        </form>
+      {% endblock %}
+    </div>
+  </div>
+
+{% endblock base %}
