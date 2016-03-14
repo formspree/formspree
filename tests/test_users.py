@@ -21,6 +21,10 @@ class UserAccountsTestCase(FormspreeTestCase):
         r = self.client.get('/login')
         self.assertEqual(200, r.status_code)
 
+    def test_forgot_password_page(self):
+        r = self.client.get('/login/reset')
+        self.assertEqual(200, r.status_code)
+
     @httpretty.activate
     def test_user_auth(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
@@ -62,6 +66,128 @@ class UserAccountsTestCase(FormspreeTestCase):
         self.assertEqual(r.status_code, 302)
         self.assertTrue(r.location.endswith('/dashboard'))
         self.assertEqual(1, User.query.count())
+
+    @httpretty.activate
+    def test_forgot_password(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # register
+        r = self.client.post('/register',
+            data={'email': 'fragile@yes.com',
+                  'password': 'roundabout'}
+        )
+        self.assertEqual(1, User.query.count())
+        initial_password = User.query.all()[0].password
+
+        # logout
+        self.client.get('/logout')
+
+        # forget password
+        r = self.client.post('/login/reset',
+            data={'email': 'fragile@yes.com'}
+        )
+        self.assertEqual(r.status_code, 200)
+
+        # click on the email link
+        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
+        r = self.client.get(
+            link,
+            query_string=qs,
+            follow_redirects=True
+        )
+        self.assertEqual(r.status_code, 200)
+
+        # send new passwords (not matching)
+        r = self.client.post(link, data={'password1': 'verdes', 'password2': 'roxas'})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.location, link)
+        self.assertEqual(User.query.all()[0].password, initial_password)
+
+        # again, now matching
+        r = self.client.post(link, data={'password1': 'amarelas', 'password2': 'amarelas'})
+        self.assertEqual(r.status_code, 302)
+        self.assertTrue(r.location.endswith('/dashboard'))
+        self.assertNotEqual(User.query.all()[0].password, initial_password)
+        
+
+    @httpretty.activate
+    def test_form_creation(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # register user
+        r = self.client.post('/register',
+            data={'email': 'colorado@springs.com',
+                  'password': 'banana'}
+        )
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(1, User.query.count())
+
+        # fail to create form
+        r = self.client.post('/forms',
+            headers={'Content-type': 'application/json'},
+            data={'email': 'hope@springs.com'}
+        )
+        self.assertEqual(r.status_code, 402)
+        self.assertIn('error', json.loads(r.data))
+        self.assertEqual(0, Form.query.count())
+
+        # upgrade user manually
+        user = User.query.filter_by(email='colorado@springs.com').first()
+        user.upgraded = True
+        DB.session.add(user)
+        DB.session.commit()
+
+        # successfully create form
+        r = self.client.post('/forms',
+            headers={'Accept': 'application/json', 'Content-type': 'application/json'},
+            data=json.dumps({'email': 'hope@springs.com'})
+        )
+        resp = json.loads(r.data)
+        self.assertEqual(r.status_code, 200)
+        self.assertIn('submission_url', resp)
+        self.assertIn('hashid', resp)
+        form_endpoint = resp['hashid']
+        self.assertIn(resp['hashid'], resp['submission_url'])
+        self.assertEqual(1, Form.query.count())
+        self.assertEqual(Form.query.first().id, Form.get_with_hashid(resp['hashid']).id)
+
+        # post to form
+        r = self.client.post('/' + form_endpoint,
+            headers={'Referer': 'formspree.io'},
+            data={'name': 'bruce'}
+        )
+        self.assertIn("We've sent a link to your email", r.data)
+        self.assertIn('confirm+your+email', httpretty.last_request().body)
+        self.assertEqual(1, Form.query.count())
+
+        # confirm form
+        form = Form.query.first()
+        self.client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
+        self.assertTrue(Form.query.first().confirmed)
+
+        # send 5 forms (monthly limits should not apply to the upgraded user)
+        self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
+        for i in range(5):
+            r = self.client.post('/' + form_endpoint,
+                headers={'Referer': 'formspree.io'},
+                data={'name': 'ana',
+                      'submission': '__%s__' % i}
+            )
+        form = Form.query.first()
+        self.assertEqual(form.counter, 5)
+        self.assertEqual(form.get_monthly_counter(), 5)
+        self.assertIn('ana', httpretty.last_request().body)
+        self.assertIn('__4__', httpretty.last_request().body)
+        self.assertNotIn('You+are+past+our+limit', httpretty.last_request().body)
+
+        # try (and fail) to submit from a different host
+        r = self.client.post('/' + form_endpoint,
+            headers={'Referer': 'bad.com'},
+            data={'name': 'usurper'}
+        )
+        self.assertEqual(r.status_code, 403)
+        self.assertIn('ana', httpretty.last_request().body) # no more data is sent to sendgrid
+        self.assertIn('__4__', httpretty.last_request().body)
 
     def test_user_upgrade_and_downgrade(self):
         # check correct usage of stripe test keys during test

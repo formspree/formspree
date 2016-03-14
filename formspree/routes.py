@@ -21,6 +21,8 @@ def configure_routes(app):
     app.add_url_rule('/account/confirm/<digest>', 'confirm-account-email', view_func=users.views.confirm_email, methods=['GET'])
     app.add_url_rule('/register', 'register', view_func=users.views.register, methods=['GET', 'POST'])
     app.add_url_rule('/login', 'login', view_func=users.views.login, methods=   ['GET', 'POST'])
+    app.add_url_rule('/login/reset', 'forgot-password', view_func=users.views.forgot_password, methods=['GET', 'POST'])
+    app.add_url_rule('/login/reset/<digest>', 'reset-password', view_func=users.views.reset_password, methods=['GET', 'POST'])
     app.add_url_rule('/logout', 'logout', view_func=users.views.logout, methods=['GET'])
 
     # Users' forms
