@@ -106,7 +106,10 @@ class Form(DB.Model):
         cc = data.get('_cc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
-        format = data.get('_format', None)
+
+		# turn cc emails into array
+        if cc:
+            cc = [email.strip() for email in cc.split(',')]
 
         # prevent submitting empty form
         if not any(data.values()):
@@ -151,6 +154,7 @@ class Form(DB.Model):
                     if c.upgraded:
                         overlimit = False
                         break
+
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
