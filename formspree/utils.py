@@ -16,7 +16,8 @@ IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 # decorators
 
 def request_wants_json():
-    if request.headers.get('X_REQUESTED_WITH','').lower() == 'xmlhttprequest':
+    if request.headers.get('X_REQUESTED_WITH','').lower() == 'xmlhttprequest' or \
+       request.headers.get('X-REQUESTED-WITH','').lower() == 'xmlhttprequest':
         return True
     if accept_better('json', 'html'):
         return True

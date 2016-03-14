@@ -251,5 +251,3 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # delete the stripe customer
         customer.delete()
-
-

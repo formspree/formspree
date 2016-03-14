@@ -1,4 +1,3 @@
-from formspree import settings, log
 import flask
 import werkzeug.datastructures
 import urlparse
@@ -6,6 +5,9 @@ import requests
 import re
 import hashlib
 import hashids
+from urlparse import urljoin
+
+from formspree import settings, log
 
 HASH = lambda x, y: hashlib.md5(x+y+settings.NONCE_SECRET).hexdigest()
 EXCLUDE_KEYS = ['_gotcha', '_next', '_subject', '_cc']
@@ -26,12 +28,12 @@ def ordered_storage(f):
     return decorator
 
 def referrer_to_path(r):
-    log.debug('Referrer was %s' % str(r))
     if not r:
         return ''
     parsed = urlparse.urlparse(r)
-    return parsed.netloc + parsed.path
-
+    n = parsed.netloc + parsed.path
+    log.debug('Referrer was %s, now %s' % (str(r), n))
+    return n
 
 def http_form_to_dict(data):
     '''
@@ -55,3 +57,16 @@ def http_form_to_dict(data):
         ret[r] = ', '.join(ret[r])
 
     return ret, ordered_keys
+
+
+def remove_www(host):
+    if host.startswith('www.'):
+        return host[4:]
+    return host
+
+
+def sitewide_file_exists (url, email):
+    url = urljoin(url, '/' + 'formspree_verify_{0}.txt'.format(email))
+    log.debug('Checking sitewide file: %s' % url)
+    res = requests.get(url, timeout=2)
+    return res.ok
