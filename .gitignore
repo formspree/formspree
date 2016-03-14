@@ -2,6 +2,8 @@ development.env
 *.py[cod]
 node_modules
 
+node_modules
+
 # C extensions
 *.so
 
