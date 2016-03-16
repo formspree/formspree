@@ -107,6 +107,10 @@
           e.preventDefault()
           modal.toggleClass('target')
         })
+        modal.find('.cancel').click(function (e) {
+            e.preventDefault();
+            modal.toggleClass('target')
+        })
     })
   </script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>

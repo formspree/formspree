@@ -36,7 +36,7 @@
         {% endif %}
       </td>
 		<td>
-		<a href="{{ url_for('form-deletion', hashid=form.hashid) }}" class="no-underline"><i class="fa fa-trash-o delete"></i></a>
+		<a href="#delete-{{form.hashid}}" class="no-underline"><i class="fa fa-trash-o delete"></i></a>
 		</td>
     </tr>
   {% endfor %}
@@ -63,6 +63,19 @@
     <div>
       <div class="x"><h4>Place this code in your page's HTML</h4><a href="#">&times;</a></div>
       <textarea rows="7">{{ showcode(form) }}</textarea>
+    </div>
+  </div>
+
+  <div class="modal" id="delete-{{ form.hashid }}" aria-hidden="true">
+    <div>
+        <div class="x"><h4>Are you ABSOLUTELY sure?</h4><a href="#">&times;</a></div>
+      <br />
+      <p>This action <strong>CANNOT</strong> be undone. This will permanantly delete the form{% if form.host %} on <strong>{{form.host}}</strong>{% endif %} and all related submissions.</p>
+        <form method="POST" action="{{ url_for('form-deletion') }}">
+          <input type="hidden" name="hashid" value="{{ form.hashid }}">
+            <span class="cancel"><button type="button" onclick="return false;">Cancel</button></span>
+          <button class="delete">Confirm Deletion</button>
+        </form>
     </div>
   </div>
 {% endfor %}
