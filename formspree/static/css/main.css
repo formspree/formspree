@@ -2316,7 +2316,7 @@ a.alert-box.success:hover {
   width: 32px; }
 .dashboard .delete {
   color: #D9534F;
-  border-bottom: none !important; }
+  border-color: #D9534F; }
 .dashboard .delete:hover {
   transition: color 0.3s ease-in-out;
   color: #d1332e; }
