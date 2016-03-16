@@ -244,7 +244,9 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # delete a submission in form
         first_submission = Submission.query.first()
-        r = self.client.get('/forms/' + form_endpoint + '/' + unicode(first_submission.id) + '/delete', follow_redirects=True)
+        r = self.client.post('/forms/' + form_endpoint + '/delete',
+                             data={'submissionid': unicode(first_submission.id)},
+                                   follow_redirects=True)
         self.assertEqual(200, r.status_code)
         self.assertEqual(4, Submission.query.count())
         self.assertTrue(DB.session.query(Submission.id).filter_by(id='0').scalar() is None) #make sure you deleted the submission
@@ -253,7 +255,8 @@ class UserAccountsTestCase(FormspreeTestCase):
         self.client.get('/logout')
 
         # attempt to delete form you don't have access to (while logged out)
-        r = self.client.get('/forms/' + form_endpoint +'/delete')
+        r = self.client.post('/forms/delete',
+                            data={'hashid': form_endpoint})
         self.assertEqual(302, r.status_code)
         self.assertEqual(1, Form.query.count())
 
@@ -264,7 +267,8 @@ class UserAccountsTestCase(FormspreeTestCase):
         )
 
         # attempt to delete form we don't have access to
-        r = self.client.get('/forms/' + form_endpoint +'/delete')
+        r = self.client.post('/forms/delete',
+                            data={'hashid': form_endpoint})
         self.assertEqual(400, r.status_code)
         self.assertEqual(1, Form.query.count())
 
@@ -277,7 +281,9 @@ class UserAccountsTestCase(FormspreeTestCase):
         )
 
         # delete the form created
-        r = self.client.get('/forms/' + form_endpoint +'/delete', follow_redirects=True)
+        r = self.client.post('/forms/delete',
+                            data={'hashid': form_endpoint},
+                            follow_redirects=True)
         self.assertEqual(200, r.status_code)
         self.assertEqual(0, Form.query.count())
 
