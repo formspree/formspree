@@ -160,7 +160,11 @@ class Form(DB.Model):
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
             text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
-            html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
+            # check if the user wants a new or old version of the email
+            if format == 'plain':
+                html = render_template('email/plain_form.html', data=data, host=self.host, keys=keys, now=now)
+            else:
+                html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
         else:
             if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
                 # only send this overlimit notification for the first 25 overlimit emails

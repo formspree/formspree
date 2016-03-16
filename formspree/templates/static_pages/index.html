@@ -162,6 +162,14 @@
 
       <div class="container narrow block">
             <div class="col-1-1">
+                <h4><span class="code">_format</span></h4>
+                <p>Add this to your form will allow for you to receive plain text versions of emails for form submissions.</p>
+                <p><input type="text" class="code" value='<input type="text" name="_format" value="plain" style="display:none" />'></p>
+            </div>
+      </div>
+
+      <div class="container narrow block">
+            <div class="col-1-1">
                 <h4>Using AJAX</h4>
                 <p>You can use {{config.SERVICE_NAME}} via AJAX. This even works cross-origin. The trick is to set the <span class="code">Accept</span> header to <span class="code">application/json</span>. If you're using jQuery this can be done like so:
                 <p class="card code">
