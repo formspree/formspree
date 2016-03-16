@@ -30,6 +30,11 @@
     border-bottom: none !important;
   }
 
+  .delete:hover {
+    transition: color 0.3s ease-in-out;
+    color: #d1332e;
+  }
+
   table {
     text-align: left;
     width: 100%;
