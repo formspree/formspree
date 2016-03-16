@@ -30,8 +30,8 @@ def configure_routes(app):
     app.add_url_rule('/forms', 'forms', view_func=forms.views.forms, methods=['GET', 'POST'])
     app.add_url_rule('/forms/<hashid>/', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
     app.add_url_rule('/forms/<hashid>.<format>', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
-    app.add_url_rule('/forms/<hashid>/delete', 'form-deletion', view_func=forms.views.form_deletion, methods=['GET'])
-    app.add_url_rule('/forms/<hashid>/<submissionid>/delete', 'submission-deletion', view_func=forms.views.submission_deletion, methods=['GET'])
+    app.add_url_rule('/forms/delete', 'form-deletion', view_func=forms.views.form_deletion, methods=['POST'])
+    app.add_url_rule('/forms/<hashid>/delete', 'submission-deletion', view_func=forms.views.submission_deletion, methods=['POST'])
 
     # Webhooks
     app.add_url_rule('/webhooks/stripe', view_func=users.views.stripe_webhook, methods=['POST'])

@@ -368,13 +368,15 @@ def form_submissions(hashid, format=None):
             )
 
 @login_required
-def form_deletion(hashid):
+def form_deletion():
+    hashid = request.form.get('hashid')
     form = Form.get_with_hashid(hashid)
 
     if form.owner_id != current_user.id:
-        return render_template('error.html',
-                              title='Wrong user',
-                              text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
+        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
+            return render_template('error.html',
+                                  title='Wrong user',
+                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
     if not form:
             return render_template('error.html',
                                    title='Not a valid form',
@@ -388,14 +390,16 @@ def form_deletion(hashid):
         return redirect(url_for('dashboard'))
 
 @login_required
-def submission_deletion(hashid, submissionid):
+def submission_deletion(hashid):
+    submissionid = request.form.get('submissionid')
     submission = Submission.query.get(submissionid)
     form = Form.get_with_hashid(hashid)
 
     if form.owner_id != current_user.id:
-        return render_template('error.html',
-                              title='Wrong user',
-                              text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
+        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
+            return render_template('error.html',
+                                  title='Wrong user',
+                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.' + str(form.id)), 400
     if not submission:
         return render_template('error.html',
                               title='Not a valid submission',
