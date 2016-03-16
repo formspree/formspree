@@ -16,6 +16,7 @@ class Form(DB.Model):
     hash = DB.Column(DB.String(32), unique=True)
     email = DB.Column(DB.String(120))
     host = DB.Column(DB.String(300))
+    disabled = DB.Column(DB.Boolean)
     confirm_sent = DB.Column(DB.Boolean)
     confirmed = DB.Column(DB.Boolean)
     counter = DB.Column(DB.Integer)

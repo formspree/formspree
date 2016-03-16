@@ -368,6 +368,30 @@ def form_submissions(hashid, format=None):
             )
 
 @login_required
+def form_toggle():
+    hashid = request.form.get('hashid')
+    form = Form.get_with_hashid(hashid)
+
+    if form.owner_id != current_user.id:
+        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
+            return render_template('error.html',
+                                  title='Wrong user',
+                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
+    if not form:
+            return render_template('error.html',
+                                   title='Not a valid form',
+                                   text='That form does not exist.<br />Please check the link and try again.'), 400
+    else:
+        form.disabled = not form.disabled
+        DB.session.add(form)
+        DB.session.commit()
+        if form.disabled:
+            flash('Form successfully disabled', 'success')
+        else:
+            flash('Form successfully enabled', 'success')
+        return redirect(url_for('dashboard'))
+
+@login_required
 def form_deletion():
     hashid = request.form.get('hashid')
     form = Form.get_with_hashid(hashid)
