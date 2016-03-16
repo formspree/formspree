@@ -38,7 +38,8 @@
               {% for f in fields %}
                 <td><pre>{{ submission.data[f] }}</pre></td>
               {% endfor %}
-			<td><a href="{{ url_for('submission-deletion', hashid=form.hashid, submissionid=submission.id) }}" class="no-underline"><i class="fa fa-trash-o delete"></i></a></td>
+                <td><form method="POST" action="{{ url_for('submission-deletion', hashid=form.hashid) }}"><input type="hidden" name="submissionid" value="{{submission.id}}"><button class="submit" class="no-border" style="border:none;padding:0;"><i class="fa fa-trash-o delete"></i></button></form></td>
+<!--			<td><a href="{{ url_for('submission-deletion', hashid=form.hashid, submissionid=submission.id) }}" class="no-underline"><i class="fa fa-trash-o delete"></i></a></td>-->
             </tr>
           {% endfor %}
         </tbody>
