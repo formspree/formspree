@@ -10,7 +10,7 @@ from urlparse import urljoin
 from formspree import settings, log
 
 HASH = lambda x, y: hashlib.md5(x+y+settings.NONCE_SECRET).hexdigest()
-EXCLUDE_KEYS = ['_gotcha', '_next', '_subject', '_cc']
+EXCLUDE_KEYS = ['_gotcha', '_next', '_subject', '_cc', '_format']
 MONTHLY_COUNTER_KEY = 'monthly_{form_id}_{month}'.format
 HASHIDS_CODEC = hashids.Hashids(alphabet='abcdefghijklmnopqrstuvwxyz',
                                 min_length=8,

@@ -107,6 +107,7 @@ class Form(DB.Model):
         cc = data.get('_cc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
+        format = data.get('_format', None)
 
 		# turn cc emails into array
         if cc:
