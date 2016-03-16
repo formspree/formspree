@@ -2301,6 +2301,9 @@ a.alert-box.success:hover {
   font-size: 1.2em;
   margin: 2px 0 1em 0; }
 
+.no-underline {
+  border-bottom: none !important; }
+
 .dashboard .row:after {
   content: "";
   display: none; }
@@ -2311,6 +2314,9 @@ a.alert-box.success:hover {
   font-size: 20px;
   text-align: center;
   width: 32px; }
+.dashboard .delete {
+  color: #D9534F;
+  border-bottom: none !important; }
 .dashboard table {
   text-align: left;
   width: 100%; }

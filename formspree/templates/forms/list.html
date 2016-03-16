@@ -36,7 +36,7 @@
         {% endif %}
       </td>
 		<td>
-		<a href="{{ url_for('form-deletion', hashid=form.hashid) }}">Delete</a>
+		<a href="{{ url_for('form-deletion', hashid=form.hashid) }}" class="no-underline"><i class="fa fa-trash-o delete"></i></a>
 		</td>
     </tr>
   {% endfor %}

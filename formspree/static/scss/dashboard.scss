@@ -7,6 +7,10 @@
   }
 }
 
+.no-underline {
+  border-bottom: none !important;
+}
+
 .dashboard {
   .row:after {
     content: "";
@@ -19,6 +23,11 @@
     font-size: 20px;
     text-align: center;
     width: 32px;
+  }
+
+  .delete {
+    color: #D9534F;
+    border-bottom: none !important;
   }
 
   table {
