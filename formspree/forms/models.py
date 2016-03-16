@@ -67,6 +67,7 @@ class Form(DB.Model):
         self.confirm_sent = False
         self.confirmed = False
         self.counter = 0
+        self.disabled = False
 
     def __repr__(self):
         return '<Form %s, email=%s, host=%s>' % (self.id, self.email, self.host)

@@ -51,6 +51,14 @@ def send(email_or_string):
         form = Form.get_with_hashid(hashid)
 
         if form:
+            if form.disabled:
+                # owner has disabled the form, so it should not receive any submissions
+                if request_wants_json():
+                    return jsonerror(403, {'error': 'Form not active'})
+                else:
+                    return render_template('error.html',
+                                           title='Form not active',
+                                           text='The owner of this form has disabled this form and it is no longer accepting submissions. Your submissions was not accepted'), 403
             email = form.email
 
             if not form.host:
@@ -84,6 +92,13 @@ def send(email_or_string):
         # get the form for this request
         form = Form.query.filter_by(hash=HASH(email, host)).first() \
                or Form(email, host) # or create it if it doesn't exists
+        if form.disabled:
+            if request_wants_json():
+                return jsonerror(403, {'error': 'Form not active'})
+            else:
+                return render_template('error.html',
+                                       title='Form not active',
+                                       text='The owner of this form has disabled this form and it is no longer accepting submissions. Your submissions was not accepted'), 403
 
     # If form exists and is confirmed, send email
     # otherwise send a confirmation email
