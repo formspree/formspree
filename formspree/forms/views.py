@@ -389,7 +389,7 @@ def form_deletion(hashid):
 
 @login_required
 def submission_deletion(hashid, submissionid):
-    submission = Submission.get_by_submissionid(submissionid)
+    submission = Submission.query.get(submissionid)
     form = Form.get_with_hashid(hashid)
 
     if form.owner_id != current_user.id:
