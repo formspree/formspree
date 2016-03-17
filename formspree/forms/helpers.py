@@ -32,6 +32,13 @@ def referrer_to_path(r):
     parsed = urlparse.urlparse(r)
     return parsed.netloc + parsed.path
 
+def referrer_to_baseurl(r):
+    log.debug('Referrer was %s' % str(r))
+    if not r:
+        return ''
+    parsed = urlparse.urlparse(r)
+    return parsed.netloc
+
 
 def http_form_to_dict(data):
     '''

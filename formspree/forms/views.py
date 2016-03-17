@@ -9,7 +9,7 @@ from flask import request, url_for, render_template, redirect, jsonify, flash, m
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, HASH, EXCLUDE_KEYS
+from helpers import ordered_storage, referrer_to_path, referrer_to_baseurl, HASH, EXCLUDE_KEYS
 
 from formspree.app import DB
 from models import Form, Submission
@@ -387,6 +387,14 @@ def form_toggle():
     hashid = request.form.get('hashid')
     form = Form.get_with_hashid(hashid)
 
+    # check that this request came from user dashboard to prevent XSS and CSRF
+    referrer = referrer_to_baseurl(flask.request.referrer)
+    service = referrer_to_baseurl(settings.SERVICE_URL)
+    if referrer != service:
+        return render_template('error.html',
+                               title='Improper Request',
+                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
+
     if form.owner_id != current_user.id:
         if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
             return render_template('error.html',
@@ -411,6 +419,14 @@ def form_deletion():
     hashid = request.form.get('hashid')
     form = Form.get_with_hashid(hashid)
 
+    # check that this request came from user dashboard to prevent XSS and CSRF
+    referrer = referrer_to_baseurl(flask.request.referrer)
+    service = referrer_to_baseurl(settings.SERVICE_URL)
+    if referrer != service:
+        return render_template('error.html',
+                               title='Improper Request',
+                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
+
     if form.owner_id != current_user.id:
         if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
             return render_template('error.html',
@@ -433,6 +449,14 @@ def submission_deletion(hashid):
     submissionid = request.form.get('submissionid')
     submission = Submission.query.get(submissionid)
     form = Form.get_with_hashid(hashid)
+
+    # check that this request came from user dashboard to prevent XSS and CSRF
+    referrer = referrer_to_baseurl(flask.request.referrer)
+    service = referrer_to_baseurl(settings.SERVICE_URL)
+    if referrer != service:
+        return render_template('error.html',
+                               title='Improper Request',
+                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
 
     if form.owner_id != current_user.id:
         if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
