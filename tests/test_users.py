@@ -232,7 +232,8 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # disable the form
         r = self.client.post('/forms/toggle',
-                            data={'hashid': form_endpoint})
+            headers={'Referer': settings.SERVICE_URL},
+            data={'hashid': form_endpoint})
         self.assertEqual(302, r.status_code)
         self.assertTrue(r.location.endswith('/dashboard'))
         self.assertTrue(Form.query.first().disabled)
@@ -241,8 +242,9 @@ class UserAccountsTestCase(FormspreeTestCase):
         # logout and attempt to enable the form
         self.client.get('/logout')
         r = self.client.post('/forms/toggle',
-                            data={'hashid': form_endpoint},
-                            follow_redirects=True)
+            headers={'Referer': settings.SERVICE_URL},
+            data={'hashid': form_endpoint},
+            follow_redirects=True)
         self.assertEqual(200, r.status_code)
         self.assertTrue(Form.query.first().disabled)
 
@@ -260,8 +262,9 @@ class UserAccountsTestCase(FormspreeTestCase):
                   'password': 'friend'}
         )
         r = self.client.post('/forms/toggle',
-                            data={'hashid': form_endpoint},
-                            follow_redirects=True)
+            headers={'Referer': settings.SERVICE_URL},
+            data={'hashid': form_endpoint},
+            follow_redirects=True)
         self.assertEqual(200, r.status_code)
         self.assertFalse(Form.query.first().disabled)
 
@@ -329,8 +332,9 @@ class UserAccountsTestCase(FormspreeTestCase):
         # delete a submission in form
         first_submission = Submission.query.first()
         r = self.client.post('/forms/' + form_endpoint + '/delete',
-                             data={'submissionid': unicode(first_submission.id)},
-                                   follow_redirects=True)
+            headers={'Referer': settings.SERVICE_URL},
+            data={'submissionid': unicode(first_submission.id)},
+            follow_redirects=True)
         self.assertEqual(200, r.status_code)
         self.assertEqual(4, Submission.query.count())
         self.assertTrue(DB.session.query(Submission.id).filter_by(id='0').scalar() is None) #make sure you deleted the submission
@@ -340,7 +344,8 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # attempt to delete form you don't have access to (while logged out)
         r = self.client.post('/forms/delete',
-                            data={'hashid': form_endpoint})
+            headers={'Referer': settings.SERVICE_URL},
+            data={'hashid': form_endpoint})
         self.assertEqual(302, r.status_code)
         self.assertEqual(1, Form.query.count())
 
@@ -352,7 +357,8 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # attempt to delete form we don't have access to
         r = self.client.post('/forms/delete',
-                            data={'hashid': form_endpoint})
+            headers={'Referer': settings.SERVICE_URL},
+            data={'hashid': form_endpoint})
         self.assertEqual(400, r.status_code)
         self.assertEqual(1, Form.query.count())
 
@@ -366,8 +372,9 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # delete the form created
         r = self.client.post('/forms/delete',
-                            data={'hashid': form_endpoint},
-                            follow_redirects=True)
+            headers={'Referer': settings.SERVICE_URL},
+            data={'hashid': form_endpoint},
+            follow_redirects=True)
         self.assertEqual(200, r.status_code)
         self.assertEqual(0, Form.query.count())
 
