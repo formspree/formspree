@@ -17,6 +17,7 @@ class Form(DB.Model):
     email = DB.Column(DB.String(120))
     host = DB.Column(DB.String(300))
     sitewide = DB.Column(DB.Boolean)
+    disabled = DB.Column(DB.Boolean)
     confirm_sent = DB.Column(DB.Boolean)
     confirmed = DB.Column(DB.Boolean)
     counter = DB.Column(DB.Integer)
@@ -67,6 +68,7 @@ class Form(DB.Model):
         self.confirm_sent = False
         self.confirmed = False
         self.counter = 0
+        self.disabled = False
 
     def __repr__(self):
         return '<Form %s, email=%s, host=%s>' % (self.id, self.email, self.host)

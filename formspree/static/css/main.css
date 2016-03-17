@@ -2310,6 +2310,9 @@ a.alert-box.success:hover {
   font-size: 1.2em;
   margin: 2px 0 1em 0; }
 
+.no-underline {
+  border-bottom: none !important; }
+
 .dashboard .row:after {
   content: "";
   display: none; }
@@ -2320,6 +2323,12 @@ a.alert-box.success:hover {
   font-size: 20px;
   text-align: center;
   width: 32px; }
+.dashboard .delete {
+  color: #D9534F;
+  border-color: #D9534F; }
+.dashboard .delete:hover {
+  transition: color 0.3s ease-in-out;
+  color: #d1332e; }
 .dashboard table {
   text-align: left;
   width: 100%; }

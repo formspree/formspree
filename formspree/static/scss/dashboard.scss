@@ -17,6 +17,10 @@
   }
 }
 
+.no-underline {
+  border-bottom: none !important;
+}
+
 .dashboard {
   .row:after {
     content: "";
@@ -29,6 +33,16 @@
     font-size: 20px;
     text-align: center;
     width: 32px;
+  }
+
+  .delete {
+    color: #D9534F;
+    border-color: #D9534F;
+  }
+
+  .delete:hover {
+    transition: color 0.3s ease-in-out;
+    color: #d1332e;
   }
 
   table {

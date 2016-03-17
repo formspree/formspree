@@ -35,6 +35,14 @@ def referrer_to_path(r):
     log.debug('Referrer was %s, now %s' % (str(r), n))
     return n
 
+def referrer_to_baseurl(r):
+    if not r:
+        return ''
+    parsed = urlparse.urlparse(r)
+    n = parsed.netloc
+    log.debug('Referrer was %s, now %s' % (str(r), n))
+    return n
+
 def http_form_to_dict(data):
     '''
     Forms are ImmutableMultiDicts,

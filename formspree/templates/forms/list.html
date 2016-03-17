@@ -7,9 +7,10 @@
 {% block section %}
 
 <div class="col-1-1">
+  <h4>Active Forms</h4>
   <table class="forms">
   {# status icon | host or view-code link | target email | number of submissions #}
-  {% for form in forms %}
+  {% for form in forms if not form.disabled or form.disabled is not defined %}
     <tr class="{% if form.is_new %}new{% elif form.confirmed %}verified{% elif form.confirm_sent %}waiting_confirmation{% endif %}">
       <td>
       {% if form.is_new %}
@@ -38,9 +39,56 @@
           <a href="{{ url_for('form-submissions', hashid=form.hashid) }}">{{ form.counter }} submissions</a>
         {% endif %}
       </td>
+        <td><form method="POST" action="{{ url_for('form-toggle') }}"><input type="hidden" name="hashid" value="{{form.hashid}}"><button class="submit" class="no-border" style="border:none;padding:0;"><i class="fa fa-lock"></i></button></form></td>
+		<td>
+		<a href="#delete-{{form.hashid}}" class="no-underline"><i class="fa fa-trash-o delete"></i></a>
+		</td>
     </tr>
+  {% else %}
+      <p>No active forms found. Forms can be enabled by clicking the unlock icon below.</p>
   {% endfor %}
   </table>
+
+  <h4>Disabled Forms</h4>
+  <table class="forms">
+  {# status icon | host or view-code link | target email | number of submissions #}
+  {% for form in forms if form.disabled %}
+    <tr class="{% if form.is_new %}new{% elif form.confirmed %}verified{% elif form.confirm_sent %}waiting_confirmation{% endif %}">
+      <td>
+      {% if form.is_new %}
+        <span class="tooltip hint--right" data-hint="New form. Place the code generated here in some page and submit it!"><span class="ion-help"></span></span>
+      {% elif form.confirmed %}
+        <span class="tooltip hint--right" data-hint="Confirmed form"><span class="ion-checkmark-round"></span></span>
+      {% elif form.confirm_sent %}
+        <span class="tooltip hint--right" data-hint="Waiting confirmation"><span class="ion-pause"></span></span>
+      {% endif %}
+      </td>
+      <td>
+        {% if form.is_new %}
+          <a href="#view-code-{{ form.hashid }}">View HTML code</a>
+        {% else %}
+          {{ form.host }}
+        {% endif %}
+      </td>
+      <td><span class="hint--top" data-hint="{{ request.url_root.replace('http://', 'https://') }}{% if form.hash %}{{ form.email }}{% else %}{{ form.hashid }}{% endif %}">{{ form.email }}</span></td>
+      <td>
+        {% if form.is_new %}
+          form never submitted
+        {% else %}
+          <a href="{{ url_for('form-submissions', hashid=form.hashid) }}">{{ form.counter }} submissions</a>
+        {% endif %}
+      </td>
+        <td><form method="POST" action="{{ url_for('form-toggle') }}"><input type="hidden" name="hashid" value="{{form.hashid}}"><button class="submit" class="no-border" style="border:none;padding:0;"><i class="fa fa-unlock"></i></button></form></td>
+		<td>
+		<a href="#delete-{{form.hashid}}" class="no-underline"><i class="fa fa-trash-o delete"></i></a>
+		</td>
+    </tr>
+  {% else %}
+      <p>No disabled forms found. Forms can be disabled by clicking the lock next to a form.</p>
+  {% endfor %}
+  </table>
+
+
 
   {% if not forms and current_user.upgraded %}
     <h6 class="light">You don't have any forms associated with this account, maybe you should <a href="{{ url_for('account') }}">verify your email</a>.</h6>
@@ -63,6 +111,19 @@
     <div>
       <div class="x"><h4>Place this code in your page's HTML</h4><a href="#">&times;</a></div>
       <textarea rows="7">{{ showcode(form) }}</textarea>
+    </div>
+  </div>
+
+  <div class="modal" id="delete-{{ form.hashid }}" aria-hidden="true">
+    <div>
+        <div class="x"><h4>Are you ABSOLUTELY sure?</h4><a href="#">&times;</a></div>
+      <br />
+      <p>This action <strong>CANNOT</strong> be undone. This will permanantly delete the form{% if form.host %} on <strong>{{form.host}}</strong>{% endif %} and all related submissions.</p>
+        <form method="POST" action="{{ url_for('form-deletion') }}">
+          <input type="hidden" name="hashid" value="{{ form.hashid }}">
+            <span class="cancel"><button type="button" onclick="return false;">Cancel</button></span>
+          <button class="delete">Confirm Deletion</button>
+        </form>
     </div>
   </div>
 {% endfor %}

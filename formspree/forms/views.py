@@ -10,6 +10,9 @@ from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from urlparse import urljoin
 
+from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
+from helpers import ordered_storage, referrer_to_path, referrer_to_baseurl, HASH, EXCLUDE_KEYS
+
 from formspree import settings, log
 from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
@@ -52,6 +55,14 @@ def send(email_or_string):
         form = Form.get_with_hashid(hashid)
 
         if form:
+            if form.disabled:
+                # owner has disabled the form, so it should not receive any submissions
+                if request_wants_json():
+                    return jsonerror(403, {'error': 'Form not active'})
+                else:
+                    return render_template('error.html',
+                                           title='Form not active',
+                                           text='The owner of this form has disabled this form and it is no longer accepting submissions. Your submissions was not accepted'), 403
             email = form.email
 
             if not form.host:
@@ -94,6 +105,13 @@ def send(email_or_string):
         # get the form for this request
         form = Form.query.filter_by(hash=HASH(email, host)).first() \
                or Form(email, host) # or create it if it doesn't exists
+        if form.disabled:
+            if request_wants_json():
+                return jsonerror(403, {'error': 'Form not active'})
+            else:
+                return render_template('error.html',
+                                       title='Form not active',
+                                       text='The owner of this form has disabled this form and it is no longer accepting submissions. Your submissions was not accepted'), 403
 
     # If form exists and is confirmed, send email
     # otherwise send a confirmation email
@@ -418,3 +436,100 @@ def form_submissions(hashid, format=None):
                                 % (hashid, datetime.datetime.now().isoformat().split('.')[0])
                 }
             )
+
+@login_required
+def form_toggle():
+    hashid = request.form.get('hashid')
+    form = Form.get_with_hashid(hashid)
+
+    # check that this request came from user dashboard to prevent XSS and CSRF
+    referrer = referrer_to_baseurl(flask.request.referrer)
+    service = referrer_to_baseurl(settings.SERVICE_URL)
+    if referrer != service:
+        return render_template('error.html',
+                               title='Improper Request',
+                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
+
+    if form.owner_id != current_user.id:
+        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
+            return render_template('error.html',
+                                  title='Wrong user',
+                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
+    if not form:
+            return render_template('error.html',
+                                   title='Not a valid form',
+                                   text='That form does not exist.<br />Please check the link and try again.'), 400
+    else:
+        form.disabled = not form.disabled
+        DB.session.add(form)
+        DB.session.commit()
+        if form.disabled:
+            flash('Form successfully disabled', 'success')
+        else:
+            flash('Form successfully enabled', 'success')
+        return redirect(url_for('dashboard'))
+
+@login_required
+def form_deletion():
+    hashid = request.form.get('hashid')
+    form = Form.get_with_hashid(hashid)
+
+    # check that this request came from user dashboard to prevent XSS and CSRF
+    referrer = referrer_to_baseurl(flask.request.referrer)
+    service = referrer_to_baseurl(settings.SERVICE_URL)
+    if referrer != service:
+        return render_template('error.html',
+                               title='Improper Request',
+                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
+
+    if form.owner_id != current_user.id:
+        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
+            return render_template('error.html',
+                                  title='Wrong user',
+                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
+    if not form:
+            return render_template('error.html',
+                                   title='Not a valid form',
+                                   text='That form does not exist.<br />Please check the link and try again.'), 400
+    else:
+        for submission in form.submissions:
+            DB.session.delete(submission)
+        DB.session.delete(form)
+        DB.session.commit()
+        flash('Form successfully deleted', 'success')
+        return redirect(url_for('dashboard'))
+
+@login_required
+def submission_deletion(hashid):
+    submissionid = request.form.get('submissionid')
+    submission = Submission.query.get(submissionid)
+    form = Form.get_with_hashid(hashid)
+
+    # check that this request came from user dashboard to prevent XSS and CSRF
+    referrer = referrer_to_baseurl(flask.request.referrer)
+    service = referrer_to_baseurl(settings.SERVICE_URL)
+    if referrer != service:
+        return render_template('error.html',
+                               title='Improper Request',
+                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
+
+    if form.owner_id != current_user.id:
+        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
+            return render_template('error.html',
+                                  title='Wrong user',
+                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.' + str(form.id)), 400
+    if not submission:
+        return render_template('error.html',
+                              title='Not a valid submission',
+                              text='That submission does not exist.<br />Please check the link and try again.'), 400
+    elif submission.form_id != form.id:
+        return render_template('error.html',
+                              title='Not a valid submissions',
+                              text='That submission does not match the form provided.<br />Please check the link and try again.'), 400
+    else:
+        DB.session.delete(submission)
+        form.counter -= 1
+        DB.session.add(form)
+        DB.session.commit()
+        flash('Submission successfully deleted', 'success')
+        return redirect(url_for('form-submissions', hashid=hashid))

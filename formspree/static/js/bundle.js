@@ -53,6 +53,10 @@ $('.modal').each(function () {
     e.preventDefault();
     modal.toggleClass('target');
   });
+  modal.find('.cancel').click(function (e) {
+    e.preventDefault();
+    modal.toggleClass('target')
+  });
 });
 
 /* create-form validation for site-wide forms */
