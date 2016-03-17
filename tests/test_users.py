@@ -314,6 +314,7 @@ class UserAccountsTestCase(FormspreeTestCase):
         self.assertEqual(0, Submission.query.count())
 
         # increase the submission limit
+        old_submission_limit = settings.ARCHIVED_SUBMISSIONS_LIMIT
         settings.ARCHIVED_SUBMISSIONS_LIMIT = 10
         # make 5 submissions
         for i in range(5):
@@ -370,6 +371,8 @@ class UserAccountsTestCase(FormspreeTestCase):
         self.assertEqual(200, r.status_code)
         self.assertEqual(0, Form.query.count())
 
+        # reset submission limit
+        settings.ARCHIVED_SUBMISSIONS_LIMIT = old_submission_limit
 
     def test_user_upgrade_and_downgrade(self):
         # check correct usage of stripe test keys during test
