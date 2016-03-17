@@ -230,6 +230,11 @@ button, a.button {
             background-color: $dark-green;
         }
     }
+    &[disabled],
+    &[disabled]:hover {
+      color: lighten($green, 40%);
+      border-color: lighten($green, 40%);
+    }
 }
 
 

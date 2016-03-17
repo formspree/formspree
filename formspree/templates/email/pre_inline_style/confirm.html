@@ -1,107 +1,95 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-
 <head>
-	<meta name="viewport" content="width=device-width" />
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<title>Confirm form</title>
-	<link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Confirm Form</title>
+    <link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
 </head>
-
 <body itemscope itemtype="http://schema.org/EmailMessage">
-
-	<table class="body-wrap">
-		<tr>
-			<td></td>
-			<td class="container" width="600">
-				<div class="content">
-					<table class="main" width="100%" cellpadding="0" cellspacing="0">
-						<tr>
-							<td class="alert alert-good">
-								<img src="{{config.SERVICE_URL}}/static/img/logo.png">
-								<br /> Confirm form on {{host}}
-							</td>
-						</tr>
-						<tr>
-							<td class="content-wrap">
-								<table width="100%" cellpadding="0" cellspacing="0">
-									<tr>
-										<td class="content-block">
-											Thanks for using {{config.SERVICE_NAME}}. Congrats, you're one step away from making forms on {{host}} functional.
-										</td>
-									</tr>
-									<tr>
-										<td class="content-block">
-											All you have to do is click the link below to confirm your email. To prevent spamming, you'll have to repeat this step for every page where you insert your form. Note that you won't be receiving any emails from the site before you confirm your email.
-										</td>
-									</tr>
-									<tr>
-										<td class="content-block">
-											<a href="{{nonce_link}}" class="btn-primary">Confirm form</a>
-										</td>
-									</tr>
-									{% if data and keys %}
-									<tr>
-										<td class="content-block">
-											In case you weren't the one who submitted this, here are the contents of the form:
-										</td>
-									</tr>
-									<tr>
-										<td class="content-block aligncenter">
-											<table class="form">
-												<tr>
-													<td>
-														<table class="form-items" cellpadding="0" cellspacing="0">
-															{% for k in keys %}
-															<tr>
-																<td width="30%">{{k}}</td>
-																<td class="alignright">{{data.get(k,'')}}</td>
-															</tr>
-															{% endfor %}
-														</table>
-													</td>
-												</tr>
-											</table>
-										</td>
-									</tr>
-									{% endif %}
-
-									<tr>
-										<td class="alert straight-edge alert-bad">
-											<strong>ALERT:</strong> You will not receive any more emails unless you click <a href="{{ nonce_link }}">here</a> and confirm your address.
-										</td>
-									</tr>
-
-									<tr>
-										<td class="content-block">
-											We hope you enjoy using {{config.SERVICE_NAME}}. If you have any questions, feel free to shoot an email to {{config.CONTACT_EMAIL}}
-										</td>
-									</tr>
-								</table>
-							</td>
-						</tr>
-					</table>
-					<div class="footer">
-						<table width="100%">
-							<tr>
-								<td class="aligncenter content-block">Why did I receive this?
-									<br>Someone (hopefully you?) used your email with the {{config.SERVICE_NAME}} API on {{host}}. If this wasn't you, no worries. This is the only email you'll get.</td>
-								<br>
-							</tr>
-							<tr>
-								<td class="aligncenter content-block">
-									<a href="//facebook.com/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/fb.png"></a>
-									<a href="//twitter.com/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/twitter.png"</a>
-									<a href="//github.com/formspree/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/github.png"</a>
-								</td>
-							</tr>
-						</table>
-					</div>
-				</div>
-			</td>
-			<td></td>
-		</tr>
-	</table>
+    <table class="body-wrap">
+        <tr>
+            <td></td>
+            <tr>
+                <td class="header">
+                    <img src="{{config.SERVICE_URL}}/static/img/email_headers/form-confirmation@3x.png" width="400">
+                </td>
+            </tr>
+            <td class="container" width="600">
+                <div class="content">
+                    <table class="main" width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="content-wrap">
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td class="content-block">
+                                            Thanks for using {{config.SERVICE_NAME}}. Congrats, you're one step away from making forms on {{host}} functional.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="content-block">
+                                            All you have to do is click the link below to confirm your email. To prevent spamming, you'll have to repeat this step for every page where you insert your form. Note that you won't receive any further emails until you confirm.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="content-block">
+                                            <a href="{{nonce_link}}" class="btn-primary">Confirm form</a>
+                                        </td>
+                                    </tr>
+                                    {% if data and keys %}
+                                    <tr>
+                                        <td class="content-block">
+                                            In case you weren't the one who submitted this, here are the contents of the form:
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="content-block aligncenter">
+                                            <table class="form">
+                                                <tr>
+                                                    <td>
+                                                        <table class="form-items" cellpadding="0" cellspacing="0">
+                                                            {% for k in keys %}
+                                                            <tr>
+                                                                <td width="30%">{{k}}</td>
+                                                                <td>{{data.get(k,'')}}</td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td class="alert straight-edge alert-bad">
+                                            <strong>ALERT:</strong> You will not receive further emails until you confirm.
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="footer">
+                        <table width="100%">
+                            <tr>
+                                <td class="aligncenter content-block">Why did I receive this?
+                                    <br>Someone (hopefully you?) used your email with the {{config.SERVICE_NAME}} API on {{host}}. If this wasn't you, no worries. This is the only email you'll get. If you have any questions, feel free to shoot an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</td>
+                                <br>
+                            </tr>
+                            <tr>
+                                <td class="aligncenter content-block">
+                                    <a href="//facebook.com/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/fb.png"></a>
+                                    <a href="//twitter.com/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/twitter.png" </a>
+                                        <a href="//github.com/formspree/formspree"><img src="{{config.SERVICE_URL}}/static/img/social/github.png" </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </td>
+            <td></td>
+        </tr>
+    </table>
 </body>
-
 </html>

@@ -26,6 +26,9 @@
           <a href="#view-code-{{ form.hashid }}">View HTML code</a>
         {% else %}
           {{ form.host }}
+          {% if form.sitewide %}
+            <span class="highlight tooltip hint--top" data-hint="This form works for all paths under {{ form.host }}/">/ *</span>
+          {% endif %}
         {% endif %}
       </td>
       <td><span class="hint--top" data-hint="{{ request.url_root.replace('http://', 'https://') }}{% if form.hash %}{{ form.email }}{% else %}{{ form.hashid }}{% endif %}">{{ form.email }}</span></td>

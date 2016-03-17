@@ -1,3 +1,13 @@
+.highlight {
+  padding: 2px 6px;
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+  background-color: #35918D;
+  border-radius: 3px;
+  margin: 3px;
+}
+
 .login {
   .row { padding: 2.2em 0 }
 
@@ -84,15 +94,19 @@
     margin: 3em 0;
   
     form { clear: both; }
-    form input {
+    form input:not([type="checkbox"]):not([type="radio"]) {
       margin-top:0;
       clear: both;
-      width: 70%;
+      width: 100%;
       vertical-align: top;
     }
     form button {
-      padding: 0.63em;
-      width: 27%;
+      padding: 0.63em 32px;
+      text-align: center;
+    }
+
+    .verify-info {
+      font-size: 13px;
     }
   
     .modal:not(.js):target > *,
@@ -133,8 +147,7 @@
         padding: 10px;
         font-size: 1.7em;
       }
-      .x h4 {
-        float: left;
+      h4 {
         margin: 0;
         padding: 0;
         margin-top: 13px;

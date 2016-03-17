@@ -2295,6 +2295,15 @@ a.alert-box.success:hover {
   color: #359173;
   border-color: #359173; }
 
+.highlight {
+  padding: 2px 6px;
+  font-weight: bold;
+  font-size: 20px;
+  color: white;
+  background-color: #35918D;
+  border-radius: 3px;
+  margin: 3px; }
+
 .login .row {
   padding: 2.2em 0; }
 .login input, .login button {
@@ -2356,14 +2365,16 @@ a.alert-box.success:hover {
   margin: 3em 0; }
   .dashboard .create-form form {
     clear: both; }
-  .dashboard .create-form form input {
+  .dashboard .create-form form input:not([type="checkbox"]):not([type="radio"]) {
     margin-top: 0;
     clear: both;
-    width: 70%;
+    width: 100%;
     vertical-align: top; }
   .dashboard .create-form form button {
-    padding: 0.63em;
-    width: 27%; }
+    padding: 0.63em 32px;
+    text-align: center; }
+  .dashboard .create-form .verify-info {
+    font-size: 13px; }
   .dashboard .create-form .modal:not(.js):target > *,
   .dashboard .create-form .modal.target > * {
     top: 20%; }
@@ -2391,8 +2402,7 @@ a.alert-box.success:hover {
     float: right;
     padding: 10px;
     font-size: 1.7em; }
-  .dashboard .modal > * .x h4 {
-    float: left;
+  .dashboard .modal > * h4 {
     margin: 0;
     padding: 0;
     margin-top: 13px; }
@@ -2932,6 +2942,9 @@ button, a.button {
     button:hover.emphasis, a.button:hover.emphasis {
       color: white;
       background-color: #2A735B; }
+  button[disabled], button[disabled]:hover, a.button[disabled], a.button[disabled]:hover {
+    color: #b0e2d2;
+    border-color: #b0e2d2; }
 
 .animate {
   -moz-animation-iteration-count: once;
@@ -3026,5 +3039,3 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
-
-/*# sourceMappingURL=main.css.map */

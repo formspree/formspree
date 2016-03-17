@@ -8,12 +8,16 @@ import io
 from flask import request, url_for, render_template, redirect, jsonify, flash, make_response, Response
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
+from urlparse import urljoin
+
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
 from helpers import ordered_storage, referrer_to_path, referrer_to_baseurl, HASH, EXCLUDE_KEYS
 
+from formspree import settings, log
 from formspree.app import DB
+from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
+from helpers import ordered_storage, referrer_to_path, remove_www, sitewide_file_exists, HASH, EXCLUDE_KEYS
 from models import Form, Submission
-from formspree import settings
 
 def thanks():
     return render_template('forms/thanks.html')
@@ -66,8 +70,17 @@ def send(email_or_string):
                 form.host = host
                 DB.session.add(form)
                 DB.session.commit()
-            elif form.host != host:
-                # if the form submission came from a different host, it is an error
+
+                # it is an error when
+                #   form is sitewide, but submission came from a host rooted somewhere else, or
+                #   form is not sitewide, and submission came from a different host
+            elif (not form.sitewide and form.host != host) or (
+                   form.sitewide and (
+                     not host.startswith(form.host) and \
+                     not remove_www(host).startswith(form.host)
+                   )
+                 ):
+                log.debug('Submission rejected from %s to %s' % (host, email))
                 if request_wants_json():
                     return jsonerror(403, {'error': "Submission from different host than confirmed",
                                            'submitted': host, 'confirmed': form.host})
@@ -75,7 +88,7 @@ def send(email_or_string):
                     return render_template('error.html',
                                            title='Check form address',
                                            text='This submission came from "%s" but the form was\
-                                                 confirmed for the address "%s"' % (host, form.host)), 403
+                                                 confirmed for address "%s"' % (host, form.host)), 403
         else:
             # no form row found. it is an error.
             if request_wants_json():
@@ -247,70 +260,112 @@ def confirm_email(nonce):
 
 @login_required
 def forms():
-    if request.method == 'GET':
-        '''
-        A reminder: this is the /forms endpoint, but for GET requests
-        it is also the /dashboard endpoint.
+    '''
+    A reminder: this is the /forms endpoint, but for GET requests
+    it is also the /dashboard endpoint.
 
-        The /dashboard endpoint, the address gave by url_for('dashboard'),
-        is the target of a lot of redirects around the app, but it can
-        be changed later to point to somewhere else.
-        '''
+    The /dashboard endpoint, the address gave by url_for('dashboard'),
+    is the target of a lot of redirects around the app, but it can
+    be changed later to point to somewhere else.
+    '''
 
-        # grab all the forms this user controls
-        if current_user.upgraded:
-            forms = current_user.forms.order_by(Form.id.desc()).all()
-        else:
-            forms = []
+    # grab all the forms this user controls
+    if current_user.upgraded:
+        forms = current_user.forms.order_by(Form.id.desc()).all()
+    else:
+        forms = []
 
+    if request_wants_json():
+        return jsonify({
+            'ok': True,
+            'forms': [{
+                'email': f.email,
+                'host': f.host,
+                'confirm_sent': f.confirm_sent,
+                'confirmed': f.confirmed,
+                'is_public': bool(f.hash),
+                'url': '{S}/{E}'.format(
+                    S=settings.SERVICE_URL,
+                    E=f.hashid
+                )
+            } for f in forms]
+        })
+    else:
+        return render_template('forms/list.html', forms=forms)
+
+
+@login_required
+def create_form():
+    # create a new form
+    if not current_user.upgraded:
+        return jsonerror(402, {'error': "Please upgrade your account."})
+
+    if request.get_json():
+        email = request.get_json().get('email')
+        url = request.get_json().get('url')
+        sitewide = request.get_json().get('sitewide')
+    else:
+        email = request.form.get('email')
+        url = request.form.get('url')
+        sitewide = request.form.get('sitewide')
+
+    if not IS_VALID_EMAIL(email):
         if request_wants_json():
-            return jsonify({
-                'ok': True,
-                'forms': [{
-                    'email': f.email,
-                    'host': f.host,
-                    'confirm_sent': f.confirm_sent,
-                    'confirmed': f.confirmed,
-                    'is_public': bool(f.hash),
-                    'url': '{S}/{E}'.format(
-                        S=settings.SERVICE_URL,
-                        E=f.hashid
-                    )
-                } for f in forms]
-            })
+            return jsonerror(400, {'error': "The provided email address is not valid."})
         else:
-            return render_template('forms/list.html', forms=forms)
+            flash('The provided email address is not valid.', 'error')
+            return redirect(url_for('dashboard'))
 
-    elif request.method == 'POST':
-        # create a new form
-        if not current_user.upgraded:
-            return jsonerror(402, {'error': "Please upgrade your account."})
+    form = Form(email, owner=current_user)
+    if url:
+        url = 'http://' + url if not url.startswith('http') else url
+        form.host = referrer_to_path(url)
 
-        if request.get_json():
-            email = request.get_json().get('email')
-        else:
-            email = request.form.get('email')
-
-        if not IS_VALID_EMAIL(email):
-            if request_wants_json():
-                return jsonerror(400, {'error': "The email you sent is not a valid email."})
+        # sitewide forms, verified with a file at the root of the target domain
+        if sitewide:
+            if sitewide_file_exists(url, email):
+                form.host = remove_www(referrer_to_path(urljoin(url, '/'))[:-1])
+                form.sitewide = True
             else:
-                flash('The email you provided is not a valid email.', 'error')
-                return redirect(url_for('dashboard'))
+                return jsonerror(403, {'error': "Couldn't find the verification file."})
 
-        form = Form(email, owner=current_user)
-        DB.session.add(form)
-        DB.session.commit()
+    DB.session.add(form)
+    DB.session.commit()
 
-        if request_wants_json():
-            return jsonify({
-                'ok': True,
-                'hashid': form.hashid,
-                'submission_url': settings.API_ROOT + '/' + form.hashid
-            })
+    if form.host:
+        # when the email and url are provided, we can automatically confirm the form
+        # but only if the email is registered for this account
+        for email in current_user.emails:
+            if email.address == form.email:
+                form.confirmed = True
+                DB.session.add(form)
+                DB.session.commit()
+                break
         else:
-            flash('Your new form endpoint was created!', 'success')
-            return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
+            # in case the email isn't registered for this user
+            # we automatically send the email confirmation
+            form.send_confirmation()
+
+    if request_wants_json():
+        return jsonify({
+            'ok': True,
+            'hashid': form.hashid,
+            'submission_url': settings.API_ROOT + '/' + form.hashid,
+            'confirmed': form.confirmed
+        })
+    else:
+        flash('Your new form endpoint was created!', 'success')
+        return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
+
+@login_required
+def sitewide_check():
+    email = request.args.get('email')
+    url = request.args.get('url')
+
+    if sitewide_file_exists(url, email):
+        return '', 200
+    else:
+        return '', 404
 
 @login_required
 def form_submissions(hashid, format=None):

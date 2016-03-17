@@ -14,7 +14,7 @@ python-dotenv
 gunicorn
 psycopg2
 stripe
-httpretty
+httpretty==0.8.14
 fakeredis
 redis
 mock

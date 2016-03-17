@@ -16,7 +16,8 @@ IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 # decorators
 
 def request_wants_json():
-    if request.headers.get('X_REQUESTED_WITH','').lower() == 'xmlhttprequest':
+    if request.headers.get('X_REQUESTED_WITH','').lower() == 'xmlhttprequest' or \
+       request.headers.get('X-REQUESTED-WITH','').lower() == 'xmlhttprequest':
         return True
     if accept_better('json', 'html'):
         return True
@@ -123,12 +124,9 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
     if reply_to and IS_VALID_EMAIL(reply_to):
         data.update({'replyto': reply_to})
 
-	if cc:
-		valid_emails = []
-		for email in cc:
-			if IS_VALID_EMAIL(email):
-				valid_emails.append(email)
-		data.update({'cc': valid_emails})
+    if cc:
+        valid_emails = [email for email in cc if IS_VALID_EMAIL(email)]
+        data.update({'cc': valid_emails})
 
     log.info('Queuing message to %s' % str(to))
 
