@@ -48,7 +48,7 @@ This value is used for the email's subject, so that you can quickly reply to sub
 
 ### _cc
 
-This value is used for the email's CC Field. This lets you send a copy of each submission to another email address.
+This value is used for the email's CC Field. This lets you send a copy of each submission to another email address. If you want to cc multiple emails, simply make the cc field a list of emails each separated by a comma.
 
 ### _gotcha
 
@@ -75,7 +75,7 @@ Running your own copy of Formspree
 
 ### Running on localhost
 
-You'll need a [sendgrid](https://sendgrid.com/) account, postgresql, redis and python 2.7 and should install [pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server.
+You'll need a [SendGrid](https://sendgrid.com/) account, PostgreSQL, Redis and Python 2.7 and should install [pip](https://pip.pypa.io/en/latest/installing.html), and create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for the server.
 
 Once your environment is setup, create a postgresql database, clone the source and cd into the root of the Formspree repository. Then run:
 
@@ -98,7 +98,7 @@ then create a `.env` file with your configuration like the following:
     SENDGRID_USERNAME='<username>'
     SERVICE_NAME='LocalFormspree'
     SERVICE_URL='http://127.0.0.1:5000'
-    TEST_DATABASE_URL='sqlite://'
+    TEST_DATABASE_URL='postgresql://<username>@127.0.0.1:5432/formspree-test'
 
 Make sure you have a postgresql database called `formspree` and create the necessary tables by running:
 
@@ -111,15 +111,21 @@ And you are ready to run the server:
 ### Running tests
 
     REDISTOGO_URL='0.0.0.0:6379' \
-    TEST_DATABASE_URL=sqlite:// \
+    TEST_DATABASE_URL=postgresql://<username>@127.0.0.1:5432/formspree-test \
     NONCE_SECRET='y0ur_n0nc3_s3cr3t' \
     HASHIDS_SALT='a salt' \
     SECRET_KEY='y0ur_s3cr3t_k3y' \
+    STRIPE_TEST_PUBLISHABLE_KEY='<STRIPE PUBLISHABLE>' \
+    STRIPE_TEST_SECRET_KEY='<STRIPE SECRET>' \
     python -m unittest discover
+    
+Make sure that you do **NOT** use your actual `formspree` database when running tests. Doing so will cause you to lose all data located in your `formspree` database. Instead create a new database called `formspree-test`.
 
-### Running on heroku
+You can also use [Foreman](https://github.com/ddollar/foreman) to automate running tests. After installing, run `foreman run venv/bin/python -m unittest discover` to run the entire test suite. To run a single test file, run `foreman run venv/bin/python -m unittest tests.test_users`. In this case, it will run only `tests/test_users.py`.
 
-You will need to install the [heroku toolbelt](https://toolbelt.heroku.com/).
+### Running on Heroku
+
+You will need to install the [Heroku toolbelt](https://toolbelt.heroku.com/).
 
 Once your environment is setup, clone the source and cd into the root of the Formspree repository. Then run:
 
@@ -134,7 +140,7 @@ Your new project will be running at [your project name].herokuapp.com.
 
 ### Dependencies
 
-Formspree requires a Postgres database and uses SendGrid to send emails. If you're deploying to Heroku you can get a free Heroku Postgres database and a SendGrid account by running
+Formspree requires a PostgreSQL database and uses SendGrid to send emails. If you're deploying to Heroku you can get a free Heroku Postgres database and a SendGrid account by running
 
     heroku addons:add heroku-postgresql:hobby-dev
     heroku addons:add sendgrid
