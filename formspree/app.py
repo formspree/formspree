@@ -7,7 +7,6 @@ from flask import g
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.cdn import CDN
-from formspree import log
 from flask_redis import Redis
 import settings
 
