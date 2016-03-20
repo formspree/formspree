@@ -1,16 +1,20 @@
 import json
 import stripe
+import os
 
 import flask
 from flask import g
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
+from flask.ext.cdn import CDN
+from formspree import log
 from flask_redis import Redis
 import settings
 
 DB = SQLAlchemy()
 redis_store = Redis()
 stripe.api_key = settings.STRIPE_SECRET_KEY
+cdn = CDN()
 
 import routes
 from users.models import User
@@ -39,5 +43,7 @@ def create_app():
     configure_login(app)
 
     app.jinja_env.filters['json'] = json.dumps
-
+    app.config['CDN_DOMAIN'] = os.getenv('CDN_URL')
+    app.config['CDN_HTTPS'] = True
+    cdn.init_app(app)
     return app
