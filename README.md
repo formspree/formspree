@@ -3,12 +3,12 @@
 FORMSPREE.IO
 ------------
 
-Functional HTML forms. Hosted at [http://formspree.io](http://formspree.io).
+Functional HTML forms. Hosted at [https://formspree.io](https://formspree.io).
 
 Just send your form to our URL and we'll forward it to your email. No PHP, Javascript or sign up required — perfect for static sites!
 Example:
 
-    <form action="//formspree.io/you@email.com">
+    <form action="https://formspree.io/you@email.com">
         <input type="text" name="name">
         <input type="email" name="_replyto">
         <input type="submit" value="Send">
@@ -59,7 +59,7 @@ Add this "honeypot" field to avoid spam by fooling scrapers. If a value is provi
 You can use Formspree via AJAX. This even works cross-origin. The trick is to set the Accept header to application/json. If you're using jQuery this can be done like so:
 
     $.ajax({
-        url: "//formspree.io/you@email.com",
+        url: "https://formspree.io/you@email.com",
         method: "POST",
         data: {message: "hello!"},
         dataType: "json"
