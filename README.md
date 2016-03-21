@@ -83,7 +83,7 @@ Once your environment is setup, create a postgresql database, clone the source a
 
 then create a `.env` file with your configuration like the following:
 
-    API_ROOT='127.0.0.1:5000'
+    API_ROOT='http://127.0.0.1:5000'
     CONTACT_EMAIL='support@example.com'
     DATABASE_URL='postgresql://<username>@127.0.0.1:5432/formspree'
     DEBUG='True'
