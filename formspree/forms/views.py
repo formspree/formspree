@@ -46,7 +46,7 @@ def send(email_or_string):
         else:
             return render_template('error.html',
                                    title='Unable to submit form',
-                                   text='Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. For geeks: could not find the "Referrer" header.'), 400
+                                   text='<p>Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. Also make sure that you\'re posting to <b>https://</b>{host}.</p><p>For geeks: could not find the "Referrer" header.</p>'.format(host=request.url.split('//')[1])), 400
 
     if not IS_VALID_EMAIL(email_or_string):
         # in this case it can be a hashid identifying a
