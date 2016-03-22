@@ -142,8 +142,8 @@ Your new project will be running at [your project name].herokuapp.com.
 
 Formspree requires a PostgreSQL database and uses SendGrid to send emails. If you're deploying to Heroku you can get a free Heroku Postgres database and a SendGrid account by running
 
-    heroku addons:add heroku-postgresql:hobby-dev
-    heroku addons:add sendgrid
+    heroku addons:create heroku-postgresql:hobby-dev
+    heroku addons:create sendgrid
 
 ### Configuring Formspree
 
