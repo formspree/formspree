@@ -1,6 +1,5 @@
 import json
 import stripe
-import os
 
 import flask
 from flask import g
@@ -42,7 +41,7 @@ def create_app():
     configure_login(app)
 
     app.jinja_env.filters['json'] = json.dumps
-    app.config['CDN_DOMAIN'] = os.getenv('CDN_URL')
+    app.config['CDN_DOMAIN'] = settings.CDN_URL
     app.config['CDN_HTTPS'] = True
     cdn.init_app(app)
     return app

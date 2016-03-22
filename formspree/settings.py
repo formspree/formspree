@@ -19,6 +19,8 @@ MONTHLY_SUBMISSIONS_LIMIT = int(os.getenv('MONTHLY_SUBMISSIONS_LIMIT') or 1000)
 ARCHIVED_SUBMISSIONS_LIMIT = int(os.getenv('ARCHIVED_SUBMISSIONS_LIMIT') or 100)
 REDIS_URL = os.getenv('REDISTOGO_URL') or os.getenv('REDISCLOUD_URL')
 
+CDN_URL = os.getenv('CDN_URL')
+
 SERVICE_NAME = os.getenv('SERVICE_NAME') or 'Forms'
 UPGRADED_PLAN_NAME = os.getenv('UPGRADED_PLAN_NAME') or 'Gold'
 SERVICE_URL = os.getenv('SERVICE_URL') or 'http://example.com'
