@@ -167,7 +167,7 @@ def send(email_or_string):
     else:
         return render_template('error.html',
                                title='Unable to send email',
-                               text='Unable to send email. If you can, please send the link to your form and the error information to  <b>{email}</b>. And send them the following: <p><pre><code>{message}</code></pre></p>'.format(message=status['error-message'], email=settings.CONTACT_EMAIL)), 500
+                               text='Unable to send email. If you can, please send the link to your form and the error information to  <b>{email}</b>. And send them the following: <p><pre><code>{message}</code></pre></p>'.format(message=json.dumps(status), email=settings.CONTACT_EMAIL)), 500
 
 
 def resend_confirmation(email):
