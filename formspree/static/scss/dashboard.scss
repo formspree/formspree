@@ -36,13 +36,13 @@
   }
 
   .delete {
-    color: #D9534F;
-    border-color: #D9534F;
+    color: $red;
+    border-color: $red;
   }
 
   .delete:hover {
     transition: color 0.3s ease-in-out;
-    color: #d1332e;
+    color: $warning-orange;
   }
 
   table {

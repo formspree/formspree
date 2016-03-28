@@ -34,30 +34,39 @@ if (bgcolor.split(',').length === 4 || bgcolor === 'transparent') {
 }
 nav.css('background-color', bgcolor);
 
-/* modal */
-$('.modal').each(function () {
-  var modal = $(this);
-  modal.addClass('js');
-  var id = modal.attr('id');
-  $('[href="#' + id + '"]').click(function (e) {
-    e.preventDefault();
-    modal.toggleClass('target');
-  });
-  modal.click(function (e) {
-    if (e.target === modal[0]) {
-      modal.toggleClass('target');
+/* modals -- working with or without JS */
+function modals() {
+  $('.modal').each(function () {
+    var modal = $(this);
+    modal.addClass('js');
+    var id = modal.attr('id');
+    $('[href="#' + id + '"]').click(function (e) {
       e.preventDefault();
+      modal.toggleClass('target');
+    });
+    modal.click(function (e) {
+      if (e.target === modal[0]) {
+        modal.toggleClass('target');
+        e.preventDefault();
+      }
+    });
+    modal.find('.x a').click(function (e) {
+      e.preventDefault();
+      modal.toggleClass('target');
+    });
+  });
+
+  // activate modals from url hash #
+  setTimeout(function () {
+    // setTimeout is needed because :target elements only appear after
+    // the page is loaded or something like that.
+    var activatedModal = $('*:target');
+    if (activatedModal.length && !activatedModal.is('.target')) {
+      activatedModal.toggleClass('target');
     }
-  });
-  modal.find('.x a').click(function (e) {
-    e.preventDefault();
-    modal.toggleClass('target');
-  });
-  modal.find('.cancel').click(function (e) {
-    e.preventDefault();
-    modal.toggleClass('target')
-  });
-});
+  }, 0);
+}
+modals();
 
 /* create-form validation for site-wide forms */
 function sitewide() {

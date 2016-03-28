@@ -689,11 +689,11 @@ a.alert-box.success:hover {
   text-align: center;
   width: 32px; }
 .dashboard .delete {
-  color: #D9534F;
-  border-color: #D9534F; }
+  color: #ff1708;
+  border-color: #ff1708; }
 .dashboard .delete:hover {
   transition: color 0.3s ease-in-out;
-  color: #d1332e; }
+  color: #D87431; }
 .dashboard table {
   text-align: left;
   width: 100%; }
