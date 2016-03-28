@@ -73,8 +73,14 @@ def remove_www(host):
     return host
 
 
-def sitewide_file_exists (url, email):
-    url = urljoin(url, '/' + 'formspree_verify_{0}.txt'.format(email))
+def sitewide_file_check(url, email):
+    url = urljoin(url, '/formspree-verify.txt')
     log.debug('Checking sitewide file: %s' % url)
     res = requests.get(url, timeout=2)
-    return res.ok
+    if not res.ok: return False
+
+    for line in res.text.splitlines():
+        if line.strip() == email:
+            return True
+
+    return False

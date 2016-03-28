@@ -16,7 +16,7 @@ from helpers import ordered_storage, referrer_to_path, referrer_to_baseurl, HASH
 from formspree import settings, log
 from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, remove_www, sitewide_file_exists, HASH, EXCLUDE_KEYS
+from helpers import ordered_storage, referrer_to_path, remove_www, sitewide_file_check, HASH, EXCLUDE_KEYS
 from models import Form, Submission
 
 def thanks():
@@ -323,7 +323,7 @@ def create_form():
 
         # sitewide forms, verified with a file at the root of the target domain
         if sitewide:
-            if sitewide_file_exists(url, email):
+            if sitewide_file_check(url, email):
                 form.host = remove_www(referrer_to_path(urljoin(url, '/'))[:-1])
                 form.sitewide = True
             else:
@@ -362,7 +362,7 @@ def sitewide_check():
     email = request.args.get('email')
     url = request.args.get('url')
 
-    if sitewide_file_exists(url, email):
+    if sitewide_file_check(url, email):
         return '', 200
     else:
         return '', 404
