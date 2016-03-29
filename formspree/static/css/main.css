@@ -791,6 +791,9 @@ a.alert-box.success:hover {
 .dashboard .modal:not(.js):target:before, .dashboard .modal.target:before {
   display: block; }
 
+.red {
+  color: #000; }
+
 .slicknav_btn {
   position: relative;
   display: block;
