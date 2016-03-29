@@ -44,18 +44,29 @@ function modals () {
     modal.click(function (e) {
       // close the modal
       if (e.target === modal[0]) {
-        if (window.location.hash) window.location.hash = ''
+        cleanHash()
         modal.toggleClass('target')
         e.preventDefault()
       }
     })
     modal.find('.x a').click(function (e) {
       // close the modal
-      if (window.location.hash) window.location.hash = ''
+      cleanHash()
       e.preventDefault()
       modal.toggleClass('target')
     })
   })
+
+  function cleanHash () {
+    if (!window.location.hash) return
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState('', document.title, window.location.pathname)
+    } else {
+      let pos = $(window).scrollTop()
+      window.location.hash = ''
+      $(window).scrollTop(pos)
+    }
+  }
 
   // activate modals from url hash #
   setTimeout(() => {
