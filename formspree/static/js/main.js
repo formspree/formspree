@@ -34,17 +34,24 @@ function modals () {
     let modal = $(this)
     modal.addClass('js')
     let id = modal.attr('id')
+
     $(`[href="#${id}"]`).click(function (e) {
+      // open the modal
       e.preventDefault()
       modal.toggleClass('target')
     })
+
     modal.click(function (e) {
+      // close the modal
       if (e.target === modal[0]) {
+        if (window.location.hash) window.location.hash = ''
         modal.toggleClass('target')
         e.preventDefault()
       }
     })
     modal.find('.x a').click(function (e) {
+      // close the modal
+      if (window.location.hash) window.location.hash = ''
       e.preventDefault()
       modal.toggleClass('target')
     })
