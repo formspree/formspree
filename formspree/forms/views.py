@@ -291,7 +291,10 @@ def forms():
             } for f in forms]
         })
     else:
-        return render_template('forms/list.html', forms=forms)
+        return render_template('forms/list.html',
+            enabled_forms=[form for form in forms if not form.disabled],
+            disabled_forms=[form for form in forms if form.disabled]
+        )
 
 
 @login_required
@@ -355,7 +358,7 @@ def create_form():
         })
     else:
         flash('Your new form endpoint was created!', 'success')
-        return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
+        return redirect(url_for('dashboard') + '#form-' + form.hashid)
 
 @login_required
 def sitewide_check():

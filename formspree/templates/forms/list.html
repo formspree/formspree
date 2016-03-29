@@ -9,108 +9,45 @@
 <div class="col-1-1">
   <h4>Active Forms</h4>
   <table class="forms">
-  {# status icon | host or view-code link | target email | number of submissions #}
-  {% for form in forms if not form.disabled or form.disabled is not defined %}
-    <tr class="{% if form.is_new %}new{% elif form.confirmed %}verified{% elif form.confirm_sent %}waiting_confirmation{% endif %}">
-      <td>
-      {% if form.is_new %}
-        <span class="tooltip hint--right" data-hint="New form. Place the code generated here in some page and submit it!"><span class="ion-help"></span></span>
-      {% elif form.confirmed %}
-        <span class="tooltip hint--right" data-hint="Confirmed form"><span class="ion-checkmark-round"></span></span>
-      {% elif form.confirm_sent %}
-        <span class="tooltip hint--right" data-hint="Waiting confirmation"><span class="ion-pause"></span></span>
-      {% endif %}
-      </td>
-      <td>
-        {% if form.is_new %}
-          <a href="#view-code-{{ form.hashid }}">View HTML code</a>
-        {% else %}
-          {{ form.host }}
-          {% if form.sitewide %}
-            <span class="highlight tooltip hint--top" data-hint="This form works for all paths under {{ form.host }}/">/ *</span>
-          {% endif %}
-        {% endif %}
-      </td>
-      <td><span class="hint--top" data-hint="{{ request.url_root.replace('http://', 'https://') }}{% if form.hash %}{{ form.email }}{% else %}{{ form.hashid }}{% endif %}">{{ form.email }}</span></td>
-      <td>
-        {% if form.is_new %}
-          form never submitted
-        {% else %}
-          <a href="{{ url_for('form-submissions', hashid=form.hashid) }}">{{ form.counter }} submissions</a>
-        {% endif %}
-      </td>
-        <td><form method="POST" action="{{ url_for('form-toggle') }}"><input type="hidden" name="hashid" value="{{form.hashid}}"><button class="submit" class="no-border" style="border:none;padding:0;"><i class="fa fa-lock"></i></button></form></td>
-		<td>
-		<a href="#delete-{{form.hashid}}" class="no-underline"><i class="fa fa-trash-o delete"></i></a>
-		</td>
-    </tr>
+  {# status icon | host or form link | target email | number of submissions #}
+  {% for form in enabled_forms %}
+    {% include "forms/list-item.html" %}
   {% else %}
-      <p>No active forms found. Forms can be enabled by clicking the unlock icon below.</p>
+    <p>No active forms found. Forms can be enabled by clicking the unlock icon below.</p>
   {% endfor %}
   </table>
 
-  <h4>Disabled Forms</h4>
-  <table class="forms">
-  {# status icon | host or view-code link | target email | number of submissions #}
-  {% for form in forms if form.disabled %}
-    <tr class="{% if form.is_new %}new{% elif form.confirmed %}verified{% elif form.confirm_sent %}waiting_confirmation{% endif %}">
-      <td>
-      {% if form.is_new %}
-        <span class="tooltip hint--right" data-hint="New form. Place the code generated here in some page and submit it!"><span class="ion-help"></span></span>
-      {% elif form.confirmed %}
-        <span class="tooltip hint--right" data-hint="Confirmed form"><span class="ion-checkmark-round"></span></span>
-      {% elif form.confirm_sent %}
-        <span class="tooltip hint--right" data-hint="Waiting confirmation"><span class="ion-pause"></span></span>
-      {% endif %}
-      </td>
-      <td>
-        {% if form.is_new %}
-          <a href="#view-code-{{ form.hashid }}">View HTML code</a>
-        {% else %}
-          {{ form.host }}
-        {% endif %}
-      </td>
-      <td><span class="hint--top" data-hint="{{ request.url_root.replace('http://', 'https://') }}{% if form.hash %}{{ form.email }}{% else %}{{ form.hashid }}{% endif %}">{{ form.email }}</span></td>
-      <td>
-        {% if form.is_new %}
-          form never submitted
-        {% else %}
-          <a href="{{ url_for('form-submissions', hashid=form.hashid) }}">{{ form.counter }} submissions</a>
-        {% endif %}
-      </td>
-        <td><form method="POST" action="{{ url_for('form-toggle') }}"><input type="hidden" name="hashid" value="{{form.hashid}}"><button class="submit" class="no-border" style="border:none;padding:0;"><i class="fa fa-unlock"></i></button></form></td>
-		<td>
-		<a href="#delete-{{form.hashid}}" class="no-underline"><i class="fa fa-trash-o delete"></i></a>
-		</td>
-    </tr>
-  {% else %}
-      <p>No disabled forms found. Forms can be disabled by clicking the lock next to a form.</p>
-  {% endfor %}
-  </table>
+  {% if disabled_forms %}
+    <h4>Disabled Forms</h4>
+    <table class="forms">
+    {# status icon | host or form link | target email | number of submissions #}
+    {% for form in disabled_forms %}
+      {% include "forms/list-item.html" %}
+    {% endfor %}
+    </table>
+  {% endif %}
 
-
-
-  {% if not forms and current_user.upgraded %}
+  {% if not enabled_forms and not disabled_forms and current_user.upgraded %}
     <h6 class="light">You don't have any forms associated with this account, maybe you should <a href="{{ url_for('account') }}">verify your email</a>.</h6>
   {% endif %}
 </div>
 
 {% include "forms/create.html" %}
 
-
 {# "view HTML code" modals for each form #}
 {% macro showcode(form) %}{% set formcode %}<form action="{{ form.action }}" method="POST">
-  <input type="text" name="_gotcha" style="display: none" />
-  <input type="email" name="email" placeholder="Your email">
-  <textarea name="message" rows="5" placeholder="Your message"></textarea>
-  <input type="submit" value="Send">
+  <input type=text name=_gotcha style="display: none">
+
+  <!-- your other form fields go here -->
+
+  <button type=submit>Send</button>
 </form>{% endset %}{{ formcode|escape }}{%- endmacro %}
 
-{% for form in forms %}
-  <div class="modal" id="view-code-{{ form.hashid }}" aria-hidden="true">
+{% for form in (enabled_forms + disabled_forms) %}
+  <div class="modal" id="form-{{ form.hashid }}" aria-hidden="true">
     <div>
-      <div class="x"><h4>Place this code in your page's HTML</h4><a href="#">&times;</a></div>
-      <textarea rows="7">{{ showcode(form) }}</textarea>
+      <div class="x"><h4>Use this code in your HTML</h4><a href="#">&times;</a></div>
+      <textarea rows="8">{{ showcode(form) }}</textarea>
     </div>
   </div>
 
@@ -122,7 +59,7 @@
         <form method="POST" action="{{ url_for('form-deletion') }}">
           <input type="hidden" name="hashid" value="{{ form.hashid }}">
             <span class="cancel"><button type="button" onclick="return false;">Cancel</button></span>
-          <button class="delete">Confirm Deletion</button>
+          <button class="delete">Confirm deletion</button>
         </form>
     </div>
   </div>
