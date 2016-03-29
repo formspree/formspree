@@ -11,22 +11,30 @@
     </a>
   </td>
   <td>
+    <a href="#form-{{ form.hashid }}" class="no-underline">
     {% if form.is_new %}
-      <a href="#form-{{ form.hashid }}">View HTML code</a>
+      Waiting for a submission
     {% else %}
       {{ form.host }}
       {% if form.sitewide %}
         <span class="highlight tooltip hint--top" data-hint="This form works for all paths under {{ form.host }}/">/ *</span>
       {% endif %}
     {% endif %}
+    </a>
   </td>
-  <td class="target-email"><span class="hint--top" data-hint="{{ request.url_root.replace('http://', 'https://') }}{% if form.hash %}{{ form.email }}{% else %}{{ form.hashid }}{% endif %}">{{ form.email }}</span></td>
+  <td class="target-email">
+    <a href="#form-{{ form.hashid }}" class="no-underline">
+      <span class="hint--top" data-hint="{{ request.url_root.replace('http://', 'https://') }}{% if form.hash %}{{ form.email }}{% else %}{{ form.hashid }}{% endif %}">{{ form.email }}</span>
+    </a>
+  </td>
   <td class="n-submissions">
+    <a href="{{ url_for('form-submissions', hashid=form.hashid) }}" class="no-underline">
     {% if form.is_new %}
       <span class="never">never submitted</span>
     {% else %}
-      <a href="{{ url_for('form-submissions', hashid=form.hashid) }}">{{ form.counter }} submissions</a>
+      {{ form.counter }} submissions
     {% endif %}
+    </a>
   </td>
     <td><form method="POST" action="{{ url_for('form-toggle') }}"><input type="hidden" name="hashid" value="{{form.hashid}}"><button class="submit" class="no-border" style="border:none;padding:0;"><i class="fa fa-unlock"></i></button></form></td>
 	<td>

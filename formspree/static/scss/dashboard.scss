@@ -80,7 +80,6 @@
       tr.waiting_confirmation span[class^="ion-"] { color: $warning-orange }
       tr.new span[class^="ion-"] { color: $red }
       tr.new a:not(*:hover) {
-        color: inherit;
         display: block;
         border-bottom: 1px dotted;
         float: left;
@@ -88,6 +87,9 @@
         line-height: 1em;
       }
       tr.new .never { font-size: 15px; }
+      tr:not(.new) *:not(.n-submissions) a:not(*:hover) {
+        color: inherit;
+      }
     }
   
     &.emails tr:nth-child(2) td {

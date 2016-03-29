@@ -358,7 +358,7 @@ def create_form():
         })
     else:
         flash('Your new form endpoint was created!', 'success')
-        return redirect(url_for('dashboard') + '#form-' + form.hashid)
+        return redirect(url_for('dashboard', new=form.hashid) + '#form-' + form.hashid)
 
 @login_required
 def sitewide_check():

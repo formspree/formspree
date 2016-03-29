@@ -723,7 +723,6 @@ a.alert-box.success:hover {
   .dashboard table.forms tr.new span[class^="ion-"], .dashboard table.emails tr.new span[class^="ion-"] {
     color: #ff1708; }
   .dashboard table.forms tr.new a:not(*:hover), .dashboard table.emails tr.new a:not(*:hover) {
-    color: inherit;
     display: block;
     border-bottom: 1px dotted;
     float: left;
@@ -731,6 +730,8 @@ a.alert-box.success:hover {
     line-height: 1em; }
   .dashboard table.forms tr.new .never, .dashboard table.emails tr.new .never {
     font-size: 15px; }
+  .dashboard table.forms tr:not(.new) *:not(.n-submissions) a:not(*:hover), .dashboard table.emails tr:not(.new) *:not(.n-submissions) a:not(*:hover) {
+    color: inherit; }
   .dashboard table.emails tr:nth-child(2) td {
     padding-top: 10px; }
   .dashboard table.emails td:last-child {
