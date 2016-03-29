@@ -747,8 +747,10 @@ a.alert-box.success:hover {
   .dashboard .create-form form button {
     padding: 0.63em 32px;
     text-align: center; }
-  .dashboard .create-form .verify-info {
-    font-size: 13px; }
+  .dashboard .create-form .info {
+    font-size: 13px;
+    margin-bottom: 10px;
+    text-align: right; }
   .dashboard .create-form .modal:not(.js):target > *,
   .dashboard .create-form .modal.target > * {
     top: 20%; }
@@ -798,8 +800,6 @@ a.alert-box.success:hover {
   z-index: 10; }
 .dashboard .modal:not(.js):target:before, .dashboard .modal.target:before {
   display: block; }
-.dashboard .modal .small {
-  text-size: 80%; }
 .dashboard .modal .red {
   color: #ff1708; }
 
@@ -1416,5 +1416,3 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
-
-/*# sourceMappingURL=main.css.map */

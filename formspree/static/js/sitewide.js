@@ -13,9 +13,13 @@ const toastr = window.toastr
 /* create-form validation for site-wide forms */
 module.exports = function sitewide () {
   var parentNode = $('#create-form .container')
+  if (!parentNode.length) return
 
   let formActionURL = parentNode.find('form').attr('action')
   let currentUserEmail = parentNode.find('[name="email"]').val()
+  let emailPlaceholder = parentNode.find('[name="email"]').attr('placeholder')
+  let urlPlaceholder = parentNode.find('[name="url"]').attr('placeholder')
+  let sitewideHint = parentNode.find('label[data-hint]').data('hint')
 
   // since we have javascript, let's trash this HTML and recreate with virtual-dom
   parentNode.html('')
@@ -93,20 +97,20 @@ module.exports = function sitewide () {
     return h('form', {method: 'post', action: formActionURL}, [
       h('.col-1-1', [
         h('h4', 'Send email to:'),
-        h('input', {type: 'email', name: 'email', placeholder: 'You can point this form to any email address', value: email})
+        h('input', {type: 'email', name: 'email', placeholder: emailPlaceholder, value: email})
       ]),
       h('.col-1-1', [
         h('h4', 'From URL:'),
-        h('input', {type: 'url', name: 'url', placeholder: 'Leave blank to send confirmation email when first submitted'})
+        h('input', {type: 'url', name: 'url', placeholder: urlPlaceholder})
       ]),
       h('.container', [
         h('.col-1-4', [
-          h('label.hint--bottom', {dataset: {hint: 'A site-wide form is a form that you can place on all pages of your website -- and you just have to confirm once!'}}, [
+          h('label.hint--bottom', {dataset: {hint: sitewideHint}}, [
             h('input', {type: 'checkbox', name: 'sitewide', value: 'true'}),
             ' site-wide'
           ])
         ]),
-        h('.col-3-4', [
+        h('.col-3-4.info', [
           invalid
             ? h('div.red', invalid === 'email'
               ? 'Please input a valid email address.'

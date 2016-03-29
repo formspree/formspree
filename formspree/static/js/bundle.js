@@ -133,9 +133,13 @@ var toastr = window.toastr;
 /* create-form validation for site-wide forms */
 module.exports = function sitewide() {
   var parentNode = $('#create-form .container');
+  if (!parentNode.length) return;
 
   var formActionURL = parentNode.find('form').attr('action');
   var currentUserEmail = parentNode.find('[name="email"]').val();
+  var emailPlaceholder = parentNode.find('[name="email"]').attr('placeholder');
+  var urlPlaceholder = parentNode.find('[name="url"]').attr('placeholder');
+  var sitewideHint = parentNode.find('label[data-hint]').data('hint');
 
   // since we have javascript, let's trash this HTML and recreate with virtual-dom
   parentNode.html('');
@@ -220,7 +224,7 @@ module.exports = function sitewide() {
     var email = _ref.email;
     var disableVerification = _ref.disableVerification;
 
-    return h('form', { method: 'post', action: formActionURL }, [h('.col-1-1', [h('h4', 'Send email to:'), h('input', { type: 'email', name: 'email', placeholder: 'You can point this form to any email address', value: email })]), h('.col-1-1', [h('h4', 'From URL:'), h('input', { type: 'url', name: 'url', placeholder: 'Leave blank to send confirmation email when first submitted' })]), h('.container', [h('.col-1-4', [h('label.hint--bottom', { dataset: { hint: 'A site-wide form is a form that you can place on all pages of your website -- and you just have to confirm once!' } }, [h('input', { type: 'checkbox', name: 'sitewide', value: 'true' }), ' site-wide'])]), h('.col-3-4', [invalid ? h('div.red', invalid === 'email' ? 'Please input a valid email address.' : ['Please input a valid URL. For example: ', h('span.code', url.resolve('http://www.mywebsite.com', sitewide ? '' : '/contact.html'))]) : sitewide && verified || !sitewide ? h('div', { innerHTML: '&#8203;' }) : h('span', ['Please ensure ', h('span.code', url.resolve(urlv, '/formspree-verify.txt')), ' exists and contains a line with ', h('span.code', email)])]), h('.col-1-3', [h('.verify', [h('button', sitewide && !invalid && !disableVerification ? {} : sitewide ? { disabled: true } : { style: { visibility: 'hidden' }, disabled: true }, 'Verify')])]), h('.col-1-3', { innerHTML: '&#8203;' }), h('.col-1-3', [h('.create', [sitewide && verified || !sitewide && !invalid ? h('button', { type: 'submit' }, 'Create form') : h('button', { disabled: true }, 'Create form')])])])]);
+    return h('form', { method: 'post', action: formActionURL }, [h('.col-1-1', [h('h4', 'Send email to:'), h('input', { type: 'email', name: 'email', placeholder: emailPlaceholder, value: email })]), h('.col-1-1', [h('h4', 'From URL:'), h('input', { type: 'url', name: 'url', placeholder: urlPlaceholder })]), h('.container', [h('.col-1-4', [h('label.hint--bottom', { dataset: { hint: sitewideHint } }, [h('input', { type: 'checkbox', name: 'sitewide', value: 'true' }), ' site-wide'])]), h('.col-3-4.info', [invalid ? h('div.red', invalid === 'email' ? 'Please input a valid email address.' : ['Please input a valid URL. For example: ', h('span.code', url.resolve('http://www.mywebsite.com', sitewide ? '' : '/contact.html'))]) : sitewide && verified || !sitewide ? h('div', { innerHTML: '&#8203;' }) : h('span', ['Please ensure ', h('span.code', url.resolve(urlv, '/formspree-verify.txt')), ' exists and contains a line with ', h('span.code', email)])]), h('.col-1-3', [h('.verify', [h('button', sitewide && !invalid && !disableVerification ? {} : sitewide ? { disabled: true } : { style: { visibility: 'hidden' }, disabled: true }, 'Verify')])]), h('.col-1-3', { innerHTML: '&#8203;' }), h('.col-1-3', [h('.create', [sitewide && verified || !sitewide && !invalid ? h('button', { type: 'submit' }, 'Create form') : h('button', { disabled: true }, 'Create form')])])])]);
   }
 };
 
