@@ -716,12 +716,12 @@ a.alert-box.success:hover {
     word-break: break-word; }
   .dashboard table.forms td.n-submissions, .dashboard table.emails td.n-submissions {
     min-width: 150px; }
-  .dashboard table.forms tr.verified span[class^="ion-"], .dashboard table.emails tr.verified span[class^="ion-"] {
-    color: #2A735B; }
-  .dashboard table.forms tr.waiting_confirmation span[class^="ion-"], .dashboard table.emails tr.waiting_confirmation span[class^="ion-"] {
-    color: #D87431; }
   .dashboard table.forms tr.new span[class^="ion-"], .dashboard table.emails tr.new span[class^="ion-"] {
     color: #ff1708; }
+  .dashboard table.forms tr.waiting_confirmation span[class^="ion-"], .dashboard table.emails tr.waiting_confirmation span[class^="ion-"] {
+    color: #D87431; }
+  .dashboard table.forms tr.verified span[class^="ion-"], .dashboard table.emails tr.verified span[class^="ion-"] {
+    color: #2A735B; }
   .dashboard table.forms tr.new a:not(*:hover), .dashboard table.emails tr.new a:not(*:hover) {
     display: block;
     border-bottom: 1px dotted;

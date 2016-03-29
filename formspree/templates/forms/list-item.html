@@ -1,7 +1,7 @@
-<tr class="{% if form.is_new %}new{% elif form.confirmed %}verified{% elif form.confirm_sent %}waiting_confirmation{% endif %}">
+<tr class="{% if form.counter == 0 %}new{% endif %} {% if form.confirmed %}verified{% elif form.confirm_sent %}waiting_confirmation{% endif %}">
   <td>
     <a href="#form-{{ form.hashid }}" class="no-underline">
-    {% if form.is_new %}
+    {% if not form.host %}
       <span class="tooltip hint--right" data-hint="New form. Place the code generated here in some page and submit it!"><span class="ion-help"></span></span>
     {% elif form.confirmed %}
       <span class="tooltip hint--right" data-hint="Form confirmed"><span class="ion-checkmark-round"></span></span>
@@ -12,7 +12,7 @@
   </td>
   <td>
     <a href="#form-{{ form.hashid }}" class="no-underline">
-    {% if form.is_new %}
+    {% if not form.host %}
       Waiting for a submission
     {% else %}
       {{ form.host }}
@@ -29,7 +29,7 @@
   </td>
   <td class="n-submissions">
     <a href="{{ url_for('form-submissions', hashid=form.hashid) }}" class="no-underline">
-    {% if form.is_new %}
+    {% if form.counter == 0 %}
       <span class="never">never submitted</span>
     {% else %}
       {{ form.counter }} submissions

@@ -76,9 +76,10 @@
       }
       td.n-submissions { min-width: 150px; }
 
-      tr.verified span[class^="ion-"] { color: $dark-green }
-      tr.waiting_confirmation span[class^="ion-"] { color: $warning-orange }
       tr.new span[class^="ion-"] { color: $red }
+      tr.waiting_confirmation span[class^="ion-"] { color: $warning-orange }
+      tr.verified span[class^="ion-"] { color: $dark-green }
+
       tr.new a:not(*:hover) {
         display: block;
         border-bottom: 1px dotted;

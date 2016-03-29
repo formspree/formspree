@@ -283,10 +283,6 @@ class Form(DB.Model):
             return form
 
     @property
-    def action(self):
-        return url_for('send', email_or_string=self.hashid, _external=True)
-
-    @property
     def hashid(self):
         # A unique identifier for the form that maps to its id,
         # but doesn't seem like a sequential integer
@@ -297,10 +293,6 @@ class Form(DB.Model):
                 raise Exception("this form doesn't have an id yet, commit it first.")
             self._hashid = HASHIDS_CODEC.encode(self.id)
         return self._hashid
-
-    @property
-    def is_new(self):
-        return not self.host
 
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.ext.mutable import MutableDict
