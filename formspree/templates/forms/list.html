@@ -38,7 +38,12 @@
 {% for form in (enabled_forms + disabled_forms) %}
   <div class="modal" id="form-{{ form.hashid }}" aria-hidden="true">
     <div>
-      <div class="x"><h4>Use this code in your HTML</h4><a href="#">&times;</a></div>
+      {% if request.args.get('new') == form.hashid %}
+        <div class="x"><h4>Congratulations!</h4><a href="#">&times;</a></div>
+        <p style="clear: both">Now that you have created your form, use the following HTML code in your website, filling it with the input fields you wish your visitors to input:</p>
+      {% else %}
+        <div class="x"><h4>Use this code in your HTML</h4><a href="#">&times;</a></div>
+      {% endif %}
       <div class="html-highlight">
         <span class="bracket">&lt;</span><span class="tagname">form</span>
         <span class="attrkey">action</span><span class="equal">=</span><span class="attrvalue">{{ config.SERVICE_URL }}/gpbwkobj"</span>
