@@ -22,7 +22,6 @@ module.exports = function sitewide () {
   let sitewideHint = parentNode.find('label[data-hint]').data('hint')
 
   // since we have javascript, let's trash this HTML and recreate with virtual-dom
-  parentNode.html('')
 
   var data = {
     invalid: null,
@@ -32,7 +31,7 @@ module.exports = function sitewide () {
   }
   var tree = render(data)
   var rootNode = createElement(tree)
-  parentNode[0].appendChild(rootNode)
+  parentNode[0].replaceChild(rootNode, parentNode.find('form')[0])
 
   parentNode.on('change', 'input[name="sitewide"]', run)
   parentNode.on('input', 'input[name="url"], input[name="email"]', run)

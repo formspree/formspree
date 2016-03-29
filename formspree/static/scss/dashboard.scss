@@ -191,3 +191,19 @@
     .red { color: $red; }
   }
 }
+
+.html-highlight {
+  clear: both;
+  font-size: 14px;
+  font-family: monospace;
+  padding: 5px;
+  border: 2px dashed #696969;
+  border-radius: 5px;
+
+  .bracket { color: #a65700 }
+  .tagname { color: #800000; font-weight: bold; }
+  .attrkey { color: #074726 }
+  .equal { color: #808030 }
+  .attrvalue { color: #0000e6 }
+  .comment { color: #696969 }
+}

@@ -803,6 +803,27 @@ a.alert-box.success:hover {
 .dashboard .modal .red {
   color: #ff1708; }
 
+.html-highlight {
+  clear: both;
+  font-size: 14px;
+  font-family: monospace;
+  padding: 5px;
+  border: 2px dashed #696969;
+  border-radius: 5px; }
+  .html-highlight .bracket {
+    color: #a65700; }
+  .html-highlight .tagname {
+    color: #800000;
+    font-weight: bold; }
+  .html-highlight .attrkey {
+    color: #074726; }
+  .html-highlight .equal {
+    color: #808030; }
+  .html-highlight .attrvalue {
+    color: #0000e6; }
+  .html-highlight .comment {
+    color: #696969; }
+
 .slicknav_btn {
   position: relative;
   display: block;

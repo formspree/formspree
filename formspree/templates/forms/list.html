@@ -34,20 +34,30 @@
 
 {% include "forms/create.html" %}
 
-{# "view HTML code" modals for each form #}
-{% macro showcode(form) %}{% set formcode %}<form action="{{ form.action }}" method="POST">
-  <input type=text name=_gotcha style="display: none">
-
-  <!-- your other form fields go here -->
-
-  <button type=submit>Send</button>
-</form>{% endset %}{{ formcode|escape }}{%- endmacro %}
-
+{# modals for each form #}
 {% for form in (enabled_forms + disabled_forms) %}
   <div class="modal" id="form-{{ form.hashid }}" aria-hidden="true">
     <div>
       <div class="x"><h4>Use this code in your HTML</h4><a href="#">&times;</a></div>
-      <textarea rows="8">{{ showcode(form) }}</textarea>
+      <div class="html-highlight">
+        <span class="bracket">&lt;</span><span class="tagname">form</span>
+        <span class="attrkey">action</span><span class="equal">=</span><span class="attrvalue">{{ config.SERVICE_URL }}/gpbwkobj"</span>
+        <span class="attrkey">method</span><span class="equal">=</span><span class="attrvalue">"POST"</span><span class="bracket">></span>
+        <br>
+        &nbsp;&nbsp;<span class="bracket">&lt;</span><span class="tagname">input</span>
+        <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"text"</span>
+        <span class="attrkey">name</span><span class="equal">=</span><span class="attrvalue">"_gotcha"</span>
+        <span class="attrkey">style</span><span class="equal">=</span><span class="attrvalue">"display: none"</span><span class="bracket">></span>
+        <br>
+        <br>
+        &nbsp;&nbsp;<span class="comment">&lt;!-- your other form fields go here --></span>
+        <br>
+        <br>
+        &nbsp;&nbsp;<span class="bracket">&lt;</span><span class="tagname">button</span>
+        <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"submit"</span><span class="bracket">></span>Send<span class="bracket">&lt;/</span><span class="tagname">button</span><span class="bracket">></span>
+        <br>
+        <span class="bracket">&lt;/</span><span class="tagname">form</span><span class="bracket">></span>
+      </div>
     </div>
   </div>
 
