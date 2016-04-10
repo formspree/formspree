@@ -1,3 +1,4 @@
+import time
 import stripe
 import datetime
 
@@ -110,6 +111,9 @@ def forgot_password():
         return render_template('users/forgot.html')
     elif request.method == 'POST':
         user = User.query.filter_by(email=request.form['email']).first()
+        if not user:
+            return render_template('error.html', title='Not registered', text="We couldn't find an account associated with this email address.</p><p>Remember that you must use the primary email address you used to register the account, it can't be any other address you have confirmed later.")
+
         if user.send_password_reset():
             return render_template('info.html', title='Reset email sent', text="We've sent a link to {addr}. Click on the link to be prompted to a new password.".format(addr=user.email))
         else:
