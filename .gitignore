@@ -1,8 +1,7 @@
 development.env
 *.py[cod]
 node_modules
-
-node_modules
+npm-debug.log
 
 # C extensions
 *.so

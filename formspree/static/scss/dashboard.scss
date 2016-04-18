@@ -21,6 +21,12 @@
   border-bottom: none !important;
 }
 
+.no-border {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .dashboard {
   .row:after {
     content: "";
@@ -192,6 +198,18 @@
     }
 
     .red { color: $red; }
+  }
+
+  /* icon morphing */
+  .fa-unlock:hover::before {
+    content: "\f023";
+  }
+  .fa-lock:hover::before {
+    content: "\f09c";
+  }
+  .fa-trash-o:hover::before,
+  .fa-trash:hover::before {
+    content: "\f071";
   }
 }
 

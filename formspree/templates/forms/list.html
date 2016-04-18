@@ -71,9 +71,8 @@
         <div class="x"><h4>Are you ABSOLUTELY sure?</h4><a href="#">&times;</a></div>
       <br />
       <p>This action <strong>CANNOT</strong> be undone. This will permanantly delete the form{% if form.host %} on <strong>{{form.host}}</strong>{% endif %} and all related submissions.</p>
-        <form method="POST" action="{{ url_for('form-deletion') }}">
-          <input type="hidden" name="hashid" value="{{ form.hashid }}">
-            <span class="cancel"><button type="button" onclick="return false;">Cancel</button></span>
+        <form method="POST" action="{{ url_for('form-deletion', hashid=form.hashid) }}">
+          <span class="cancel"><button type="button" onclick="return false;">Cancel</button></span>
           <button class="delete">Confirm deletion</button>
         </form>
     </div>

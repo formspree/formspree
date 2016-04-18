@@ -441,8 +441,7 @@ def form_submissions(hashid, format=None):
             )
 
 @login_required
-def form_toggle():
-    hashid = request.form.get('hashid')
+def form_toggle(hashid):
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
@@ -473,8 +472,7 @@ def form_toggle():
         return redirect(url_for('dashboard'))
 
 @login_required
-def form_deletion():
-    hashid = request.form.get('hashid')
+def form_deletion(hashid):
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
@@ -503,8 +501,7 @@ def form_deletion():
         return redirect(url_for('dashboard'))
 
 @login_required
-def submission_deletion(hashid):
-    submissionid = request.form.get('submissionid')
+def submission_deletion(hashid, submissionid):
     submission = Submission.query.get(submissionid)
     form = Form.get_with_hashid(hashid)
 

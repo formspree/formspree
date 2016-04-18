@@ -32,9 +32,9 @@ def configure_routes(app):
     app.add_url_rule('/forms/sitewide-check', view_func=forms.views.sitewide_check, methods=['GET'])
     app.add_url_rule('/forms/<hashid>/', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
     app.add_url_rule('/forms/<hashid>.<format>', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
-    app.add_url_rule('/forms/toggle', 'form-toggle', view_func = forms.views.form_toggle, methods=['POST'])
-    app.add_url_rule('/forms/delete', 'form-deletion', view_func=forms.views.form_deletion, methods=['POST'])
-    app.add_url_rule('/forms/<hashid>/delete', 'submission-deletion', view_func=forms.views.submission_deletion, methods=['POST'])
+    app.add_url_rule('/forms/<hashid>/toggle', 'form-toggle', view_func=forms.views.form_toggle, methods=['POST'])
+    app.add_url_rule('/forms/<hashid>/delete', 'form-deletion', view_func=forms.views.form_deletion, methods=['POST'])
+    app.add_url_rule('/forms/<hashid>/delete/<submissionid>', 'submission-deletion', view_func=forms.views.submission_deletion, methods=['POST'])
 
     # Webhooks
     app.add_url_rule('/webhooks/stripe', view_func=users.views.stripe_webhook, methods=['POST'])
