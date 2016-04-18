@@ -40,7 +40,7 @@
     <div>
       {% if request.args.get('new') == form.hashid %}
         <div class="x"><h4>Congratulations!</h4><a href="#">&times;</a></div>
-        <p style="clear: both">Now that you have created your form, use the following HTML code in your website, filling it with the input fields you wish your visitors to input:</p>
+        <p style="clear: both">Now that you have created your form, use the following HTML code in your website, filling it with the <span class="code">&lt;input&gt;</span> fields you wish your visitors to fill:</p>
       {% else %}
         <div class="x"><h4>Use this code in your HTML</h4><a href="#">&times;</a></div>
       {% endif %}

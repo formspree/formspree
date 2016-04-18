@@ -42,6 +42,7 @@ module.exports = function sitewide () {
 
     let email = parentNode.find('input[name="email"]').val().trim()
     let urlv = parentNode.find('input[name="url"]').val().trim()
+    urlv = /^https?:\/\//.test(urlv) ? urlv : 'http://' + urlv
     let sitewide = checkbox.is(':checked')
 
     // wrong input
@@ -100,7 +101,7 @@ module.exports = function sitewide () {
       ]),
       h('.col-1-1', [
         h('h4', 'From URL:'),
-        h('input', {type: 'url', name: 'url', placeholder: urlPlaceholder})
+        h('input', {type: 'text', name: 'url', placeholder: urlPlaceholder})
       ]),
       h('.container', [
         h('.col-1-4', [
