@@ -23,7 +23,7 @@ manager.add_command('db', MigrateCommand)
 
 
 @manager.command
-def run_debug(port=5000):
+def run_debug(port=os.getenv('PORT', 5000)):
     '''runs the app with debug flag set to true'''
     forms_app.run(host='0.0.0.0', debug=True, port=int(port))
 

@@ -16,7 +16,7 @@ from helpers import ordered_storage, referrer_to_path, referrer_to_baseurl, HASH
 from formspree import settings, log
 from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, remove_www, sitewide_file_exists, HASH, EXCLUDE_KEYS
+from helpers import ordered_storage, referrer_to_path, remove_www, sitewide_file_check, HASH, EXCLUDE_KEYS
 from models import Form, Submission
 
 def thanks():
@@ -291,7 +291,10 @@ def forms():
             } for f in forms]
         })
     else:
-        return render_template('forms/list.html', forms=forms)
+        return render_template('forms/list.html',
+            enabled_forms=[form for form in forms if not form.disabled],
+            disabled_forms=[form for form in forms if form.disabled]
+        )
 
 
 @login_required
@@ -323,7 +326,7 @@ def create_form():
 
         # sitewide forms, verified with a file at the root of the target domain
         if sitewide:
-            if sitewide_file_exists(url, email):
+            if sitewide_file_check(url, email):
                 form.host = remove_www(referrer_to_path(urljoin(url, '/'))[:-1])
                 form.sitewide = True
             else:
@@ -355,14 +358,14 @@ def create_form():
         })
     else:
         flash('Your new form endpoint was created!', 'success')
-        return redirect(url_for('dashboard') + '#view-code-' + form.hashid)
+        return redirect(url_for('dashboard', new=form.hashid) + '#form-' + form.hashid)
 
 @login_required
 def sitewide_check():
     email = request.args.get('email')
     url = request.args.get('url')
 
-    if sitewide_file_exists(url, email):
+    if sitewide_file_check(url, email):
         return '', 200
     else:
         return '', 404
@@ -438,8 +441,7 @@ def form_submissions(hashid, format=None):
             )
 
 @login_required
-def form_toggle():
-    hashid = request.form.get('hashid')
+def form_toggle(hashid):
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
@@ -470,8 +472,7 @@ def form_toggle():
         return redirect(url_for('dashboard'))
 
 @login_required
-def form_deletion():
-    hashid = request.form.get('hashid')
+def form_deletion(hashid):
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
@@ -500,8 +501,7 @@ def form_deletion():
         return redirect(url_for('dashboard'))
 
 @login_required
-def submission_deletion(hashid):
-    submissionid = request.form.get('submissionid')
+def submission_deletion(hashid, submissionid):
     submission = Submission.query.get(submissionid)
     form = Form.get_with_hashid(hashid)
 

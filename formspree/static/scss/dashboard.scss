@@ -21,6 +21,12 @@
   border-bottom: none !important;
 }
 
+.no-border {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .dashboard {
   .row:after {
     content: "";
@@ -36,13 +42,13 @@
   }
 
   .delete {
-    color: #D9534F;
-    border-color: #D9534F;
+    color: $red;
+    border-color: $red;
   }
 
   .delete:hover {
     transition: color 0.3s ease-in-out;
-    color: #d1332e;
+    color: $warning-orange;
   }
 
   table {
@@ -68,17 +74,26 @@
   
     &.forms,
     &.emails {
-      tr.verified span[class^="ion-"] { color: $dark-green }
-      tr.new span[class^="ion-"] { color: $red}
+      tr { height: 39px; }
+
+      td.target-email {
+        max-width: 250px;
+        word-break: break-word;
+      }
+      td.n-submissions { min-width: 150px; }
+
+      tr.new span[class^="ion-"] { color: $red }
       tr.waiting_confirmation span[class^="ion-"] { color: $warning-orange }
-  
+      tr.verified span[class^="ion-"] { color: $dark-green }
+
       tr.new a:not(*:hover) {
-        color: inherit;
-        display: block;
         border-bottom: 1px dotted;
-        float: left;
         margin-bottom: -1px;
         line-height: 1em;
+      }
+      tr.new .never { font-size: 15px; }
+      tr:not(.new) *:not(.n-submissions) a:not(*:hover) {
+        color: inherit;
       }
     }
   
@@ -105,8 +120,10 @@
       text-align: center;
     }
 
-    .verify-info {
+    .info {
       font-size: 13px;
+      margin-bottom: 10px;
+      text-align: right;
     }
   
     .modal:not(.js):target > *,
@@ -115,7 +132,7 @@
     }
   }
   
-  .modal[id^="view-code"] {
+  .modal[id^="form-"] {
     textarea {
       font-size: 15px;
     }
@@ -151,9 +168,7 @@
         margin: 0;
         padding: 0;
         margin-top: 13px;
-      }
-      textarea {
-        min-height: 149px;
+        float: left;
       }
     }
     &:not(.js):target > *,
@@ -179,5 +194,31 @@
     &.target:before {
       display: block;
     }
+
+    .red { color: $red; }
   }
+
+  /* icon morphing */
+  .fa-unlock:hover::before {
+    content: "\f023";
+  }
+  .fa-lock:hover::before {
+    content: "\f09c";
+  }
+}
+
+.html-highlight {
+  clear: both;
+  font-size: 14px;
+  font-family: monospace;
+  padding: 5px;
+  border: 2px dashed #696969;
+  border-radius: 5px;
+
+  .bracket { color: #a65700 }
+  .tagname { color: #800000; font-weight: bold; }
+  .attrkey { color: #074726 }
+  .equal { color: #808030 }
+  .attrvalue { color: #0000e6 }
+  .comment { color: #696969 }
 }

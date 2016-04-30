@@ -151,10 +151,12 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
     @httpretty.activate
     def test_sitewide_forms(self):
         httpretty.register_uri(httpretty.GET,
-                               'http://mysite.com/formspree_verify_myemail@email.com.txt',
+                               'http://mysite.com/formspree-verify.txt',
+                               body='other_email@forms.com\nmyemail@email.com',
                                status=200)
         httpretty.register_uri(httpretty.GET,
-                               'http://www.naive.com/formspree_verify_myemail@email.com.txt',
+                               'http://www.naive.com/formspree-verify.txt',
+                               body='myemail@email.com',
                                status=200)
 
         # register user

@@ -1,6 +1,3 @@
-const url = require('url')
-const isValidEmail = require('is-valid-email')
-
 const $ = window.$
 const StripeCheckout = window.StripeCheckout
 const toastr = window.toastr
@@ -31,90 +28,57 @@ if (bgcolor.split(',').length === 4 || bgcolor === 'transparent') {
 }
 nav.css('background-color', bgcolor)
 
-/* modal */
-$('.modal').each(function () {
-  var modal = $(this)
-  modal.addClass('js')
-  var id = modal.attr('id')
-  $('[href="#' + id + '"]').click(function (e) {
-    e.preventDefault()
-    modal.toggleClass('target')
-  })
-  modal.click(function (e) {
-    if (e.target === modal[0]) {
-      modal.toggleClass('target')
+/* modals -- working with or without JS */
+function modals () {
+  $('.modal').each(function () {
+    let modal = $(this)
+    modal.addClass('js')
+    let id = modal.attr('id')
+
+    $(`[href="#${id}"]`).click(function (e) {
+      // open the modal
       e.preventDefault()
-    }
-  })
-  modal.find('.x a').click(function (e) {
-    e.preventDefault()
-    modal.toggleClass('target')
-  })
-})
+      modal.toggleClass('target')
+    })
 
-/* create-form validation for site-wide forms */
-function sitewide () {
-  let createform = $('#create-form')
-  let emailInput = createform.find('input[name="email"]')
-  let urlInput = createform.find('input[name="url"]')
-  let checkbox = createform.find('input[name="sitewide"]')
-  let verifyButton = createform.find('.verify-button')
-  let createButton = createform.find('.create-button')
-  let info = createform.find('.verify-info')
-
-  checkbox.on('change', run)
-  emailInput.on('input', run)
-  urlInput.on('input', run)
-
-  function run () {
-    if (checkbox.is(':checked')) {
-      let email = emailInput.val().trim()
-      let urlp = url.parse(urlInput.val().trim())
-
-      if (isValidEmail(email) && urlp.host) {
-        let sitewideFile = `formspree_verify_${email}.txt`
-        verifyButton.css('visibility', 'visible')
-        info.html(`Please ensure <span class="code">${url.resolve(urlInput.val(), '/' + sitewideFile)}</span> exists`)
-      } else {
-        // wrong input
-        if (!urlp.host) { // invalid url
-          info.text('Please input a valid URL.')
-        } else { // invalid email
-          info.text('Please input a valid email address.')
-        }
+    modal.click(function (e) {
+      // close the modal
+      if (e.target === modal[0]) {
+        cleanHash()
+        modal.toggleClass('target')
+        e.preventDefault()
       }
+    })
+    modal.find('.x a').click(function (e) {
+      // close the modal
+      cleanHash()
+      e.preventDefault()
+      modal.toggleClass('target')
+    })
+  })
 
-      createButton.find('button').prop('disabled', true)
-      info.css('visibility', 'visible')
+  function cleanHash () {
+    if (!window.location.hash) return
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState('', document.title, window.location.pathname)
     } else {
-      // toggle sitewide off
-      info.css('visibility', 'hidden')
-      verifyButton.css('visibility', 'hidden')
-      createButton.css('visibility', 'visible')
+      let pos = $(window).scrollTop()
+      window.location.hash = ''
+      $(window).scrollTop(pos)
     }
   }
 
-  verifyButton.find('button').on('click', function () {
-    $.ajax({
-      url: '/forms/sitewide-check?' + createform.find('form').serialize(),
-      success: function () {
-        toastr.success('The file exists! you can create your site-wide form now.')
-        createButton.find('button').prop('disabled', false)
-        verifyButton.css('visibility', 'hidden')
-        info.css('visibility', 'hidden')
-      },
-      error: function () {
-        toastr.warning("The verification file wasn't found.")
-        verifyButton.find('button').prop('disabled', true)
-        setTimeout(() => {
-          verifyButton.find('button').prop('disabled', false)
-        }, 5000)
-      }
-    })
-    return false
-  })
+  // activate modals from url hash #
+  setTimeout(() => {
+    // setTimeout is needed because :target elements only appear after
+    // the page is loaded or something like that.
+    let activatedModal = $('*:target')
+    if (activatedModal.length && !activatedModal.is('.target')) {
+      activatedModal.toggleClass('target')
+    }
+  }, 0)
 }
-sitewide()
+modals()
 
 /* turning flask flash messages into js popup notifications */
 window.popupMessages.forEach(function (m, i) {
@@ -145,3 +109,6 @@ $('a.resend').on('click', function () {
   $(this).hide()
   $('form.resend').show()
 })
+
+/* scripts at other files */
+require('./sitewide')()
