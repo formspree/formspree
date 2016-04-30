@@ -730,9 +730,7 @@ a.alert-box.success:hover {
     .dashboard table.forms tr.verified span[class^="ion-"], .dashboard table.emails tr.verified span[class^="ion-"] {
       color: #2A735B; }
     .dashboard table.forms tr.new a:not(*:hover), .dashboard table.emails tr.new a:not(*:hover) {
-      display: block;
       border-bottom: 1px dotted;
-      float: left;
       margin-bottom: -1px;
       line-height: 1em; }
     .dashboard table.forms tr.new .never, .dashboard table.emails tr.new .never {

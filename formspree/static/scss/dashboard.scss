@@ -87,9 +87,7 @@
       tr.verified span[class^="ion-"] { color: $dark-green }
 
       tr.new a:not(*:hover) {
-        display: block;
         border-bottom: 1px dotted;
-        float: left;
         margin-bottom: -1px;
         line-height: 1em;
       }
