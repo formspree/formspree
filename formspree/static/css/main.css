@@ -812,9 +812,6 @@ a.alert-box.success:hover {
     content: "\f023"; }
   .dashboard .fa-lock:hover::before {
     content: "\f09c"; }
-  .dashboard .fa-trash-o:hover::before,
-  .dashboard .fa-trash:hover::before {
-    content: "\f071"; }
 
 .html-highlight {
   clear: both;
