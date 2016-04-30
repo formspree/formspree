@@ -36,7 +36,7 @@
     {% endif %}
     </a>
   </td>
-    <td><form method="POST" action="{{ url_for('form-toggle', hashid=form.hashid) }}"><button class="no-border"><i class="fa fa-{% if form.disabled %}lock{% else %}unlock{% endif %}"></i></button></form></td>
+    <td><form method="POST" action="{{ url_for('form-toggle', hashid=form.hashid) }}"><button class="no-border"><i class="fa fa-{% if form.disabled %}lock{% else %}unlock{% endif %} fa-fw"></i></button></form></td>
 	<td>
 	<a href="#delete-{{form.hashid}}" class="no-underline"><i class="fa fa-trash-o delete"></i></a>
 	</td>
