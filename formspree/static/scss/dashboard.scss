@@ -87,9 +87,7 @@
       tr.verified span[class^="ion-"] { color: $dark-green }
 
       tr.new a:not(*:hover) {
-        display: block;
         border-bottom: 1px dotted;
-        float: left;
         margin-bottom: -1px;
         line-height: 1em;
       }
@@ -206,10 +204,6 @@
   }
   .fa-lock:hover::before {
     content: "\f09c";
-  }
-  .fa-trash-o:hover::before,
-  .fa-trash:hover::before {
-    content: "\f071";
   }
 }
 
