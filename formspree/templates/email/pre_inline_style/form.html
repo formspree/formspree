@@ -12,7 +12,7 @@
 			<td></td>
 			<tr>
 				<td class="header">
-					<img src="{{url_for('static', filename='img/email_headers/form-confirmation@3x.png')}}" width="400">
+					<img src="{{url_for('static', filename='img/email_headers/new-submission@3x.png')}}" width="400">
 				</td>
 			</tr>
 			<td class="container" width="600">
@@ -40,7 +40,7 @@
 															{% for k in keys %}
 															<tr>
 																<td width="30%"><strong>{{k}}</strong></td>
-																<td>{{data.get(k,'')}}</td>
+																<td><pre style="margin: 0; font-family: inherit;">{{data.get(k,'')}}</pre></td>
 															</tr>
 															{% endfor %}
 														</table>
