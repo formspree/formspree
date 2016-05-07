@@ -8,6 +8,7 @@ from flask.ext.login import LoginManager, current_user
 from flask.ext.cdn import CDN
 from flask_redis import Redis
 import settings
+from helpers import ssl_redirect
 
 DB = SQLAlchemy()
 redis_store = Redis()
@@ -44,4 +45,6 @@ def create_app():
     app.config['CDN_DOMAIN'] = settings.CDN_URL
     app.config['CDN_HTTPS'] = True
     cdn.init_app(app)
+    if not app.debug and not app.testing:
+        ssl_redirect(app)
     return app
