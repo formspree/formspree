@@ -6,6 +6,7 @@ import sys
 DEBUG = os.getenv('DEBUG') in ['True', 'true', '1', 'yes']
 if DEBUG:
     SQLALCHEMY_ECHO = True
+TESTING = os.getenv('TESTING') in ['True', 'true', '1', 'yes']
 
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
