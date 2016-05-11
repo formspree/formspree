@@ -23,7 +23,7 @@ class FormspreeTestCase(TestCase):
         settings.STRIPE_SECRET_KEY = settings.STRIPE_TEST_SECRET_KEY
         settings.SERVICE_URL = os.getenv('SERVICE_URL')
         settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
-
+        settings.TESTING = True
         return create_app()
 
     def setUp(self):
