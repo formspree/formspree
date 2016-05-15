@@ -226,4 +226,17 @@ def account():
         'verified': (e.address for e in current_user.emails.order_by(Email.registered_on.desc())),
         'pending': filter(bool, request.cookies.get('pending-emails', '').split(',')),
     }
-    return render_template('users/account.html', emails=emails)
+    card_mappings = {
+        'Visa': 'cc-visa',
+        'American Express': 'cc-amex',
+        'MasterCard': 'cc-mastercard',
+        'Discover': 'cc-discover',
+        'JCB': 'cc-jcb',
+        'Diners Club': 'cc-diners-club',
+        'Unknown': 'credit-card'
+    }
+    if current_user.stripe_id:
+        cards = stripe.Customer.retrieve(current_user.stripe_id).sources.all(object='card').data
+        for card in cards:
+            card.brand = card_mappings[card.brand]
+    return render_template('users/account.html', emails=emails, cards=cards)
