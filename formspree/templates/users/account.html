@@ -51,9 +51,12 @@
         
           <h3>Cards</h3>
           {% for card in cards %}
-          <i class="fa fa-{{card.brand}}" aria-hidden="true"></i>
-          {{ card.last4 }}
+          <p><i class="fa fa-{{card.brand}}" aria-hidden="true"></i>
+              {{ card.last4 }} </p>
           {% endfor %}
+          {% if not sub.cancel_at_period_end %}
+          <p>You're subscription is ending on {{ sub.current_period_end }} </p>
+          {% endif %}
         {% else %}
           When you upgrade to <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong> you will get
           <ol style="text-align: left">

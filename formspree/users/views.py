@@ -226,17 +226,23 @@ def account():
         'verified': (e.address for e in current_user.emails.order_by(Email.registered_on.desc())),
         'pending': filter(bool, request.cookies.get('pending-emails', '').split(',')),
     }
-    card_mappings = {
-        'Visa': 'cc-visa',
-        'American Express': 'cc-amex',
-        'MasterCard': 'cc-mastercard',
-        'Discover': 'cc-discover',
-        'JCB': 'cc-jcb',
-        'Diners Club': 'cc-diners-club',
-        'Unknown': 'credit-card'
-    }
+
+    customer = stripe.Customer.retrieve(current_user.stripe_id)
+
     if current_user.stripe_id:
-        cards = stripe.Customer.retrieve(current_user.stripe_id).sources.all(object='card').data
+        card_mappings = {
+            'Visa': 'cc-visa',
+            'American Express': 'cc-amex',
+            'MasterCard': 'cc-mastercard',
+            'Discover': 'cc-discover',
+            'JCB': 'cc-jcb',
+            'Diners Club': 'cc-diners-club',
+            'Unknown': 'credit-card'
+        }
+        cards = customer.sources.all(object='card').data
         for card in cards:
             card.brand = card_mappings[card.brand]
-    return render_template('users/account.html', emails=emails, cards=cards)
+    cancelled = False
+    sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
+    sub.current_period_end = datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')
+    return render_template('users/account.html', emails=emails, cards=cards, sub=sub)
