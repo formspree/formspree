@@ -48,15 +48,17 @@
           <form action="/account/downgrade" method="POST">
             <button type="submit">Cancel subscription</button>
           </form>
-        
+          {% if sub.cancel_at_period_end %}
+            <p>You've cancelled your subscription and it is ending on {{ sub.current_period_end }}.</p>
+          {% else %}
+            <p>Your subscription will automatically renew on {{ sub.current_period_end }}.</p>
+          {% endif %}
+          
           <h3>Cards</h3>
           {% for card in cards %}
           <p><i class="fa fa-{{card.brand}}" aria-hidden="true"></i>
               {{ card.last4 }} </p>
           {% endfor %}
-          {% if not sub.cancel_at_period_end %}
-          <p>You're subscription is ending on {{ sub.current_period_end }} </p>
-          {% endif %}
         {% else %}
           When you upgrade to <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong> you will get
           <ol style="text-align: left">
