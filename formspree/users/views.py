@@ -188,6 +188,20 @@ def upgrade():
 
     return redirect(url_for('dashboard'))
 
+@login_required
+def resubscribe():
+    customer = stripe.Customer.retrieve(current_user.stripe_id)
+    sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
+
+    if not sub:
+        flash("You can't do this. You are not subscribed to any plan.", "warning")
+        
+    sub.plan = 'gold'
+    sub.save()
+    
+    flash('Glad to have you back! Your subscription will now automatically renew on {date}'.format(date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')), 'success')
+    
+    return redirect(url_for('account'))
 
 @login_required
 def downgrade():
