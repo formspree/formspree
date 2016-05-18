@@ -233,6 +233,9 @@ def stripe_webhook():
             DB.session.commit()
     return 'ok'
 
+def delete_card():
+    flash('Attempted to delete a card', 'warning')
+    return redirect(url_for('account'))
 
 @login_required
 def account():
@@ -255,7 +258,7 @@ def account():
         }
         cards = customer.sources.all(object='card').data
         for card in cards:
-            card.brand = card_mappings[card.brand]
+            card.css_name = card_mappings[card.brand]
     cancelled = False
     sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
     sub.current_period_end = datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')

@@ -54,11 +54,25 @@
             <p>Your subscription will automatically renew on {{ sub.current_period_end }}.</p>
           {% endif %}
           
-          <h3>Cards</h3>
-          {% for card in cards %}
-          <p><i class="fa fa-{{card.brand}}" aria-hidden="true"></i>
-              {{ card.last4 }} </p>
-          {% endfor %}
+          <h3>Wallet</h3>
+          <table>
+              <tr>
+                <td>Credit Cards</td>
+                <td>Expires</td>
+              </tr>
+              {% for card in cards %}
+              <tr>
+                <td>
+                <i class="fa fa-{{card.css_name}}" aria-hidden="true"></i> ending in {{ card.last4 }}
+              </td>
+                  <td>
+                  {{card.exp_month}}/{{card.exp_year}}
+                  </td>
+                  <td><form method="POST" action="{{ url_for('delete-card', cardid=card.id) }}"><button class="no-border"><i class="fa fa-trash-o delete"></i></button></form></a>
+</td>
+              </tr>
+              {% endfor %}
+          </table>
         {% else %}
           When you upgrade to <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong> you will get
           <ol style="text-align: left">
