@@ -45,13 +45,16 @@
 
         {% if current_user.upgraded %}
           <p>You are a {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} user.</p>
-          <form action="/account/downgrade" method="POST">
-            <button type="submit">Cancel subscription</button>
-          </form>
           {% if sub.cancel_at_period_end %}
             <p>You've cancelled your subscription and it is ending on {{ sub.current_period_end }}.</p>
+            <form action="/account/upgrade" method="POST">
+              <button type="submit">Resubscribe</button>
+            </form>
           {% else %}
             <p>Your subscription will automatically renew on {{ sub.current_period_end }}.</p>
+            <form action="/account/downgrade" method="POST">
+              <button type="submit">Cancel subscription</button>
+            </form>
           {% endif %}
           
           <h3>Wallet</h3>
