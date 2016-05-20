@@ -58,6 +58,7 @@
           {% endif %}
           
           <h3>Wallet</h3>
+          {% if cards %}
           <table>
               <tr>
                 <td>Credit Cards</td>
@@ -76,6 +77,10 @@
               </tr>
               {% endfor %}
           </table>
+      {% else %}
+      <p>We couldn't find any active cards in your wallet. Please make sure to add a card by {{ sub.current_period_end }} or your subscription won't renew.</p>
+      {% endif %}
+      {% include "users/card.html" %}
         {% else %}
           When you upgrade to <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong> you will get
           <ol style="text-align: left">
@@ -96,6 +101,10 @@
               data-amount = "999"
               data-email = "{{ current_user.email }}"
               data-allowRememberMe = false
+              data-zip-code = true
+              data-billing-address = true
+              data-locale = true
+              data-panel-label = "Subscribe"
             >Upgrade for 9.99 / month</button>
           </form>
         {% endif %}
