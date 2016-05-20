@@ -245,8 +245,13 @@ def add_card():
                 metadata={'formspree_id': current_user.id},
             )
             current_user.stripe_id = customer.id
-        customer.sources.create(source=token)
-        flash('You\'ve successfully added a new card!', 'success')
+        # Make sure this card doesn't already exist    
+        new_fingerprint = stripe.Token.retrieve(token).card.fingerprint
+        if new_fingerprint in (card.fingerprint for card in customer.sources.all(object='card').data):
+            flash('That card already exists in your wallet', 'error')
+        else:
+            customer.sources.create(source=token)
+            flash('You\'ve successfully added a new card!', 'success')
     except stripe.CardError:
         flash("Sorry, there was an error in adding your card. If this persists, please contact us.", "error")
     except stripe.error.APIConnectionError:
