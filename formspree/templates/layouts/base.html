@@ -77,6 +77,10 @@
     window.popupMessages = {{ get_flashed_messages(with_categories=True) | json | safe }}
   </script>
   <script src="https://checkout.stripe.com/checkout.js"></script>
+  <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+  <script type="text/javascript">
+    Stripe.setPublishableKey({{config.STRIPE_PUBLISHABLE_KEY}});
+  </script>
   <script src="{{ url_for('static', filename='js/bundle.js') }}"></script>
 </body>
 </html>

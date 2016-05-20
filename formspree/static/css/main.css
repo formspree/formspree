@@ -789,6 +789,24 @@ a.alert-box.success:hover {
       padding: 0;
       margin-top: 13px;
       float: left; }
+  .dashboard .modal.narrow > * {
+    width: 500px;
+    margin-left: -290px; }
+  .dashboard .modal .small {
+    font-size: 0.75em; }
+  .dashboard .modal .card {
+    font-size: 1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    border: 2px solid #359173;
+    color: #359173;
+    background: transparent;
+    line-height: 1em;
+    padding: 0.6em 0.9em;
+    transition: all 0.3s ease-in-out; }
+    .dashboard .modal .card:hover {
+      border-color: #2A735B;
+      color: #2A735B; }
   .dashboard .modal:not(.js):target > *, .dashboard .modal.target > * {
     -webkit-transform: translate(0, 0);
     -ms-transform: translate(0, 0);
@@ -1447,5 +1465,3 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
-
-/*# sourceMappingURL=main.css.map */
