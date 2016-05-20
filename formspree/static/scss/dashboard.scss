@@ -183,6 +183,38 @@
           font-size: 0.75em;
       }
       
+        .identified {
+            background-size: 12% auto ;
+            background-repeat: no-repeat;
+            background-position: right 10% center;
+            transition: none;
+            background-image: url('/static/img/cards/card.png');
+            &.visa {
+                background-image: url("/static/img/cards/visa.png");
+            }
+            &.mastercard {
+                background-image: url("/static/img/cards/mastercard.png");
+            }
+            &.amex {
+                background-image: url("/static/img/cards/amex.png");
+            }
+            &.dinersclub {
+                background-image: url("/static/img/cards/dinersclub.png");
+            }
+            &.discover {
+                background-image: url("/static/img/cards/discover.png");
+            }
+            &.jcb {
+                background-image: url("/static/img/cards/jcb.png");
+            }
+            &.visaelectron {
+                background-image: url("/static/img/cards/visaelectron.png");
+            }
+            &.maestro {
+                background-image: url("/static/img/cards/maestro.png");
+            }
+      }
+
       .card {
         font-size: 1em;
         text-transform: uppercase;

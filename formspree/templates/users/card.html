@@ -1,4 +1,4 @@
-<div class="create-form">
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.payment/1.4.1/jquery.payment.min.js"></script><div class="create-form">
     <a href="#add-card" class="button">
       Add Card
     </a>
@@ -9,15 +9,16 @@
             <form method="POST" action="{{ url_for('add-card') }}" id="payment-form">
                 <div class="col-1-1">
                     <h4>Card Number</h4>
-                    <input type="text" size="20" data-stripe="number">
+                    <input type="text" class="cc-number" size="20" data-stripe="number">
+                    <span id="card-brand"></span>
                 </div>
                 <div class="col-1-2">
                     <h4>Expiration Date</h4>
-                    <input type="text" size="12" placeholder="MM / YY" data-stripe="exp">
+                    <input type="text" class="cc-exp" size="12" placeholder="MM / YY" data-stripe="exp">
                 </div>
                 <div class="col-1-2">
                     <h4>CVC</h4>
-                    <input type="tel" inputmode="numeric" autocomplete="off" autocorrect="no" autocapitalize="no" spellcheck="no" maxlength="4" data-stripe="cvc">
+                    <input type="tel" class="cc-cvc" inputmode="numeric" autocomplete="off" autocorrect="no" autocapitalize="no" spellcheck="no" maxlength="4" data-stripe="cvc">
                 </div>
                 <div class="col-1-1">
                     <input type="submit" class="submit card" value="Add Card">
@@ -33,6 +34,11 @@
 
 <script>
     $(function () {
+        $('[data-numeric]').payment('restrictNumeric');
+        $('.cc-number').payment('formatCardNumber');
+        $('.cc-exp').payment('formatCardExpiry');
+        $('.cc-cvc').payment('formatCardCVC');
+
         var $form = $('#payment-form');
         $form.submit(function (event) {
             // Disable the submit button to prevent repeated clicks:
@@ -44,6 +50,10 @@
             return false;
         });
     });
+
+    $(function() {
+//        $(".cc-number").after("add your smiley here");
+    })
 
     function stripeResponseHandler(status, response) {
         // Grab the form:
