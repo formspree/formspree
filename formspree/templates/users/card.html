@@ -6,7 +6,7 @@
         <div class="container">
             <div class="x">
                 <h4>Add Card</h4><a href="#">&times;</a></div>
-            <form method="POST" action="" id="payment-form">
+            <form method="POST" action="{{ url_for('add-card') }}" id="payment-form">
                 <div class="col-1-1">
                     <h4>Card Number</h4>
                     <input type="text" size="20" data-stripe="number">
@@ -37,7 +37,6 @@
         $form.submit(function (event) {
             // Disable the submit button to prevent repeated clicks:
             $form.find('.submit').prop('disabled', true);
-            alert('Disabled submit');
             // Request a token from Stripe:
             Stripe.card.createToken($form, stripeResponseHandler);
 
@@ -51,9 +50,8 @@
         var $form = $('#payment-form');
         if (response.error) { // Problem!
             // Show the errors on the form:
-            $form.find('.payment-errors').text(response.error.message);
+            toastr['error'](response.error.message)
             $form.find('.submit').prop('disabled', false); // Re-enable submission
-
         } else { // Token was created!
 
             // Get the token ID:
@@ -61,7 +59,6 @@
 
             // Insert the token ID into the form so it gets submitted to the server:
             $form.append($('<input type="hidden" name="stripeToken">').val(token));
-            alert(token);
             // Submit the form:
             $form.get(0).submit();
         }

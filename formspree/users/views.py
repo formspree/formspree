@@ -233,6 +233,30 @@ def stripe_webhook():
             DB.session.commit()
     return 'ok'
 
+def add_card():
+    token = request.form['stripeToken']
+    
+    try:
+        if current_user.stripe_id:
+            customer = stripe.Customer.retrieve(current_user.stripe_id)
+        else:
+            customer = stripe.Customer.create(
+                email=current_user.email,
+                metadata={'formspree_id': current_user.id},
+            )
+            current_user.stripe_id = customer.id
+        customer.sources.create(source=token)
+        flash('You\'ve successfully added a new card!', 'success')
+    except stripe.CardError:
+        flash("Sorry, there was an error in adding your card. If this persists, please contact us.", "error")
+    except stripe.error.APIConnectionError:
+        flash('We\'re unable to establish a connection with our payment processor. For your security, we haven\'t added this card to your account. Please try again later.', 'error')
+    except stripe.error.StripeError:
+        flash('Sorry, an unknown error occured. Please try again later. If this problem persists, please contact us.', 'error')
+
+
+    return redirect(url_for('account'))
+
 def delete_card():
     flash('Attempted to delete a card', 'warning')
     return redirect(url_for('account'))
