@@ -59,7 +59,7 @@
           
           <h3>Wallet</h3>
           {% if cards %}
-          <table>
+          <table class="cards">
               <tr>
                 <td>Credit Cards</td>
                 <td>Expires</td>
@@ -67,7 +67,7 @@
               {% for card in cards %}
               <tr>
                 <td>
-                <i class="fa fa-{{card.css_name}}" aria-hidden="true"></i> ending in {{ card.last4 }}
+                <i class="fa fa-{{card.css_name}}" aria-hidden="true"></i> ****{{ card.last4 }}
               </td>
                   <td>
                   {{card.exp_month}}/{{card.exp_year}}
