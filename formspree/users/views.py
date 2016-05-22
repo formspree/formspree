@@ -272,7 +272,6 @@ def account():
         'verified': (e.address for e in current_user.emails.order_by(Email.registered_on.desc())),
         'pending': filter(bool, request.cookies.get('pending-emails', '').split(',')),
     }
-    cards = {}
     sub = None
     if current_user.stripe_id:
         try:

@@ -59,6 +59,63 @@
           
           <h3>Wallet</h3>
           {% if cards %}
+          <style>
+                
+        #card-list {
+            border-collapse: collapse;
+        }
+        
+        #card-list tr {
+            border: solid 2px green;
+            border-radius: 3px;
+        }
+        
+        #card-list td {
+            background: #FFF;
+            color: #000;
+            padding: 7px 15px;
+        }
+                      
+        .fa-chevron-right {
+            transition: transform .25s ease-in-out;
+        }
+        
+        #card-list tr.even td {
+            cursor: pointer;
+        }
+          </style>
+          <script type="text/javascript">
+    </script>
+          <table id="card-list">
+              {% for card in cards %}
+        <tr>
+            <td>
+                <div class="arrow"><i class="fa fa-chevron-right" aria-hidden="true"></i>
+</div>
+            </td>
+            <td><i class="fa fa-{{card.css_name}}" aria-hidden="true"></i></td>
+            <td>••••{{ card.last4 }}</td>
+            <td>{{card.exp_month}}/{{card.exp_year}}</td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <div class="row">
+                    <p>Number: ••••{{ card.last4 }}</p>
+                    <p>Type: {{ card.brand }} {{ card.funding }} card</p>
+                    <p>Origin: {{ card.country }} <img src="{{url_for('static', filename='img/countries/%s.png' % card.country)}}"></p>
+                    <p>CVC Check: {% if card.cvc_check == "pass" %}Passed <i class="fa fa-check-circle-o" aria-hidden="true"></i>
+{% elif card.cvc_check == "fail"%}Failed <i class="fa fa-times-circle-o" aria-hidden="true"></i>
+{%else%}Unknown <i class="fa fa-question-circle" aria-hidden="true"></i>
+{%endif%}</p>
+                </div>
+            </td>
+        </tr>
+              {% endfor %}
+    </table>
+          
+          
+          
+<!--
           <table class="cards">
               <tr>
                 <td>Credit Cards</td>
@@ -75,8 +132,10 @@
                   <td><form method="POST" action="{{ url_for('delete-card', cardid=card.id) }}"><button class="no-border"><i class="fa fa-trash-o delete"></i></button></form></a>
 </td>
               </tr>
-              {% endfor %}
-          </table>
+        
+-->
+<!--              {% endfor %}-->
+<!--          </table>-->
       {% else %}
       <p>We couldn't find any active cards in your wallet. Please make sure to add a card by {{ sub.current_period_end }} or your subscription won't renew.</p>
       {% endif %}

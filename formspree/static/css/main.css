@@ -810,20 +810,12 @@ a.alert-box.success:hover {
       background-image: url("/static/img/cards/dinersclub.png"); }
     .dashboard .modal .identified.discover {
       background-image: url("/static/img/cards/discover.png"); }
-    .dashboard .modal .identified.unionpay {
-      background-image: url("/static/img/cards/unionpay.png"); }
     .dashboard .modal .identified.jcb {
       background-image: url("/static/img/cards/jcb.png"); }
     .dashboard .modal .identified.visaelectron {
       background-image: url("/static/img/cards/visaelectron.png"); }
     .dashboard .modal .identified.maestro {
       background-image: url("/static/img/cards/maestro.png"); }
-    .dashboard .modal .identified.forbrugsforeningen {
-      background-image: url("/static/img/cards/visa.png"); }
-    .dashboard .modal .identified.dankort {
-      background-image: url("/static/img/cards/card.png"); }
-    .dashboard .modal .identified.elo {
-      background-image: url("/static/img/cards/visa.png"); }
   .dashboard .modal .card {
     font-size: 1em;
     text-transform: uppercase;
