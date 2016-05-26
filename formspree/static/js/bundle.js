@@ -172,7 +172,7 @@ module.exports = function sitewide() {
     } else if (sitewide && !isValidUrl(urlv)) {
       // invalid url with sitewide
       data.invalid = 'url';
-    } else if (!sitewide && urlv && !isValidUrl(urlv)) {
+    } else if (!sitewide && urlv && urlv !== 'http://' && !isValidUrl(urlv)) {
       // invalid url without sitewide
       data.invalid = 'url';
     } else {

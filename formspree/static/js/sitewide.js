@@ -50,7 +50,7 @@ module.exports = function sitewide () {
       data.invalid = 'email'
     } else if (sitewide && !isValidUrl(urlv)) { // invalid url with sitewide
       data.invalid = 'url'
-    } else if (!sitewide && urlv && !isValidUrl(urlv)) { // invalid url without sitewide
+    } else if (!sitewide && urlv && urlv !== 'http://' && !isValidUrl(urlv)) { // invalid url without sitewide
       data.invalid = 'url'
     } else {
       data.invalid = null
