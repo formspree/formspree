@@ -150,16 +150,13 @@ def send(email_or_string):
         if request_wants_json():
             return jsonify({'error': "form over quota"})
         else:
-            return render_template('error.html',
-                                   title='Form over quota',
-                                   text='It looks like this form is getting a lot of submissions and ran out of its quota. Try contacting this website through other means or try submitting again later.'
-            )
+            return render_template('error.html', title='Form over quota', text='It looks like this form is getting a lot of submissions and ran out of its quota. Try contacting this website through other means or try submitting again later.'), 402
 
     elif status['code'] == Form.STATUS_REPLYTO_ERROR:
         if request_wants_json():
             return jsonerror(500, {'error': "_replyto or email field has not been sent correctly"})
         else:
-            return render_template('error.html', title='Unable to send email', text='Unable to send email. The field with a name attribute _replyto or email was not set correctly. This may be the result of you have multiple _replyto or email fields. If you cannot find your error, please contact <b>{email}</b> with a link to your form and this error message: <p><pre><code>{message}</code></pre></p>'.format(message=status['error-message'], email=settings.CONTACT_EMAIL)), 500
+            return render_template('error.html', title='Unable to send email', text='Unable to send email. The field with a name attribute _replyto or email was not set correctly. This may be the result of you having multiple _replyto or email fields in the form. If you cannot find your error, please contact <b>{email}</b> with a link to your form and this error message: <p><pre><code>{message}</code></pre></p>'.format(message=status['error-message'], email=settings.CONTACT_EMAIL)), 400
 
     # error fallback -- shouldn't happen
     if request_wants_json():
