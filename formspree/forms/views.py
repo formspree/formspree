@@ -100,7 +100,7 @@ def send(email_or_string):
                                             % str(email_or_string)), 400
     else:
         # in this case, it is a normal email
-        email = email_or_string
+        email = email_or_string.lower()
 
         # get the form for this request
         form = Form.query.filter_by(hash=HASH(email, host)).first() \
@@ -319,6 +319,7 @@ def create_form():
             flash('The provided email address is not valid.', 'error')
             return redirect(url_for('dashboard'))
 
+    email = email.lower() # case-insensitive
     form = Form(email, owner=current_user)
     if url:
         url = 'http://' + url if not url.startswith('http') else url
