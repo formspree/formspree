@@ -96,7 +96,7 @@ def next_url(referrer=None, next=None):
     return urlparse.urlunparse(parsed)
 
 
-def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
+def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None, files=None):
     '''
     Sends email using SendGrid's REST-api
     '''
@@ -109,7 +109,8 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
             'to': to,
             'subject': subject,
             'text': text,
-            'html': html}
+            'html': html
+            'files': files}
 
     # parse 'fromname' from 'sender' if it is formatted like "Name <name@email.com>"
     try:

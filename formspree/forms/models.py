@@ -110,6 +110,7 @@ class Form(DB.Model):
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
         format = data.get('_format', None)
+        attachments = data.get('_attachment', None)
 
 		# turn cc emails into array
         if cc:
@@ -183,8 +184,9 @@ class Form(DB.Model):
                           text=text,
                           html=html,
                           sender=settings.DEFAULT_SENDER,
+                          cc=cc,
                           reply_to=reply_to,
-                          cc=cc)
+                          files=attachments)
 
         if not result[0]:
             if result[1].startswith('Invalid replyto email address'):
