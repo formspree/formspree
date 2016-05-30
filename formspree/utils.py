@@ -121,7 +121,7 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
     except ValueError:
         data.update({'from': sender})
 
-    if reply_to and IS_VALID_EMAIL(reply_to):
+    if reply_to:
         data.update({'replyto': reply_to})
 
     if cc:

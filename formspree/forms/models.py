@@ -3,7 +3,7 @@ import datetime
 
 from formspree.app import DB, redis_store
 from formspree import settings, log
-from formspree.utils import send_email, unix_time_for_12_months_from_now, next_url
+from formspree.utils import send_email, unix_time_for_12_months_from_now, next_url, IS_VALID_EMAIL
 from flask import url_for, render_template
 from sqlalchemy.sql.expression import delete
 from werkzeug.datastructures import ImmutableMultiDict, ImmutableOrderedMultiDict
@@ -105,7 +105,7 @@ class Form(DB.Model):
             data, keys = submitted_data, submitted_data.keys()
 
         subject = data.get('_subject', 'New submission from %s' % referrer_to_path(referrer))
-        reply_to = data.get('_replyto', data.get('email', data.get('Email', None)))
+        reply_to = data.get('_replyto', data.get('email', data.get('Email', ''))).strip()
         cc = data.get('_cc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
@@ -122,6 +122,10 @@ class Form(DB.Model):
         # return a fake success for spam
         if spam:
             return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
+
+        # validate reply_to, if it is not a valid email address, reject
+        if reply_to and not IS_VALID_EMAIL(reply_to):
+            return { 'code': Form.STATUS_REPLYTO_ERROR, 'error-message': '"%s" is not a valid email address.' % reply_to }
 
         # increase the monthly counter
         request_date = datetime.datetime.now()

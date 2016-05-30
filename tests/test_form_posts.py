@@ -37,14 +37,78 @@ class FormPostsTestCase(FormspreeTestCase):
         )
         self.assertEqual(1, Form.query.count())
 
-    def test_fail_form_submission(self):
+    @httpretty.activate    
+    def test_fail_form_without_header(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+        httpretty.reset()
+
         no_referer = ajax_headers.copy()
         del no_referer['Referer']
         r = self.client.post('/bob@example.com',
             headers = no_referer,
             data={'name': 'bob'}
         )
+        self.assertEqual(False, httpretty.has_request())
         self.assertNotEqual(200, r.status_code)
+
+    @httpretty.activate    
+    def test_fail_but_appears_to_have_succeeded_with_gotcha(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # manually confirm
+        r = self.client.post('/carlitos@example.com',
+            headers = {'Referer': 'http://carlitos.net/'},
+            data={'name': 'carlitos'}
+        )
+        f = Form.query.first()
+        f.confirm_sent = True
+        f.confirmed = True
+        DB.session.add(f)
+        DB.session.commit()
+
+        httpretty.reset()
+        r = self.client.post('/carlitos@example.com',
+            headers = {'Referer': 'http://carlitos.net/'},
+            data={'name': 'Real Stock', '_gotcha': 'The best offers.'}
+        )
+        self.assertEqual(False, httpretty.has_request())
+        self.assertEqual(302, r.status_code)
+        self.assertEqual(0, Form.query.first().counter)
+
+    @httpretty.activate    
+    def test_fail_with_invalid_reply_to(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # manually confirm
+        r = self.client.post('/carlitos@example.com',
+            headers = {'Referer': 'http://carlitos.net/'},
+            data={'name': 'carlitos'}
+        )
+        f = Form.query.first()
+        f.confirm_sent = True
+        f.confirmed = True
+        DB.session.add(f)
+        DB.session.commit()
+
+        # fail with an invalid '_replyto'
+        httpretty.reset()
+        r = self.client.post('/carlitos@example.com',
+            headers = {'Referer': 'http://carlitos.net/'},
+            data={'name': 'Real Stock', '_replyto': 'The best offers.'}
+        )
+        self.assertEqual(False, httpretty.has_request())
+        self.assertEqual(400, r.status_code)
+        self.assertEqual(0, Form.query.first().counter)
+
+        # fail with an invalid 'email'
+        httpretty.reset()
+        r = self.client.post('/carlitos@example.com',
+            headers = {'Referer': 'http://carlitos.net/'},
+            data={'name': 'Real Stock', 'email': 'The best offers.'}
+        )
+        self.assertEqual(False, httpretty.has_request())
+        self.assertEqual(400, r.status_code)
+        self.assertEqual(0, Form.query.first().counter)
 
     @httpretty.activate    
     def test_activation_workflow(self):
