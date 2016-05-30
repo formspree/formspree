@@ -233,6 +233,7 @@ def stripe_webhook():
             DB.session.commit()
     return 'ok'
 
+@login_required
 def add_card():
     token = request.form['stripeToken']
     
@@ -262,8 +263,14 @@ def add_card():
 
     return redirect(url_for('account'))
 
-def delete_card():
-    flash('Attempted to delete a card', 'warning')
+
+def delete_card(cardid):
+    if current_user.stripe_id:
+        customer = stripe.Customer.retrieve(current_user.stripe_id)
+        customer.sources.retrieve(cardid).delete()
+        flash('Successfully deleted card', 'success')
+    else:
+        flash("That's an invalid operation", 'error')
     return redirect(url_for('account'))
 
 @login_required
@@ -273,6 +280,7 @@ def account():
         'pending': filter(bool, request.cookies.get('pending-emails', '').split(',')),
     }
     sub = None
+    cards = {}
     if current_user.stripe_id:
         try:
             customer = stripe.Customer.retrieve(current_user.stripe_id)
