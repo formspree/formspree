@@ -295,6 +295,8 @@ def account():
             }
             cards = customer.sources.all(object='card').data
             for card in cards:
+                if customer.default_source == card.id:
+                    card.default = True
                 card.css_name = card_mappings[card.brand]
             sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
             if sub:
