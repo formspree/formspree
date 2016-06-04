@@ -26,6 +26,7 @@ SERVICE_NAME = os.getenv('SERVICE_NAME') or 'Forms'
 UPGRADED_PLAN_NAME = os.getenv('UPGRADED_PLAN_NAME') or 'Gold'
 SERVICE_URL = os.getenv('SERVICE_URL') or 'http://example.com'
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL') or 'team@example.com'
+NEWSLETTER_EMAIL = os.getenv('NEWSLETTER_EMAIL') or 'signup@example.com'
 DEFAULT_SENDER = os.getenv('DEFAULT_SENDER') or 'Forms Team <submissions@example.com>'
 ACCOUNT_SENDER = os.getenv('ACCOUNT_SENDER') or DEFAULT_SENDER
 API_ROOT = os.getenv('API_ROOT') or '//example.com'

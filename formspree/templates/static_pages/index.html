@@ -256,15 +256,15 @@
   <div class="row section">
       <div class="container narrow block">
           <div class="col-1-2">
-            <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/formspree/formspree">managed on GitHub</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a> or use the form on the right.</p>
+            <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/formspree/formspree">managed on GitHub</a>. To contact us send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>. To sign up for our newsletter, use the form on the right.</p>
           </div>
           <div class="col-1-2">
-            <form method="POST" action="{{config.API_ROOT}}/{{config.CONTACT_EMAIL}}">
+            <form method="POST" action="{{config.API_ROOT}}/{{config.NEWSLETTER_EMAIL}}">
+              <input type="text" name="name" placeholder="Your name" required />
               <input type="email" name="_replyto" placeholder="Your email" required />
-              <textarea name="message" rows="5" placeholder="Your message (when sending support requests, please include the URL to your form if that is relevant)" required></textarea>
               <input type="text" name="_gotcha" style="display:none">
               <input type="hidden" name="_format" value="plain" style="display:none">
-              <button type="submit">Send</button>
+              <button style="width: 100%" type="submit">Get Our Newsletter</button>
             </form>
           </div>
       </div>
