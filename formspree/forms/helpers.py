@@ -74,13 +74,19 @@ def remove_www(host):
 
 
 def sitewide_file_check(url, email):
+    if not url.startswith('http://') and not url.startswith('https://'):
+        url = 'http://' + url
     url = urljoin(url, '/formspree-verify.txt')
     log.debug('Checking sitewide file: %s' % url)
     res = requests.get(url, timeout=2)
-    if not res.ok: return False
+    if not res.ok:
+        log.debug('Nothing found on address.')
+        return False
 
     for line in res.text.splitlines():
-        if line.strip() == email:
+        line = line.strip(u'\xef\xbb\xbf ')
+        if line == email:
             return True
 
+    log.debug('%s not found in %s' % (email, res.text[:200]))
     return False

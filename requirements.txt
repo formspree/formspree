@@ -8,7 +8,7 @@ flask-testing
 flask-login==0.3.0
 flask-cdn
 git+https://github.com/mitsuhiko/jinja2@84f39ff5afd89760e1eff387ba4ce38e4a982977
-requests==2.0.0
+requests==2.1.0
 hashids==1.0.2
 paste
 python-dotenv
