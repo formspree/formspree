@@ -40,7 +40,7 @@ def register():
 
 @login_required
 def add_email():
-    address = request.form['address'].strip()
+    address = request.form['address'].lower().strip()
     res = redirect(url_for('account'))
 
     if Email.query.get([address, current_user.id]):
