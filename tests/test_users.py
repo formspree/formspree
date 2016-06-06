@@ -409,7 +409,7 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # redirect back to /account, the HTML shows that the user is not yet
         # in the free plan, since it will be valid for the next 30 days
-        self.assertIn('form action="/account/downgrade" method="POST"', r.data)
+        self.assertIn("You've cancelled your subscription and it is ending on", r.data)
 
         user = User.query.filter_by(email='maria@example.com').first()
         self.assertEqual(user.upgraded, True)
