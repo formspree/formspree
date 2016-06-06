@@ -105,6 +105,29 @@
     }
   }
   
+  #card-list {
+    border-collapse: collapse;
+  }
+
+  #card-list tr {
+    border: solid 2px $green;
+    border-radius: 3px;
+  }
+
+  #card-list td {
+    background: #FFF;
+    color: #000;
+    padding: 7px 15px;
+  }
+
+  .fa-chevron-right {
+    transition: transform .25s ease-in-out;
+  }
+
+  #card-list tr.even td {
+    cursor: pointer;
+  }
+  
   .create-form {
     margin: 3em 0;
   

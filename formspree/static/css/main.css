@@ -741,6 +741,19 @@ a.alert-box.success:hover {
       padding-top: 10px; }
     .dashboard table.emails td:last-child {
       text-align: center; }
+  .dashboard #card-list {
+    border-collapse: collapse; }
+  .dashboard #card-list tr {
+    border: solid 2px #359173;
+    border-radius: 3px; }
+  .dashboard #card-list td {
+    background: #FFF;
+    color: #000;
+    padding: 7px 15px; }
+  .dashboard .fa-chevron-right {
+    transition: transform .25s ease-in-out; }
+  .dashboard #card-list tr.even td {
+    cursor: pointer; }
   .dashboard .create-form {
     margin: 3em 0; }
     .dashboard .create-form form {
