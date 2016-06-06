@@ -260,7 +260,6 @@ def add_card():
     except stripe.error.StripeError:
         flash('Sorry, an unknown error occured. Please try again later. If this problem persists, please contact us.', 'error')
 
-
     return redirect(url_for('account'))
 
 

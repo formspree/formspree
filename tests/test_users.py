@@ -436,3 +436,68 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # delete the stripe customer
         customer.delete()
+
+    def test_user_card_management(self):
+        # check correct usage of stripe test keys during test
+        self.assertIn('_test_', settings.STRIPE_PUBLISHABLE_KEY)
+        self.assertIn('_test_', settings.STRIPE_SECRET_KEY)
+        self.assertIn(stripe.api_key, settings.STRIPE_TEST_SECRET_KEY)
+
+        # register user
+        r = self.client.post('/register',
+            data={'email': 'maria@example.com',
+                  'password': 'uva'}
+        )
+        self.assertEqual(r.status_code, 302)
+
+        user = User.query.filter_by(email='maria@example.com').first()
+        self.assertEqual(user.upgraded, False)
+        
+        # subscribe with card through stripe
+        token = stripe.Token.create(card={
+            'number': '4242424242424242',
+            'exp_month': '11',
+            'exp_year':'2026',
+            'cvc': '123',
+        })['id']
+        r = self.client.post('/account/upgrade', data={
+            'stripeToken': token
+        })
+
+        user = User.query.filter_by(email='maria@example.com').first()
+        self.assertEqual(user.upgraded, True)
+
+        # add another card
+        token = stripe.Token.create(card={
+            'number': '4012888888881881',
+            'exp_month': '11',
+            'exp_year':'2021',
+            'cvc': '345',
+        })['id']
+        r = self.client.post('/card/add', data={
+            'stripeToken': token
+        })
+        
+        customer = stripe.Customer.retrieve(user.stripe_id)
+        cards = customer.sources.all(object='card').data
+        self.assertEqual(len(cards), 2)
+        
+        # add a duplicate card
+        token = stripe.Token.create(card={
+            'number': '4242424242424242',
+            'exp_month': '11',
+            'exp_year':'2026',
+            'cvc': '123',
+        })['id']
+        r = self.client.post('/card/add', data={
+            'stripeToken': token
+        }, follow_redirects=True)
+        self.assertIn('That card already exists in your wallet', r.data)
+        
+        # delete a card
+        r = self.client.post('/card/%s/delete' % cards[1].id)
+        cards = customer.sources.all(object='card').data
+        self.assertEqual(len(cards), 1)
+        
+        # delete the customer
+        customer.delete()
