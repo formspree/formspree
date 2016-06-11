@@ -89,6 +89,8 @@
             </tr>
             {% endfor %}
           </table>
+          {% elif cards == False %}
+          <p>We couldn't fetch your cards from Stripe. There's probably something wrong with the account data we have registered for you. Please contact us so we can solve the problem.</p>
           {% else %}
           <p>We couldn't find any active cards in your wallet. Please make sure to add a card by {{ sub.current_period_end }} or your subscription won't renew.</p>
           {% endif %}
