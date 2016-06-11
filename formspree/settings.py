@@ -40,3 +40,6 @@ STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY') or STRIPE_TEST_SECRET_KEY
 
 RECAPTCHA_SECRET = os.getenv('RECAPTCHA_SECRET')
 RECAPTCHA_KEY = os.getenv('RECAPTCHA_KEY')
+
+RATE_LIMIT = os.getenv('RATE_LIMIT', '30 per hour')
+REDIS_RATE_LIMIT = os.getenv('REDIS_URL')  # heroku-redis

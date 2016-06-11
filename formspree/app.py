@@ -8,7 +8,7 @@ from flask.ext.login import LoginManager, current_user
 from flask.ext.cdn import CDN
 from flask_redis import Redis
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from flask_limiter.util import get_ipaddr
 import settings
 from helpers import ssl_redirect
 
@@ -50,9 +50,9 @@ def create_app():
 
     Limiter(
         app,
-        key_func=get_remote_address,
-        global_limits=['30 per hour'],
-        storage_uri=settings.REDIS_URL
+        key_func=get_ipaddr,
+        global_limits=[settings.RATE_LIMIT],
+        storage_uri=settings.REDIS_RATE_LIMIT
     )
 
     if not app.debug and not app.testing:
