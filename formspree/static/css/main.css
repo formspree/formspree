@@ -741,6 +741,19 @@ a.alert-box.success:hover {
       padding-top: 10px; }
     .dashboard table.emails td:last-child {
       text-align: center; }
+  .dashboard #card-list {
+    border-collapse: collapse; }
+  .dashboard #card-list tr {
+    border: solid 2px #359173;
+    border-radius: 3px; }
+  .dashboard #card-list td {
+    background: #FFF;
+    color: #000;
+    padding: 7px 15px; }
+  .dashboard .fa-chevron-right {
+    transition: transform .25s ease-in-out; }
+  .dashboard #card-list tr.even td {
+    cursor: pointer; }
   .dashboard .create-form {
     margin: 3em 0; }
     .dashboard .create-form form {
@@ -789,6 +802,46 @@ a.alert-box.success:hover {
       padding: 0;
       margin-top: 13px;
       float: left; }
+  .dashboard .modal.narrow > * {
+    width: 500px;
+    margin-left: -290px; }
+  .dashboard .modal .small {
+    font-size: 0.75em; }
+  .dashboard .modal .identified {
+    background-size: 12% auto;
+    background-repeat: no-repeat;
+    background-position: right 10% center;
+    transition: none;
+    background-image: url("/static/img/cards/card.png"); }
+    .dashboard .modal .identified.visa {
+      background-image: url("/static/img/cards/visa.png"); }
+    .dashboard .modal .identified.mastercard {
+      background-image: url("/static/img/cards/mastercard.png"); }
+    .dashboard .modal .identified.amex {
+      background-image: url("/static/img/cards/amex.png"); }
+    .dashboard .modal .identified.dinersclub {
+      background-image: url("/static/img/cards/dinersclub.png"); }
+    .dashboard .modal .identified.discover {
+      background-image: url("/static/img/cards/discover.png"); }
+    .dashboard .modal .identified.jcb {
+      background-image: url("/static/img/cards/jcb.png"); }
+    .dashboard .modal .identified.visaelectron {
+      background-image: url("/static/img/cards/visaelectron.png"); }
+    .dashboard .modal .identified.maestro {
+      background-image: url("/static/img/cards/maestro.png"); }
+  .dashboard .modal .card {
+    font-size: 1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    border: 2px solid #359173;
+    color: #359173;
+    background: transparent;
+    line-height: 1em;
+    padding: 0.6em 0.9em;
+    transition: all 0.3s ease-in-out; }
+    .dashboard .modal .card:hover {
+      border-color: #2A735B;
+      color: #2A735B; }
   .dashboard .modal:not(.js):target > *, .dashboard .modal.target > * {
     -webkit-transform: translate(0, 0);
     -ms-transform: translate(0, 0);
@@ -1447,5 +1500,3 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
-
-/*# sourceMappingURL=main.css.map */

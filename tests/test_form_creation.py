@@ -254,3 +254,12 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             data=json.dumps({'name': 'laura'})
         )
         self.assertIn('laura', httpretty.last_request().body)
+
+        # create a different form with the same email address, now using unprefixed url
+        r = self.client.post('/forms',
+            headers={'Accept': 'application/json', 'Content-type': 'application/json'},
+            data=json.dumps({'email': 'myemail@email.com',
+                             'url': 'mysite.com',
+                             'sitewide': 'true'})
+        )
+        resp = json.loads(r.data)

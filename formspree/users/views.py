@@ -40,7 +40,7 @@ def register():
 
 @login_required
 def add_email():
-    address = request.form['address']
+    address = request.form['address'].lower().strip()
     res = redirect(url_for('account'))
 
     if Email.query.get([address, current_user.id]):
@@ -188,6 +188,20 @@ def upgrade():
 
     return redirect(url_for('dashboard'))
 
+@login_required
+def resubscribe():
+    customer = stripe.Customer.retrieve(current_user.stripe_id)
+    sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
+
+    if not sub:
+        flash("You can't do this. You are not subscribed to any plan.", "warning")
+        
+    sub.plan = 'gold'
+    sub.save()
+    
+    flash('Glad to have you back! Your subscription will now automatically renew on {date}'.format(date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')), 'success')
+    
+    return redirect(url_for('account'))
 
 @login_required
 def downgrade():
@@ -219,6 +233,44 @@ def stripe_webhook():
             DB.session.commit()
     return 'ok'
 
+@login_required
+def add_card():
+    token = request.form['stripeToken']
+    
+    try:
+        if current_user.stripe_id:
+            customer = stripe.Customer.retrieve(current_user.stripe_id)
+        else:
+            customer = stripe.Customer.create(
+                email=current_user.email,
+                metadata={'formspree_id': current_user.id},
+            )
+            current_user.stripe_id = customer.id
+        # Make sure this card doesn't already exist    
+        new_fingerprint = stripe.Token.retrieve(token).card.fingerprint
+        if new_fingerprint in (card.fingerprint for card in customer.sources.all(object='card').data):
+            flash('That card already exists in your wallet', 'error')
+        else:
+            customer.sources.create(source=token)
+            flash('You\'ve successfully added a new card!', 'success')
+    except stripe.CardError:
+        flash("Sorry, there was an error in adding your card. If this persists, please contact us.", "error")
+    except stripe.error.APIConnectionError:
+        flash('We\'re unable to establish a connection with our payment processor. For your security, we haven\'t added this card to your account. Please try again later.', 'error')
+    except stripe.error.StripeError:
+        flash('Sorry, an unknown error occured. Please try again later. If this problem persists, please contact us.', 'error')
+
+    return redirect(url_for('account'))
+
+
+def delete_card(cardid):
+    if current_user.stripe_id:
+        customer = stripe.Customer.retrieve(current_user.stripe_id)
+        customer.sources.retrieve(cardid).delete()
+        flash('Successfully deleted card', 'success')
+    else:
+        flash("That's an invalid operation", 'error')
+    return redirect(url_for('account'))
 
 @login_required
 def account():
@@ -226,4 +278,28 @@ def account():
         'verified': (e.address for e in current_user.emails.order_by(Email.registered_on.desc())),
         'pending': filter(bool, request.cookies.get('pending-emails', '').split(',')),
     }
-    return render_template('users/account.html', emails=emails)
+    sub = None
+    cards = {}
+    if current_user.stripe_id:
+        try:
+            customer = stripe.Customer.retrieve(current_user.stripe_id)
+            card_mappings = {
+                'Visa': 'cc-visa',
+                'American Express': 'cc-amex',
+                'MasterCard': 'cc-mastercard',
+                'Discover': 'cc-discover',
+                'JCB': 'cc-jcb',
+                'Diners Club': 'cc-diners-club',
+                'Unknown': 'credit-card'
+            }
+            cards = customer.sources.all(object='card').data
+            for card in cards:
+                if customer.default_source == card.id:
+                    card.default = True
+                card.css_name = card_mappings[card.brand]
+            sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
+            if sub:
+                sub.current_period_end = datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')
+        except stripe.error.StripeError:
+            return render_template('error.html', title='Unable to connect', text="We're unable to make a secure connection to verify your account details. Please try again in a little bit. If this problem persists, please contact <strong>%s</strong>" % settings.CONTACT_EMAIL)
+    return render_template('users/account.html', emails=emails, cards=cards, sub=sub)

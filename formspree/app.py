@@ -7,6 +7,8 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager, current_user
 from flask.ext.cdn import CDN
 from flask_redis import Redis
+from flask_limiter import Limiter
+from flask_limiter.util import get_ipaddr
 import settings
 from helpers import ssl_redirect
 
@@ -45,6 +47,14 @@ def create_app():
     app.config['CDN_DOMAIN'] = settings.CDN_URL
     app.config['CDN_HTTPS'] = True
     cdn.init_app(app)
+
+    Limiter(
+        app,
+        key_func=get_ipaddr,
+        global_limits=[settings.RATE_LIMIT],
+        storage_uri=settings.REDIS_RATE_LIMIT
+    )
+
     if not app.debug and not app.testing:
         ssl_redirect(app)
     return app

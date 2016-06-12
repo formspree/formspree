@@ -6,7 +6,9 @@ install: "pip install -r requirements.txt"
 script: "python -m unittest discover"
 addons:
   postgresql: "9.3"
+services:
+  - redis-server
 before_script:
   - psql -c 'create database formspree_test;' -U postgres
 env:
-  - REDISTOGO_URL='0.0.0.0:6379' TEST_DATABASE_URL=postgres:///formspree_test NONCE_SECRET='y0ur_n0nc3_s3cr3t' SECRET_KEY='y0ur_s3cr3t_k3y' HASHIDS_SALT=doesntmatter STRIPE_TEST_PUBLISHABLE_KEY=pk_test_XebfAaLvLpHeO2txAgqWgJPf STRIPE_TEST_SECRET_KEY=sk_test_MLGQEdAHgWy4Rces4khaIxuc
+  - REDISTOGO_URL=0.0.0.0:6379 REDIS_URL='redis://h:@localhost:6379' RATE_LIMIT='120 per hour' TEST_DATABASE_URL=postgres:///formspree_test NONCE_SECRET='y0ur_n0nc3_s3cr3t' SECRET_KEY='y0ur_s3cr3t_k3y' HASHIDS_SALT=doesntmatter STRIPE_TEST_PUBLISHABLE_KEY=pk_test_XebfAaLvLpHeO2txAgqWgJPf STRIPE_TEST_SECRET_KEY=sk_test_MLGQEdAHgWy4Rces4khaIxuc
