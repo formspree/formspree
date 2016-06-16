@@ -294,7 +294,6 @@ def account():
             }
             cards = customer.sources.all(object='card').data
             for card in cards:
-                card.country = card.country.lower()
                 if customer.default_source == card.id:
                     card.default = True
                 card.css_name = card_mappings[card.brand]

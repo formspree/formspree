@@ -82,7 +82,7 @@
                     <div class="row">
                         <p>Number: ••••{{ card.last4 }}</p>
                         <p>Type: {{ card.brand }} {{ card.funding }} card</p>
-                        <p>Origin: {{ card.country }} <img src="{{url_for('static', filename='img/countries/%s.png' % card.country)}}" width="25"></p>
+                        <p>Origin: {{ card.country }} <img src="{{url_for('static', filename='img/countries/%s.png' % card.country.lower())}}" width="25"></p>
                         <p>CVC Check: {% if card.cvc_check == "pass" %}Passed <i class="fa fa-check-circle-o" aria-hidden="true"></i>{% elif card.cvc_check == "fail"%}Failed <i class="fa fa-times-circle-o" aria-hidden="true"></i>{%else%}Unknown <i class="fa fa-question-circle" aria-hidden="true"></i>{%endif%}</p>
                     </div>
                 </td>
