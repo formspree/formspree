@@ -6,7 +6,7 @@
 
 {% block section %}
 
-  <div class="col-1-1">
+  <div class="col-1-1 submissions-col">
     <h2>
       Submissions for
       {% if not form.hash %}
@@ -33,14 +33,22 @@
           </tr>
         </thead>
         <tbody>
-          {% for submission in submissions %}
-            <tr>
-              <td data-label="Submitted at">{{ submission.submitted_at.strftime('%A, %B %d, %Y at %X') }}</td>
-              {% for f in fields %}
-                <td data-label="{{ f }}"><pre>{{ submission.data[f] }}</pre></td>
-              {% endfor %}
-                <td><form method="POST" action="{{ url_for('submission-deletion', hashid=form.hashid, submissionid=submission.id) }}"><button class="no-border"><i class="fa fa-trash-o delete"></i></button></form></td>
-            </tr>
+          {% for s in submissions %}
+          <tr id="submission-{{ s.id }}">
+            <td id="p-{{ s.id }}" data-label="Submitted at">{{ s.submitted_at.strftime('%A, %B %d, %Y at %X') }}</td>
+            {% for f in fields %}
+              {% set value = s.data[f] %}
+              <td data-label="{{ f }}">
+              {% if 320 < (value | length) %}
+                <pre>{{ value[:270] }}&hellip; <a href=#submission-{{ s.id }}>(see more)</a></pre>
+                <pre class="full">{{ value }} <a href=#p-{{ s.id }}>(see less)</a></pre>
+              {% else %}
+                <pre>{{ value }}</pre>
+              {% endif %}</pre>
+              </td>
+            {% endfor %}
+              <td><form method="POST" action="{{ url_for('submission-deletion', hashid=form.hashid, submissionid=s.id) }}"><button class="no-border"><i class="fa fa-trash-o delete"></i></button></form></td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>

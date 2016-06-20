@@ -51,6 +51,10 @@
     color: $warning-orange;
   }
 
+  div.submissions-col {
+    overflow-x: scroll;
+  }
+
   table {
     text-align: left;
     width: 100%;
@@ -100,10 +104,20 @@
       tr:first-child td { padding-top: 10px; }
       td {
         padding: 3px 1px;
+        border: 1px ridge;
       }
       pre {
         font-family: inherit;
         margin: 0;
+        max-width: 300px;
+      }
+
+      // hiding full content when it is too big
+      tr pre.full { display: none }
+      tr:target pre {
+        // showing long text on click.
+        display: none;
+        & + pre.full { display: block; }
       }
     }
   

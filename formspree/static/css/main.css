@@ -733,6 +733,8 @@ a.alert-box.success:hover {
   .dashboard .delete:hover {
     transition: color 0.3s ease-in-out;
     color: #D87431; }
+  .dashboard div.submissions-col {
+    overflow-x: scroll; }
   .dashboard table {
     text-align: left;
     width: 100%; }
@@ -768,10 +770,18 @@ a.alert-box.success:hover {
       .dashboard table.submissions tr:first-child td {
         padding-top: 10px; }
       .dashboard table.submissions td {
-        padding: 3px 1px; }
+        padding: 3px 1px;
+        border: 1px ridge; }
       .dashboard table.submissions pre {
         font-family: inherit;
-        margin: 0; }
+        margin: 0;
+        max-width: 300px; }
+      .dashboard table.submissions tr pre.full {
+        display: none; }
+      .dashboard table.submissions tr:target pre {
+        display: none; }
+        .dashboard table.submissions tr:target pre + pre.full {
+          display: block; }
     .dashboard table.forms td.target-email, .dashboard table.emails td.target-email {
       max-width: 250px;
       word-break: break-word; }
