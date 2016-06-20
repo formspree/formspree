@@ -22,21 +22,22 @@
       {% endif %}
     </h2>
     {% if submissions %}
-      <table class="submissions">
+      <table class="submissions responsive">
         <thead>
           <tr>
             <th>Submitted at</th>
             {% for f in fields %}
               <th>{{ f }}</th>
             {% endfor %}
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {% for submission in submissions %}
             <tr>
-              <td>{{ submission.submitted_at.strftime('%A, %B %d, %Y at %X') }}</td>
+              <td data-label="Submitted at">{{ submission.submitted_at.strftime('%A, %B %d, %Y at %X') }}</td>
               {% for f in fields %}
-                <td><pre>{{ submission.data[f] }}</pre></td>
+                <td data-label="{{ f }}"><pre>{{ submission.data[f] }}</pre></td>
               {% endfor %}
                 <td><form method="POST" action="{{ url_for('submission-deletion', hashid=form.hashid, submissionid=submission.id) }}"><button class="no-border"><i class="fa fa-trash-o delete"></i></button></form></td>
             </tr>

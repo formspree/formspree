@@ -8,7 +8,7 @@
 
 <div class="col-1-1">
   <h4>Active Forms</h4>
-  <table class="forms">
+  <table class="forms responsive">
   {# status icon | host or form link | target email | number of submissions #}
   {% for form in enabled_forms %}
     {% include "forms/list-item.html" %}
@@ -19,7 +19,7 @@
 
   {% if disabled_forms %}
     <h4>Disabled Forms</h4>
-    <table class="forms">
+    <table class="forms responsive">
     {# status icon | host or form link | target email | number of submissions #}
     {% for form in disabled_forms %}
       {% include "forms/list-item.html" %}
