@@ -121,6 +121,7 @@ class Form(DB.Model):
 
         # return a fake success for spam
         if spam:
+            log.info('submission rejected. _gotcha field: %s' % spam)
             return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
 
         # validate reply_to, if it is not a valid email address, reject

@@ -48,6 +48,7 @@ def send(email_or_string):
                                    title='Unable to submit form',
                                    text='<p>Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. Also make sure that you\'re posting to <b>https://</b>{host}.</p><p>For geeks: could not find the "Referrer" header.</p>'.format(host=request.url.split('//')[1])), 400
 
+    log.info('Handling submission targeting %s and wanting %s' % (email_or_string, 'json' if request_wants_json() else 'html'))
     if not IS_VALID_EMAIL(email_or_string):
         # in this case it can be a hashid identifying a
         # form generated from the dashboard
@@ -80,7 +81,7 @@ def send(email_or_string):
                      not remove_www(host).startswith(form.host)
                    )
                  ):
-                log.debug('Submission rejected from %s to %s' % (host, email))
+                log.debug('submission rejected from %s to %s: form is not sitewide' % (host, email))
                 if request_wants_json():
                     return jsonerror(403, {'error': "Submission from different host than confirmed",
                                            'submitted': host, 'confirmed': form.host})
@@ -106,6 +107,7 @@ def send(email_or_string):
         form = Form.query.filter_by(hash=HASH(email, host)).first() \
                or Form(email, host) # or create it if it doesn't exists
         if form.disabled:
+            log.debug('submission rejected from %s to %s: form is disabled' % (host, email))
             if request_wants_json():
                 return jsonerror(403, {'error': 'Form not active'})
             else:
@@ -146,7 +148,7 @@ def send(email_or_string):
                 resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
             )
     elif status['code'] == Form.STATUS_OVERLIMIT:
-
+        log.info('submission rejected. form over quota.')
         if request_wants_json():
             return jsonify({'error': "form over quota"})
         else:
