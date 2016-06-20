@@ -734,7 +734,7 @@ a.alert-box.success:hover {
     transition: color 0.3s ease-in-out;
     color: #D87431; }
   .dashboard div.submissions-col {
-    overflow-x: scroll; }
+    overflow-x: auto; }
   .dashboard table {
     text-align: left;
     width: 100%; }
