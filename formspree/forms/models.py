@@ -7,7 +7,7 @@ from formspree.utils import send_email, unix_time_for_12_months_from_now, next_u
 from flask import url_for, render_template
 from sqlalchemy.sql.expression import delete
 from werkzeug.datastructures import ImmutableMultiDict, ImmutableOrderedMultiDict
-from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, http_form_to_dict, referrer_to_path
+from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, EXCLUDE_KEYS, http_form_to_dict, referrer_to_path
 
 class Form(DB.Model):
     __tablename__ = 'forms'
@@ -111,12 +111,12 @@ class Form(DB.Model):
         spam = data.get('_gotcha', None)
         format = data.get('_format', None)
 
-		# turn cc emails into array
+	    # turn cc emails into array
         if cc:
             cc = [email.strip() for email in cc.split(',')]
 
         # prevent submitting empty form
-        if not any(data.values()):
+        if not any([data[k] for k in keys]):
             return { 'code': Form.STATUS_EMAIL_EMPTY }
 
         # return a fake success for spam

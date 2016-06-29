@@ -10,13 +10,11 @@ from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from urlparse import urljoin
 
-from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, referrer_to_baseurl, HASH, EXCLUDE_KEYS
-
 from formspree import settings, log
 from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, remove_www, sitewide_file_check, HASH, EXCLUDE_KEYS
+from helpers import ordered_storage, referrer_to_path, referrer_to_baseurl, \
+                    remove_www, sitewide_file_check, HASH, EXCLUDE_KEYS
 from models import Form, Submission
 
 def thanks():
@@ -397,7 +395,7 @@ def form_submissions(hashid, format=None):
             fields = set()
             for s in submissions:
                 fields.update(s.data.keys())
-            fields -= set(EXCLUDE_KEYS)
+            fields -= EXCLUDE_KEYS
 
             return render_template('forms/submissions.html',
                 form=form,
