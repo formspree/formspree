@@ -5,6 +5,7 @@ import static_pages
 def configure_routes(app):
     app.add_url_rule('/', 'index', view_func=static_pages.views.default, methods=['GET'])
     app.add_url_rule('/favicon.ico', view_func=static_pages.views.favicon)
+    app.add_url_rule('/formspree-verify.txt', view_func=static_pages.views.formspree_verify)
     app.add_url_rule('/<path:template>', 'default', view_func=static_pages.views.default, methods=['GET'])
 
     # Public forms
