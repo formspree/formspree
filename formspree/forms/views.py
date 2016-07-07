@@ -175,46 +175,36 @@ def resend_confirmation(email):
         'remoteip': request.remote_addr
     })
     if r.ok and r.json().get('success'):
-        # then proceed to check for bounced addresses
-
-        if request.form.get('bounce_problem_solved') == 'true':
-            # delete bounce from SendGrid then proceed
-            requests.delete('https://api.sendgrid.com/v3/suppression/bounces/',
-                            auth=(settings.SENDGRID_USERNAME, settings.SENDGRID_PASSWORD),
-                            data={'emails': [email]})
-        else:
-            # check if this email is listed on SendGrid's bounces
-            r = requests.get('https://api.sendgrid.com/v3/suppression/bounces/' + email,
-                             auth=(settings.SENDGRID_USERNAME, settings.SENDGRID_PASSWORD))
-            if r.ok and len(r.json()) and 'reason' in r.json()[0]:
-                # tell the user to verify his mailbox
-                # and, at the same time, let him mark the checkbox that says he has already
-                #      made his mailbox available in the next time he tries to resend
-                #      confirmation.
-                reason = r.json()[0]['reason']
-                if request_wants_json():
-                    resp = jsonify({'error': "Verify your mailbox, we can't reach it.", 'reason': reason})
-                else:
-                    resp = make_response(render_template('info.html',
-                        title='Verify the availability of your mailbox',
-                        text="We encountered an error when trying to deliver the confirmation message to <b>" + email + "</b> at the first time we tried. For spam reasons, we will not try again until we are sure the problem is fixed. Here's the reason:</p><p><center><i>" + reason + "</i></center></p><p>Please make sure this problem is not happening still, then come here and try to resend your confirmation message again."
-                    ))
-                resp.set_cookie('has_been_notified_of_bounce', 'true', max_age=345600)
-                return resp
+        # then proceed to check if this email is listed on SendGrid's bounces
+        r = requests.get('https://api.sendgrid.com/api/bounces.get.json',
+            params={
+                'email': email,
+                'api_user': settings.SENDGRID_USERNAME,
+                'api_key': settings.SENDGRID_PASSWORD
+            }
+        )
+        if r.ok and len(r.json()) and 'reason' in r.json()[0]:
+            # tell the user to verify his mailbox
+            reason = r.json()[0]['reason']
+            if request_wants_json():
+                resp = jsonify({'error': "Verify your mailbox, we can't reach it.", 'reason': reason})
+            else:
+                resp = make_response(render_template('info.html',
+                    title='Verify the availability of your mailbox',
+                    text="We encountered an error when trying to deliver the confirmation message to <b>" + email + "</b> at the first time we tried. For spam reasons, we will not try again until we are sure the problem is fixed. Here's the reason:</p><p><center><i>" + reason + "</i></center></p><p>Please make sure this problem is not happening still, then go to <a href='/unblock/" + email + "'>this page</a> to unblock your address.</p><p>After you have unblocked the address, please try to resend the confirmation again.</p>"
+                ))
+            return resp
         # ~~~
+        # if there's no bounce, we proceed to resend the confirmation.
 
-        # if there's no bounce or the bounce problem has been solved, we proceed to resend
-        # the confirmation.
-
-        # I'm not sure if this should be available for forms created on the dashboard.
         form = Form.query.filter_by(hash=HASH(email, request.form['host'])).first()
         if not form:
             if request_wants_json():
-                return jsonerror(400, {'error': "This form does not exists"})
+                return jsonerror(400, {'error': "This form does not exist."})
             else:
                 return render_template('error.html',
                                        title='Check email address',
-                                       text='This form does not exists'), 400
+                                       text='This form does not exist.'), 400
         form.confirm_sent = False
         status = form.send_confirmation()
         if status['code'] == Form.STATUS_CONFIRMATION_SENT:
@@ -226,14 +216,46 @@ def resend_confirmation(email):
                     host=request.form['host'],
                     resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
                 )
-        
-    # fallback response -- should never happen
-    if request_wants_json():
-        return jsonerror(500, {'error': "Unable to send email"})
-    else:
+
+    # fallback response -- should happen only when the recaptcha is failed.
+    return render_template('error.html',
+                           title='Unable to send email',
+                           text='Please make sure you pass the <i>reCaptcha</i> test before submitting.'), 500
+
+def unblock_email(email):
+    if request.method == 'POST':
+        # check the captcha
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
+            'secret': settings.RECAPTCHA_SECRET,
+            'response': request.form['g-recaptcha-response'],
+            'remoteip': request.remote_addr
+        })
+        if r.ok and r.json().get('success'):
+            # then proceed to clear the bounce from SendGrid
+            r = requests.post(
+                'https://api.sendgrid.com/api/bounces.delete.json',
+                data={
+                    'email': email,
+                    'api_user': settings.SENDGRID_USERNAME,
+                    'api_key': settings.SENDGRID_PASSWORD
+                }
+            )
+            if r.ok and r.json()['message'] == 'success':
+                return render_template('info.html',
+                                       title='Successfully unblocked email address!',
+                                       text='You should be able to receive emails from Formspree again.')
+            else:
+                return render_template('error.html',
+                                       title='Failed to unblock address.',
+                                       text=email + ' is not a valid address or was\'t blocked on our side.')
+
+        # fallback response -- should happen only when the recaptcha is failed.
         return render_template('error.html',
-                               title='Unable to send email',
-                               text='Unable to send email'), 500
+                               title='Unable to unblock email',
+                               text='Please make sure you pass the <i>reCaptcha</i> test before submitting.'), 500
+
+    elif request.method == 'GET':
+        return render_template('forms/unblock_email.html', email=email), 200
 
 
 def confirm_email(nonce):

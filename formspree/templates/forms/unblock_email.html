@@ -1,0 +1,30 @@
+{% extends 'layouts/message.html' %}
+
+{% block base %}
+  <div class="container narrow card">
+    <div class="container" id="header">
+      <div class="col-1-1 header info">
+        <i class="ion ion-hammer"></i>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="col-1-1">
+
+        <h1>Unblock address</h1>
+        <p>Unblock <i>{{ email }}</i> so it can receive email from Formspree?</h1>
+
+        <form 
+          action="{{ url_for('unblock_email', email=email) }}"
+          method="POST"
+        >
+          <style>.g-recaptcha div { width: auto !important; height: auto !important; }</style>
+          <script src='https://www.google.com/recaptcha/api.js'></script>
+          <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_KEY }}"></div>
+          <button type="submit">Unblock</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+{% endblock base %}
