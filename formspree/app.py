@@ -66,8 +66,8 @@ def configure_logger(app):
             'error': 31
         }.get(method, 37)
 
-        return '\x1b[{color}m{met}\x1b[0m [{rid}] {msg} {rest}'.format(
-            color=levelcolor,
+        return '\x1b[{clr}m{met}\x1b[0m [\x1b[35m{rid}\x1b[0m] {msg} {rest}'.format(
+            clr=levelcolor,
             met=method.upper(),
             rid=request_id,
             msg=event.pop('event'),
