@@ -1,26 +1,27 @@
 import unicodecsv as csv
 import json
-import flask
 import requests
 import datetime
 import io
 
-from flask import request, url_for, render_template, redirect, jsonify, flash, make_response, Response
+from flask import request, url_for, render_template, redirect, \
+                  jsonify, flash, make_response, Response, g
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from urlparse import urljoin
 
-from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, referrer_to_baseurl, HASH, EXCLUDE_KEYS
-
-from formspree import settings, log
+from formspree import settings
 from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import ordered_storage, referrer_to_path, remove_www, sitewide_file_check, HASH, EXCLUDE_KEYS
+from helpers import ordered_storage, referrer_to_path, remove_www, \
+                    referrer_to_baseurl, sitewide_file_check, \
+                    HASH, EXCLUDE_KEYS
 from models import Form, Submission
+
 
 def thanks():
     return render_template('forms/thanks.html')
+
 
 @cross_origin(allow_headers=['Accept', 'Content-Type', 'X-Requested-With'])
 @ordered_storage
@@ -31,6 +32,8 @@ def send(email_or_string):
     or verification to email.
     '''
 
+    g.log = g.log.bind(target=email_or_string)
+
     if request.method == 'GET':
         if request_wants_json():
             return jsonerror(405, {'error': "Please submit POST request."})
@@ -39,7 +42,7 @@ def send(email_or_string):
                                    title='Form should POST',
                                    text='Make sure your form has the <span class="code"><strong>method="POST"</strong></span> attribute'), 405
 
-    host = referrer_to_path(flask.request.referrer)
+    host = referrer_to_path(request.referrer)
     if not host:
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
@@ -48,7 +51,9 @@ def send(email_or_string):
                                    title='Unable to submit form',
                                    text='<p>Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. Also make sure that you\'re posting to <b>https://</b>{host}.</p><p>For geeks: could not find the "Referrer" header.</p>'.format(host=request.url.split('//')[1])), 400
 
-    log.info('Handling submission targeting %s and wanting %s' % (email_or_string, 'json' if request_wants_json() else 'html'))
+    g.log = g.log.bind(host=host, wants='json' if request_wants_json() else 'html')
+
+    g.log.info('Received submission.')
     if not IS_VALID_EMAIL(email_or_string):
         # in this case it can be a hashid identifying a
         # form generated from the dashboard
@@ -81,10 +86,12 @@ def send(email_or_string):
                      not remove_www(host).startswith(form.host)
                    )
                  ):
-                log.debug('submission rejected from %s to %s: form is not sitewide' % (host, email))
+                g.log.info('Submission rejected. From a different host than confirmed.')
                 if request_wants_json():
-                    return jsonerror(403, {'error': "Submission from different host than confirmed",
-                                           'submitted': host, 'confirmed': form.host})
+                    return jsonerror(403, {
+                       'error': "Submission from different host than confirmed",
+                       'submitted': host, 'confirmed': form.host
+                    })
                 else:
                     return render_template('error.html',
                                            title='Check form address',
@@ -92,6 +99,7 @@ def send(email_or_string):
                                                  confirmed for address "%s"' % (host, form.host)), 403
         else:
             # no form row found. it is an error.
+            g.log.info('Submission rejected. No form found for this target.')
             if request_wants_json():
                 return jsonerror(400, {'error': "Invalid email address"})
             else:
@@ -107,7 +115,7 @@ def send(email_or_string):
         form = Form.query.filter_by(hash=HASH(email, host)).first() \
                or Form(email, host) # or create it if it doesn't exists
         if form.disabled:
-            log.debug('submission rejected from %s to %s: form is disabled' % (host, email))
+            g.log.info('submission rejected. Form is disabled.')
             if request_wants_json():
                 return jsonerror(403, {'error': 'Form not active'})
             else:
@@ -126,7 +134,7 @@ def send(email_or_string):
     # Respond to the request accordingly to the status code
     if status['code'] == Form.STATUS_EMAIL_SENT:
         if request_wants_json():
-            return jsonify({ 'success': "email sent", 'next': status['next'] })
+            return jsonify({'success': "email sent", 'next': status['next']})
         else:
             return redirect(status['next'], code=302)
     elif status['code'] == Form.STATUS_EMAIL_EMPTY:
@@ -148,7 +156,6 @@ def send(email_or_string):
                 resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
             )
     elif status['code'] == Form.STATUS_OVERLIMIT:
-        log.info('submission rejected. form over quota.')
         if request_wants_json():
             return jsonify({'error': "form over quota"})
         else:
@@ -170,6 +177,9 @@ def send(email_or_string):
 
 
 def resend_confirmation(email):
+    g.log = g.log.bind(email=email, host=request.form.get('host'))
+    g.log.info('Resending confirmation.')
+
     # the first thing to do is to check the captcha
     r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
         'secret': settings.RECAPTCHA_SECRET,
@@ -188,6 +198,7 @@ def resend_confirmation(email):
         if r.ok and len(r.json()) and 'reason' in r.json()[0]:
             # tell the user to verify his mailbox
             reason = r.json()[0]['reason']
+            g.log.info('Email is blocked on SendGrid. Telling the user.')
             if request_wants_json():
                 resp = jsonify({'error': "Verify your mailbox, we can't reach it.", 'reason': reason})
             else:
@@ -220,12 +231,17 @@ def resend_confirmation(email):
                 )
 
     # fallback response -- should happen only when the recaptcha is failed.
+    g.log.warning('Failed to resend confirmation.')
     return render_template('error.html',
                            title='Unable to send email',
                            text='Please make sure you pass the <i>reCaptcha</i> test before submitting.'), 500
 
+
 def unblock_email(email):
     if request.method == 'POST':
+        g.log = g.log.bind(email=email)
+        g.log.info('Unblocking email on SendGrid.')
+
         # check the captcha
         r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
             'secret': settings.RECAPTCHA_SECRET,
@@ -243,15 +259,18 @@ def unblock_email(email):
                 }
             )
             if r.ok and r.json()['message'] == 'success':
+                g.log.info('Unblocked address.')
                 return render_template('info.html',
                                        title='Successfully unblocked email address!',
                                        text='You should be able to receive emails from Formspree again.')
             else:
+                g.log.warning('Failed to unblock email on SendGrid.')
                 return render_template('error.html',
                                        title='Failed to unblock address.',
                                        text=email + ' is not a valid address or was\'t blocked on our side.')
 
         # fallback response -- should happen only when the recaptcha is failed.
+        g.log.warning('Failed to unblock email. reCaptcha test failed.')
         return render_template('error.html',
                                title='Unable to unblock email',
                                text='Please make sure you pass the <i>reCaptcha</i> test before submitting.'), 500
@@ -321,7 +340,9 @@ def forms():
 @login_required
 def create_form():
     # create a new form
+
     if not current_user.upgraded:
+        g.log.info('Failed to create form from dashboard. User is not upgraded.')
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     if request.get_json():
@@ -333,12 +354,17 @@ def create_form():
         url = request.form.get('url')
         sitewide = request.form.get('sitewide')
 
+    g.log = g.log.bind(email=email, url=url, sitewide=sitewide)
+
     if not IS_VALID_EMAIL(email):
+        g.log.info('Failed to create form from dashboard. Invalid address.')
         if request_wants_json():
             return jsonerror(400, {'error': "The provided email address is not valid."})
         else:
             flash('The provided email address is not valid.', 'error')
             return redirect(url_for('dashboard'))
+
+    g.log.info('Creating a new form from the dashboard.')
 
     email = email.lower() # case-insensitive
     form = Form(email, owner=current_user)
@@ -352,7 +378,7 @@ def create_form():
                 form.host = remove_www(referrer_to_path(urljoin(url, '/'))[:-1])
                 form.sitewide = True
             else:
-                return jsonerror(403, {'error': "Couldn't find the verification file."})
+                return jsonerror(403, {'error': "Couldn't verify the file at %s." % url})
 
     DB.session.add(form)
     DB.session.commit()
@@ -362,6 +388,7 @@ def create_form():
         # but only if the email is registered for this account
         for email in current_user.emails:
             if email.address == form.email:
+                g.log.info('No need for email confirmation.')
                 form.confirmed = True
                 DB.session.add(form)
                 DB.session.commit()
@@ -382,6 +409,7 @@ def create_form():
         flash('Your new form endpoint was created!', 'success')
         return redirect(url_for('dashboard', new=form.hashid) + '#form-' + form.hashid)
 
+
 @login_required
 def sitewide_check():
     email = request.args.get('email')
@@ -391,6 +419,7 @@ def sitewide_check():
         return '', 200
     else:
         return '', 404
+
 
 @login_required
 def form_submissions(hashid, format=None):
@@ -462,12 +491,13 @@ def form_submissions(hashid, format=None):
                 }
             )
 
+
 @login_required
 def form_toggle(hashid):
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
-    referrer = referrer_to_baseurl(flask.request.referrer)
+    referrer = referrer_to_baseurl(request.referrer)
     service = referrer_to_baseurl(settings.SERVICE_URL)
     if referrer != service:
         return render_template('error.html',
@@ -493,12 +523,13 @@ def form_toggle(hashid):
             flash('Form successfully enabled', 'success')
         return redirect(url_for('dashboard'))
 
+
 @login_required
 def form_deletion(hashid):
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
-    referrer = referrer_to_baseurl(flask.request.referrer)
+    referrer = referrer_to_baseurl(request.referrer)
     service = referrer_to_baseurl(settings.SERVICE_URL)
     if referrer != service:
         return render_template('error.html',
@@ -522,13 +553,14 @@ def form_deletion(hashid):
         flash('Form successfully deleted', 'success')
         return redirect(url_for('dashboard'))
 
+
 @login_required
 def submission_deletion(hashid, submissionid):
     submission = Submission.query.get(submissionid)
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
-    referrer = referrer_to_baseurl(flask.request.referrer)
+    referrer = referrer_to_baseurl(request.referrer)
     service = referrer_to_baseurl(settings.SERVICE_URL)
     if referrer != service:
         return render_template('error.html',

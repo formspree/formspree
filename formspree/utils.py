@@ -6,7 +6,7 @@ import uuid
 import re
 from flask import request, url_for, jsonify, g
 
-from formspree import settings, log
+from formspree import settings
 
 IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
@@ -94,7 +94,7 @@ def next_url(referrer=None, next=None):
 
 
 def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
-    g.log.info('attempting to send mail.', to=to, sender=sender)
+    g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
         raise ValueError('to, subject text and sender are required to send email')
@@ -128,13 +128,13 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
         data=data
     )
 
-    g.log.info('queued message', to=to)
+    g.log.info('Queued email.', to=to)
     errmsg = ""
     if result.status_code / 100 != 2:
         try:
             errmsg = '; \n'.join(result.json().get("errors"))
         except ValueError:
             errmsg = result.text
-        g.log.warn('email could not be sent.', err=errmsg)
+        g.log.warning('Email could not be sent.', err=errmsg)
 
     return result.status_code / 100 == 2, errmsg, result.status_code

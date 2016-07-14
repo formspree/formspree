@@ -37,7 +37,7 @@ def configure_ssl_redirect(app):
     @app.before_request
     def get_redirect():
         if not request.is_secure and \
-           not request.headers.get('X-Forwarded-Proto', 'http') == 'https' and\
+           not request.headers.get('X-Forwarded-Proto', 'http') == 'https' and \
            request.method == 'GET' and request.url.startswith('http://'):
             url = request.url.replace('http://', 'https://', 1)
             r = redirect(url, code=301)
@@ -59,14 +59,27 @@ def configure_logger(app):
             request_id = '~'
             # we're not on heroku. we must provide it ourselves.
 
-        return '{met} [{rid}] {rest}'.format(
+        levelcolor = {
+            'debug': 32,
+            'info': 34,
+            'warning': 33,
+            'error': 31
+        }.get(method, 37)
+
+        return '\x1b[{color}m{met}\x1b[0m [{rid}] {msg} {rest}'.format(
+            color=levelcolor,
             met=method.upper(),
             rid=request_id,
-            rest=' '.join(['%s=%s' % (k.upper(), v) for k, v in event.items()])
+            msg=event.pop('event'),
+            rest=' '.join(['\x1b[%sm%s\x1b[0m=%s' % (levelcolor, k.upper(), v)
+                           for k, v in event.items()])
         )
 
     structlog.configure(
-        processors=[processor]
+        processors=[
+            structlog.processors.ExceptionPrettyPrinter(),
+            processor
+        ]
     )
 
     logger = structlog.get_logger()
