@@ -52,13 +52,7 @@ def configure_ssl_redirect(app):
 
 def configure_logger(app):
     def processor(_, method, event):
-        try:
-            request_id = event.pop('request_id') or '~'
-            # we're on heroku, so we can count that heroku will timestamp the logs and so on
-        except KeyError:
-            request_id = '~'
-            # we're not on heroku. we must provide it ourselves.
-
+        # we're on heroku, so we can count that heroku will timestamp the logs and so on
         levelcolor = {
             'debug': 32,
             'info': 34,
@@ -69,7 +63,7 @@ def configure_logger(app):
         return '\x1b[{clr}m{met}\x1b[0m [\x1b[35m{rid}\x1b[0m] {msg} {rest}'.format(
             clr=levelcolor,
             met=method.upper(),
-            rid=request_id,
+            rid=request.headers.get('X-Request-Id', '~'),
             msg=event.pop('event'),
             rest=' '.join(['\x1b[%sm%s\x1b[0m=%s' % (levelcolor, k.upper(), v)
                            for k, v in event.items()])
@@ -86,7 +80,7 @@ def configure_logger(app):
 
     @app.before_request
     def get_request_id():
-        g.log = logger.new(request_id=request.headers.get('X-Request-ID'))
+        g.log = logger.new()
 
 
 def create_app():
