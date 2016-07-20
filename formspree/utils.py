@@ -2,22 +2,19 @@ import requests
 import datetime
 import calendar
 import urlparse
-import string
 import uuid
 import re
-from datetime import timedelta
-from flask import make_response, current_app, request, url_for, jsonify
-from importlib import import_module
+from flask import request, url_for, jsonify, g
 
-from formspree import settings, log
+from formspree import settings
 
 IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
 # decorators
 
 def request_wants_json():
-    if request.headers.get('X_REQUESTED_WITH','').lower() == 'xmlhttprequest' or \
-       request.headers.get('X-REQUESTED-WITH','').lower() == 'xmlhttprequest':
+    if request.headers.get('X_REQUESTED_WITH', '').lower() == 'xmlhttprequest' or \
+       request.headers.get('X-REQUESTED-WITH', '').lower() == 'xmlhttprequest':
         return True
     if accept_better('json', 'html'):
         return True
@@ -97,9 +94,7 @@ def next_url(referrer=None, next=None):
 
 
 def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
-    '''
-    Sends email using SendGrid's REST-api
-    '''
+    g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
         raise ValueError('to, subject text and sender are required to send email')
@@ -128,20 +123,18 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
         valid_emails = [email for email in cc if IS_VALID_EMAIL(email)]
         data.update({'cc': valid_emails})
 
-    log.info('Queuing message to %s' % str(to))
-
     result = requests.post(
         'https://api.sendgrid.com/api/mail.send.json',
         data=data
     )
 
-    log.info('Queued message to %s' % str(to))
+    g.log.info('Queued email.', to=to)
     errmsg = ""
     if result.status_code / 100 != 2:
         try:
             errmsg = '; \n'.join(result.json().get("errors"))
         except ValueError:
             errmsg = result.text
-        log.warning(errmsg)
+        g.log.warning('Email could not be sent.', err=errmsg)
 
     return result.status_code / 100 == 2, errmsg, result.status_code
