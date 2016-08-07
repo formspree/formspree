@@ -10,7 +10,6 @@ from formspree import settings
 
 IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
-# decorators
 
 def request_wants_json():
     if request.headers.get('X_REQUESTED_WITH', '').lower() == 'xmlhttprequest' or \
@@ -79,18 +78,17 @@ def unix_time_for_12_months_from_now(now=None):
 
 def next_url(referrer=None, next=None):
     referrer = referrer if referrer is not None else ''
-    next = next if next is not None else ''
 
-    if not next:
-      return url_for('thanks')
+    if next:
+        if urlparse.urlparse(next).netloc:  # check if next_url is an absolute url
+            return next
 
-    if urlparse.urlparse(next).netloc:  # check if next_url is an absolute url
-      return next
+        parsed = list(urlparse.urlparse(referrer))  # results in [scheme, netloc, path, ...]
+        parsed[2] = next
 
-    parsed = list(urlparse.urlparse(referrer))  # results in [scheme, netloc, path, ...]
-    parsed[2] = next
-
-    return urlparse.urlunparse(parsed)
+        return urlparse.urlunparse(parsed)
+    else:
+        return url_for('thanks', next=referrer)
 
 
 def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
