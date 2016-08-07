@@ -260,7 +260,8 @@
           </div>
           <div class="col-1-2">
             <form method="POST" action="{{config.API_ROOT}}/{{config.CONTACT_FORM_HASHID}}">
-              <input type="email" name="_replyto" placeholder="Your email" required />
+              <input type="email" name="_replyto" placeholder="Your email" value="{{current_user.email}}"
+                     required />
               <textarea name="message" rows="5" placeholder="Your message (when sending support requests, please include the URL to your form if that is relevant)" required></textarea>
               <input type="text" name="_gotcha" style="display:none">
               <input type="hidden" name="_format" value="plain" style="display:none">
