@@ -2,22 +2,18 @@ import requests
 import datetime
 import calendar
 import urlparse
-import string
 import uuid
 import re
-from datetime import timedelta
-from flask import make_response, current_app, request, url_for, jsonify
-from importlib import import_module
+from flask import request, url_for, jsonify, g
 
-from formspree import settings, log
+from formspree import settings
 
 IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
-# decorators
 
 def request_wants_json():
-    if request.headers.get('X_REQUESTED_WITH','').lower() == 'xmlhttprequest' or \
-       request.headers.get('X-REQUESTED-WITH','').lower() == 'xmlhttprequest':
+    if request.headers.get('X_REQUESTED_WITH', '').lower() == 'xmlhttprequest' or \
+       request.headers.get('X-REQUESTED-WITH', '').lower() == 'xmlhttprequest':
         return True
     if accept_better('json', 'html'):
         return True
@@ -82,24 +78,21 @@ def unix_time_for_12_months_from_now(now=None):
 
 def next_url(referrer=None, next=None):
     referrer = referrer if referrer is not None else ''
-    next = next if next is not None else ''
 
-    if not next:
-      return url_for('thanks')
+    if next:
+        if urlparse.urlparse(next).netloc:  # check if next_url is an absolute url
+            return next
 
-    if urlparse.urlparse(next).netloc:  # check if next_url is an absolute url
-      return next
+        parsed = list(urlparse.urlparse(referrer))  # results in [scheme, netloc, path, ...]
+        parsed[2] = next
 
-    parsed = list(urlparse.urlparse(referrer))  # results in [scheme, netloc, path, ...]
-    parsed[2] = next
-
-    return urlparse.urlunparse(parsed)
+        return urlparse.urlunparse(parsed)
+    else:
+        return url_for('thanks', next=referrer)
 
 
 def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
-    '''
-    Sends email using SendGrid's REST-api
-    '''
+    g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
         raise ValueError('to, subject text and sender are required to send email')
@@ -121,27 +114,25 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
     except ValueError:
         data.update({'from': sender})
 
-    if reply_to and IS_VALID_EMAIL(reply_to):
+    if reply_to:
         data.update({'replyto': reply_to})
 
     if cc:
         valid_emails = [email for email in cc if IS_VALID_EMAIL(email)]
         data.update({'cc': valid_emails})
 
-    log.info('Queuing message to %s' % str(to))
-
     result = requests.post(
         'https://api.sendgrid.com/api/mail.send.json',
         data=data
     )
 
-    log.info('Queued message to %s' % str(to))
+    g.log.info('Queued email.', to=to)
     errmsg = ""
     if result.status_code / 100 != 2:
         try:
             errmsg = '; \n'.join(result.json().get("errors"))
         except ValueError:
             errmsg = result.text
-        log.warning(errmsg)
+        g.log.warning('Email could not be sent.', err=errmsg)
 
     return result.status_code / 100 == 2, errmsg, result.status_code

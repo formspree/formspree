@@ -1,0 +1,72 @@
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.payment/1.4.1/jquery.payment.min.js"></script><div class="create-form">
+    <a href="#add-card" class="button">
+      Add Card
+    </a>
+    <div class="modal narrow" id="add-card" aria-hidden="true">
+        <div class="container">
+            <div class="x">
+                <h4>Add Card</h4><a href="#">&times;</a></div>
+            <form method="POST" action="{{ url_for('add-card') }}" id="payment-form">
+                <div class="col-1-1">
+                    <h4>Card Number</h4>
+                    <input type="text" class="cc-number" size="20" data-stripe="number">
+                    <span id="card-brand"></span>
+                </div>
+                <div class="col-1-2">
+                    <h4>Expiration Date</h4>
+                    <input type="text" class="cc-exp" size="12" placeholder="MM / YY" data-stripe="exp">
+                </div>
+                <div class="col-1-2">
+                    <h4>CVC</h4>
+                    <input type="tel" class="cc-cvc" inputmode="numeric" autocomplete="off" autocorrect="no" autocapitalize="no" spellcheck="no" maxlength="4" data-stripe="cvc">
+                </div>
+                <div class="col-1-1">
+                    <input type="submit" class="submit card" value="Add Card">
+                </div>
+            </form>
+            <div class="col-1-1 small">
+                <p>Secured with <i class="fa fa-cc-stripe" aria-hidden="true"></i>. {{ config.SERVICE_NAME }} never sees your card number</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(function () {
+        $('[data-numeric]').payment('restrictNumeric');
+        $('.cc-number').payment('formatCardNumber');
+        $('.cc-exp').payment('formatCardExpiry');
+        $('.cc-cvc').payment('formatCardCVC');
+
+        var $form = $('#payment-form');
+        $form.submit(function (event) {
+            // Disable the submit button to prevent repeated clicks:
+            $form.find('.submit').prop('disabled', true);
+            // Request a token from Stripe:
+            Stripe.card.createToken($form, stripeResponseHandler);
+
+            // Prevent the form from being submitted:
+            return false;
+        });
+    });
+
+    function stripeResponseHandler(status, response) {
+        // Grab the form:
+        var $form = $('#payment-form');
+        if (response.error) { // Problem!
+            // Show the errors on the form:
+            toastr['error'](response.error.message)
+            $form.find('.submit').prop('disabled', false); // Re-enable submission
+        } else { // Token was created!
+
+            // Get the token ID:
+            var token = response.id;
+
+            // Insert the token ID into the form so it gets submitted to the server:
+            $form.append($('<input type="hidden" name="stripeToken">').val(token));
+            // Submit the form:
+            $form.get(0).submit();
+        }
+    };
+</script>

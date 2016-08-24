@@ -1,29 +1,36 @@
-import time
 import stripe
 import datetime
 
-from flask import request, flash, url_for, render_template, redirect, abort
-from flask.ext.login import login_user, logout_user, current_user, login_required
+from flask import request, flash, url_for, render_template, redirect, g
+from flask.ext.login import login_user, logout_user, \
+                            current_user, login_required
 from sqlalchemy.exc import IntegrityError
 from helpers import check_password, hash_pwd
 from formspree.app import DB
 from formspree import settings
 from models import User, Email
 
+
 def register():
     if request.method == 'GET':
         return render_template('users/register.html')
+
+    g.log = g.log.bind(email=request.form.get('email'))
+
     try:
         user = User(request.form['email'], request.form['password'])
         DB.session.add(user)
         DB.session.commit()
+        g.log.info('User account created.')
     except ValueError:
         DB.session.rollback()
         flash("%s is not a valid email address." % request.form['email'], "error")
+        g.log.info('Account creation failed. Invalid address.')
         return render_template('users/register.html')
     except IntegrityError:
         DB.session.rollback()
         flash("An account with this email already exists.", "error")
+        g.log.info('Account creation failed. Address is use.')
         return render_template('users/register.html')
 
     login_user(user, remember=True)
@@ -38,15 +45,20 @@ def register():
         flash("Your account was set up, but we couldn't send a verification email to your address, please try doing it again manually later.", "warning")
     return res
 
+
 @login_required
 def add_email():
-    address = request.form['address']
+    address = request.form['address'].lower().strip()
     res = redirect(url_for('account'))
 
+    g.log = g.log.bind(address=address, account=current_user.email)
+
     if Email.query.get([address, current_user.id]):
+        g.log.info('Failed to add email to account. Already registered.')
         flash("%s is already registered for your account." % address, 'warning')
         return res
     try:
+        g.log.info('Adding new email address to account.')
         sent = Email.send_confirmation(address, current_user.id)
         if sent:
             pending = request.cookies.get('pending-emails', '').split(',')
@@ -75,7 +87,9 @@ def confirm_email(digest):
             pending.remove(email.address)
             res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
             flash('%s confirmed.' % email.address, 'success')
-        except IntegrityError:
+        except IntegrityError as e:
+            g.log.error('Failed to save new email address to account.', exc_info=e)
+            flash('A unexpected error has ocurred while we were trying to confirm the email. Please contact us if this continues to happen.', 'error')
             return res
     else:
         flash('Couldn\'t confirm %s. Wrong link.' % email, 'error')
@@ -152,16 +166,22 @@ def reset_password(digest):
 def upgrade():
     token = request.form['stripeToken']
 
+    g.log = g.log.bind(account=current_user.email)
+    g.log.info('Upgrading account.')
+
     if not current_user:
+        g.log.info('User is not logged, using email received from Stripe.', email=request.form.get('stripeEmail'))
         user = User.query.filter_by(email=request.form['stripeEmail']).first()
         login_user(user, remember=True)
 
     sub = None
     try:
         if current_user.stripe_id:
+            g.log.info('User already has a subscription. Will change it.')
             customer = stripe.Customer.retrieve(current_user.stripe_id)
             sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
         else:
+            g.log.info('Will create a new subscription.')
             customer = stripe.Customer.create(
                 email=current_user.email,
                 metadata={'formspree_id': current_user.id},
@@ -177,7 +197,8 @@ def upgrade():
                 plan='gold',
                 source=token
             )
-    except stripe.CardError:
+    except stripe.CardError as e:
+        g.log.warning("Couldn't charge card.", reason=e.json_body, status=e.http_status)
         flash("Sorry. Your card could not be charged. Please contact us.", "error")
         return redirect(url_for('dashboard'))
 
@@ -185,9 +206,26 @@ def upgrade():
     DB.session.add(current_user)
     DB.session.commit()
     flash("Congratulations! You are now a {SERVICE_NAME} {UPGRADED_PLAN_NAME} user!".format(**settings.__dict__), 'success')
+    g.log.info('Subscription created.')
 
     return redirect(url_for('dashboard'))
 
+@login_required
+def resubscribe():
+    customer = stripe.Customer.retrieve(current_user.stripe_id)
+    sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
+
+    if not sub:
+        flash("You can't do this. You are not subscribed to any plan.", "warning")
+        return redirect(url_for('account'))
+        
+    sub.plan = 'gold'
+    sub.save()
+    
+    g.log.info('Resubscribed user.', account=current_user.email)
+    flash('Glad to have you back! Your subscription will now automatically renew on {date}'.format(date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')), 'success')
+    
+    return redirect(url_for('account'))
 
 @login_required
 def downgrade():
@@ -196,6 +234,7 @@ def downgrade():
 
     if not sub:
         flash("You can't do this. You are not subscribed to any plan.", "warning")
+        return redirect(url_for('account'))
 
     sub = sub.delete(at_period_end=True)
     flash("You were unregistered from the {SERVICE_NAME} {UPGRADED_PLAN_NAME} plan."\
@@ -204,11 +243,14 @@ def downgrade():
         .format(date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')),
     'info')
 
+    g.log.info('Subscription canceled from dashboard.', account=current_user.email)
     return redirect(url_for('account'))
 
 
 def stripe_webhook():
     event = request.get_json()
+    g.log.info('Webhook from Stripe', type=event['type'])
+
     if event['type'] == 'customer.subscription.deleted':
         customer_id = event['data']['object']['customer']
         customer = stripe.Customer.retrieve(customer_id)
@@ -217,7 +259,55 @@ def stripe_webhook():
             user.upgraded = False
             DB.session.add(user)
             DB.session.commit()
+            g.log.info('Downgraded user from webhook.', account=user.email)
     return 'ok'
+
+
+@login_required
+def add_card():
+    token = request.form['stripeToken']
+
+    g.log = g.log.bind(account=current_user.email)
+
+    try:
+        if current_user.stripe_id:
+            customer = stripe.Customer.retrieve(current_user.stripe_id)
+        else:
+            customer = stripe.Customer.create(
+                email=current_user.email,
+                metadata={'formspree_id': current_user.id},
+            )
+            current_user.stripe_id = customer.id
+        # Make sure this card doesn't already exist
+        new_fingerprint = stripe.Token.retrieve(token).card.fingerprint
+        if new_fingerprint in (card.fingerprint for card in customer.sources.all(object='card').data):
+            flash('That card already exists in your wallet', 'error')
+        else:
+            customer.sources.create(source=token)
+            flash('You\'ve successfully added a new card!', 'success')
+            g.log.info('Added card to stripe account.')
+    except stripe.CardError as e:
+        flash("Sorry, there was an error in adding your card. If this persists, please contact us.", "error")
+        g.log.warning("Couldn't add card to Stripe account.", reason=e.json_body, status=e.http_status)
+    except stripe.error.APIConnectionError:
+        flash('We\'re unable to establish a connection with our payment processor. For your security, we haven\'t added this card to your account. Please try again later.', 'error')
+        g.log.warning("Couldn't add card to Stripe account. Failed to communicate with Stripe API.")
+    except stripe.error.StripeError:
+        flash('Sorry, an unknown error occured. Please try again later. If this problem persists, please contact us.', 'error')
+        g.log.warning("Couldn't add card to Stripe account. Unknown error.")
+
+    return redirect(url_for('account'))
+
+
+def delete_card(cardid):
+    if current_user.stripe_id:
+        customer = stripe.Customer.retrieve(current_user.stripe_id)
+        customer.sources.retrieve(cardid).delete()
+        flash('Successfully deleted card', 'success')
+        g.log.info('Deleted card from account.', account=current_user.email)
+    else:
+        flash("That's an invalid operation", 'error')
+    return redirect(url_for('account'))
 
 
 @login_required
@@ -226,4 +316,28 @@ def account():
         'verified': (e.address for e in current_user.emails.order_by(Email.registered_on.desc())),
         'pending': filter(bool, request.cookies.get('pending-emails', '').split(',')),
     }
-    return render_template('users/account.html', emails=emails)
+    sub = None
+    cards = {}
+    if current_user.stripe_id:
+        try:
+            customer = stripe.Customer.retrieve(current_user.stripe_id)
+            card_mappings = {
+                'Visa': 'cc-visa',
+                'American Express': 'cc-amex',
+                'MasterCard': 'cc-mastercard',
+                'Discover': 'cc-discover',
+                'JCB': 'cc-jcb',
+                'Diners Club': 'cc-diners-club',
+                'Unknown': 'credit-card'
+            }
+            cards = customer.sources.all(object='card').data
+            for card in cards:
+                if customer.default_source == card.id:
+                    card.default = True
+                card.css_name = card_mappings[card.brand]
+            sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
+            if sub:
+                sub.current_period_end = datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')
+        except stripe.error.StripeError:
+            return render_template('error.html', title='Unable to connect', text="We're unable to make a secure connection to verify your account details. Please try again in a little bit. If this problem persists, please contact <strong>%s</strong>" % settings.CONTACT_EMAIL)
+    return render_template('users/account.html', emails=emails, cards=cards, sub=sub)

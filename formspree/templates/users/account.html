@@ -45,32 +45,80 @@
 
         {% if current_user.upgraded %}
           <p>You are a {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} user.</p>
-          <form action="/account/downgrade" method="POST">
-            <button type="submit">Cancel subscription</button>
-          </form>
-        {% else %}
-          When you upgrade to <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong> you will get
-          <ol style="text-align: left">
-            <li>Unlimited submissions</li>
-            <li>Access to submission archives</li>
-            <li>Ability to hide your email from your page's HTML and replace it with a random-like URL</li>
-            <li>Ability to create forms linked to other email accounts</li>
-          </ol>
+          {% if sub.cancel_at_period_end %}
+            <p>You've cancelled your subscription and it is ending on {{ sub.current_period_end }}.</p>
+            <form action="/account/upgrade" method="POST">
+              <button type="submit">Resubscribe</button>
+            </form>
+          {% else %}
+            <p>Your subscription will automatically renew on {{ sub.current_period_end }}.</p>
+            <form action="/account/downgrade" method="POST">
+              <button type="submit">Cancel subscription</button>
+            </form>
+          {% endif %}
+          
+          <h3>Wallet</h3>
+          {% if cards %}
+          <table id="card-list">
+            {% for card in cards %}
+            <tr>
+                <td>
+                    <div class="arrow"><i class="fa fa-chevron-right" aria-hidden="true"></i></div>
+                </td>
+                <td><i class="fa fa-{{card.css_name}}" aria-hidden="true"></i></td>
+                <td>••••{{ card.last4 }}</td>
+                <td>{{card.exp_month}}/{{card.exp_year}}</td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    <div class="actions" style="float:right;width:50%;padding-left:20%;">
+                        {% if card.default %}
+                        <p><button style="color:white;background:#359173;border:none;" class="disabled" disabled>Default</button></p>
+                        {% endif %}
+                        <form action="{{ url_for('delete-card', cardid=card.id) }}" method="POST">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </div>
+                    <div class="row">
+                        <p>Number: ••••{{ card.last4 }}</p>
+                        <p>Type: {{ card.brand }} {{ card.funding }} card</p>
+                        <p>Origin: {{ card.country }} <img src="{{url_for('static', filename='img/countries/%s.png' % card.country.lower())}}" width="25"></p>
+                        <p>CVC Check: {% if card.cvc_check == "pass" %}Passed <i class="fa fa-check-circle-o" aria-hidden="true"></i>{% elif card.cvc_check == "fail"%}Failed <i class="fa fa-times-circle-o" aria-hidden="true"></i>{%else%}Unknown <i class="fa fa-question-circle" aria-hidden="true"></i>{%endif%}</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+          </table>
+          {% else %}
+          <p>We couldn't find any active cards in your wallet. Please make sure to add a card by {{ sub.current_period_end }} or your subscription won't renew.</p>
+          {% endif %}
+          {% include "users/card.html" %}
+          {% else %}
+            When you upgrade to <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong> you will get
+            <ol style="text-align: left">
+              <li>Unlimited submissions</li>
+              <li>Access to submission archives</li>
+              <li>Ability to hide your email from your page's HTML and replace it with a random-like URL</li>
+              <li>Ability to create forms linked to other email accounts</li>
+            </ol>
 
-          <h6 class="light">You are using a free account and should upgrade.</h6>
+            <h6 class="light">You are using a free account and should upgrade.</h6>
 
-          <form method="post" action="/account/upgrade">
-            <button id="stripe-upgrade"
-              data-key = "{{ config.STRIPE_PUBLISHABLE_KEY }}"
-              data-image = "/static/img/logo.png"
-              data-name = "{{ config.SERVICE_NAME }}"
-              data-description = "{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} monthly subscription"
-              data-amount = "999"
-              data-email = "{{ current_user.email }}"
-              data-allowRememberMe = false
-            >Upgrade for 9.99 / month</button>
-          </form>
-        {% endif %}
+            <form method="post" action="/account/upgrade">
+              <button id="stripe-upgrade"
+                data-key = "{{ config.STRIPE_PUBLISHABLE_KEY }}"
+                data-image = "/static/img/logo.png"
+                data-name = "{{ config.SERVICE_NAME }}"
+                data-description = "{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} monthly subscription"
+                data-amount = "999"
+                data-email = "{{ current_user.email }}"
+                data-allowRememberMe = false
+                data-zip-code = true
+                data-locale = true
+                data-panel-label = "Subscribe"
+              >Upgrade for 9.99 / month</button>
+            </form>
+          {% endif %}
       </div>
     </div>
   </div>

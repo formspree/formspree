@@ -1,5 +1,6 @@
 
 import os
+import redis
 import fakeredis
 
 from flask.ext.testing import TestCase
@@ -8,6 +9,10 @@ import formspree
 from formspree import create_app
 from formspree import settings
 from formspree.app import DB, redis_store
+
+
+# the different redis database only accessed by flask-limiter
+rlredis = redis.StrictRedis.from_url(settings.REDIS_RATE_LIMIT)
 
 
 class FormspreeTestCase(TestCase):
@@ -31,6 +36,9 @@ class FormspreeTestCase(TestCase):
         self.assertIsInstance(redis_store.connection, fakeredis.FakeStrictRedis)
 
         DB.create_all()
+
+        # clear the rate limiting
+        rlredis.flushall()
 
         super(FormspreeTestCase, self).setUp()
 

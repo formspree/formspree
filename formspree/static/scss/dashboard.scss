@@ -51,9 +51,48 @@
     color: $warning-orange;
   }
 
+  div.submissions-col {
+    overflow-x: auto;
+  }
+
   table {
     text-align: left;
     width: 100%;
+
+    &.responsive {
+      @media screen and (max-width: 600px) {
+        border: 0;
+
+        thead { display: none; }
+
+        tr {
+          margin-bottom: 10px;
+          display: block;
+          border-bottom: 5px solid #ddd;
+
+          td {
+            display: block;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px dotted #ccc;
+            margin: 10px auto;
+            max-width: 100%;
+          }
+
+          td:last-child {
+            border-bottom: 0;
+          }
+
+          td:before {
+            content: attr(data-label);
+            display: block;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+          }
+        }
+      }
+    }
   
     &.submissions {
       padding: 2px;
@@ -65,17 +104,25 @@
       tr:first-child td { padding-top: 10px; }
       td {
         padding: 3px 1px;
+        border: 1px ridge;
       }
       pre {
         font-family: inherit;
         margin: 0;
+        max-width: 300px;
+      }
+
+      // hiding full content when it is too big
+      tr pre.full { display: none }
+      tr:target pre {
+        // showing long text on click.
+        display: none;
+        & + pre.full { display: block; }
       }
     }
   
     &.forms,
     &.emails {
-      tr { height: 39px; }
-
       td.target-email {
         max-width: 250px;
         word-break: break-word;
@@ -103,6 +150,29 @@
     &.emails td:last-child {
       text-align: center;
     }
+  }
+  
+  #card-list {
+    border-collapse: collapse;
+  }
+
+  #card-list tr {
+    border: solid 2px $green;
+    border-radius: 3px;
+  }
+
+  #card-list td {
+    background: #FFF;
+    color: #000;
+    padding: 7px 15px;
+  }
+
+  .fa-chevron-right {
+    transition: transform .25s ease-in-out;
+  }
+
+  #card-list tr.even td {
+    cursor: pointer;
   }
   
   .create-form {
@@ -158,7 +228,7 @@
       transition: transform 0.3s ease-out;
   
       padding: 0.3em 1.3em 1.3em 1.3em;
-  
+        
       .x a {
         float: right;
         padding: 10px;
@@ -171,6 +241,65 @@
         float: left;
       }
     }
+      
+      &.narrow {
+          & > *{
+          width: 500px;
+          margin-left: -290px;
+          }
+      }
+      
+      .small {
+          font-size: 0.75em;
+      }
+      
+        .identified {
+            background-size: 12% auto ;
+            background-repeat: no-repeat;
+            background-position: right 10% center;
+            transition: none;
+            background-image: url('/static/img/cards/card.png');
+            &.visa {
+                background-image: url("/static/img/cards/visa.png");
+            }
+            &.mastercard {
+                background-image: url("/static/img/cards/mastercard.png");
+            }
+            &.amex {
+                background-image: url("/static/img/cards/amex.png");
+            }
+            &.dinersclub {
+                background-image: url("/static/img/cards/dinersclub.png");
+            }
+            &.discover {
+                background-image: url("/static/img/cards/discover.png");
+            }
+            &.jcb {
+                background-image: url("/static/img/cards/jcb.png");
+            }
+            &.visaelectron {
+                background-image: url("/static/img/cards/visaelectron.png");
+            }
+            &.maestro {
+                background-image: url("/static/img/cards/maestro.png");
+            }
+      }
+
+      .card {
+        font-size: 1em;
+        text-transform: uppercase;
+        font-weight: 600;
+        border: 2px solid #359173;
+        color: #359173;
+        background: transparent;
+        line-height: 1em;
+        padding: 0.6em 0.9em;
+        transition: all 0.3s ease-in-out;
+        &:hover {
+            border-color: #2A735B;
+            color: #2A735B;
+        }
+      }
     &:not(.js):target > *,
     &.target > * {
       -webkit-transform: translate(0, 0);

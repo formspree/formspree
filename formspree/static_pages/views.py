@@ -14,3 +14,6 @@ def page_not_found(e):
 
 def favicon():
     return redirect(url_for('static', filename='img/favicon.ico'))
+
+def formspree_verify():
+    return redirect(url_for('static', filename='formspree-verify.txt'))

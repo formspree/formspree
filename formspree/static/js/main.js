@@ -108,7 +108,21 @@ if (stripebutton.length) {
 $('a.resend').on('click', function () {
   $(this).hide()
   $('form.resend').show()
+  return false
 })
 
 /* scripts at other files */
 require('./sitewide')()
+
+/* toggle the card management menu */
+        $(function () {
+            $("#card-list tr:even").addClass("even");
+            $("#card-list tr:not(.even)").hide();
+            $("#card-list tr:first-child").show();
+
+            $("#card-list tr.even").click(function () {
+                $(this).next("tr").toggle();
+                $(this).find(".arrow").toggleClass("up");
+                $(this).find(".fa-chevron-right").toggleClass("fa-rotate-90");
+            });
+        });
