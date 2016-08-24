@@ -165,7 +165,7 @@ def send(email_or_string):
         if request_wants_json():
             return jsonerror(500, {'error': "_replyto or email field has not been sent correctly"})
         else:
-            return render_template('error.html', title='Unable to send email', text='Unable to send email. The field with a name attribute _replyto or email was not set correctly. This may be the result of you having multiple _replyto or email fields in the form. If you cannot find your error, please contact <b>{email}</b> with a link to your form and this error message: <p><pre><code>{message}</code></pre></p>'.format(message=status['error-message'], email=settings.CONTACT_EMAIL)), 400
+            return render_template('error.html', title='Invalid email address', text='You entered <span class="code">{address}</span>. That is an invalid email address. Please correct the form and try to submit again <a href="{back}">here</a>.<p style="font-size: small">This could also be a problem with the form. For example, there could be two fields with <span class="code">_replyto</span> or <span class="code">email</span> name attribute. If you suspect the form is broken, please contact the form owner and ask them to investigate</p>'''.format(address=status['address'], back=status['referrer'])), 400
 
     # error fallback -- shouldn't happen
     if request_wants_json():

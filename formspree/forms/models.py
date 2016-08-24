@@ -114,23 +114,30 @@ class Form(DB.Model):
         spam = data.get('_gotcha', None)
         format = data.get('_format', None)
 
-		# turn cc emails into array
+        # turn cc emails into array
         if cc:
             cc = [email.strip() for email in cc.split(',')]
 
         # prevent submitting empty form
         if not any(data.values()):
-            return { 'code': Form.STATUS_EMAIL_EMPTY }
+            return {'code': Form.STATUS_EMAIL_EMPTY}
 
         # return a fake success for spam
         if spam:
             g.log.info('Submission rejected.', gotcha=spam)
-            return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
+            return {'code': Form.STATUS_EMAIL_SENT, 'next': next}
 
         # validate reply_to, if it is not a valid email address, reject
         if reply_to and not IS_VALID_EMAIL(reply_to):
-            g.log.info('Submission rejected. Reply-To is invalid.', reply_to=reply_to)
-            return { 'code': Form.STATUS_REPLYTO_ERROR, 'error-message': '"%s" is not a valid email address.' % reply_to }
+            g.log.info('Submission rejected. Reply-To is invalid.',
+                       reply_to=reply_to)
+            return {
+                'code': Form.STATUS_REPLYTO_ERROR,
+                'error-message': '"%s" is not a valid email address.' %
+                                 reply_to,
+                'address': reply_to,
+                'referrer': referrer
+            }
 
         # increase the monthly counter
         request_date = datetime.datetime.now()
