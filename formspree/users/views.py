@@ -243,7 +243,7 @@ def downgrade():
         .format(date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')),
     'info')
 
-    g.log.info('Downgraded user.', account=current_user.email)
+    g.log.info('Subscription canceled from dashboard.', account=current_user.email)
     return redirect(url_for('account'))
 
 
@@ -259,7 +259,7 @@ def stripe_webhook():
             user.upgraded = False
             DB.session.add(user)
             DB.session.commit()
-            g.log.info('Downgraded user.', account=user.email)
+            g.log.info('Downgraded user from webhook.', account=user.email)
     return 'ok'
 
 
