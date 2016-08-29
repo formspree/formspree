@@ -35,7 +35,7 @@
         <tbody>
           {% for s in submissions %}
           <tr id="submission-{{ s.id }}">
-            <td id="p-{{ s.id }}" data-label="Submitted at">{{ s.submitted_at.strftime('%A, %B %d, %Y at %X') }}</td>
+            <td id="p-{{ s.id }}" data-label="Submitted at">{{ s.submitted_at.strftime('%A, %B %d, %Y at %X') }} UTC</td>
             {% for f in fields %}
               {% set value = s.data[f] %}
               <td data-label="{{ f }}">
