@@ -9,8 +9,7 @@ from sqlalchemy.sql.expression import delete
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, \
-                    http_form_to_dict, referrer_to_path
-
+                    EXCLUDE_KEYS, http_form_to_dict, referrer_to_path
 
 class Form(DB.Model):
     __tablename__ = 'forms'
@@ -102,13 +101,18 @@ class Form(DB.Model):
         Assumes sender's email has been verified.
         '''
 
-        if type(submitted_data) in (ImmutableMultiDict, ImmutableOrderedMultiDict):
+        if type(submitted_data) in (ImmutableMultiDict,
+                                    ImmutableOrderedMultiDict):
             data, keys = http_form_to_dict(submitted_data)
         else:
             data, keys = submitted_data, submitted_data.keys()
 
-        subject = data.get('_subject', 'New submission from %s' % referrer_to_path(referrer))
-        reply_to = data.get('_replyto', data.get('email', data.get('Email', ''))).strip()
+        subject = data.get('_subject',
+                           'New submission from %s' %
+                           referrer_to_path(referrer))
+        reply_to = data.get('_replyto',
+                            data.get('email',
+                                     data.get('Email', ''))).strip()
         cc = data.get('_cc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
