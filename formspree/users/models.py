@@ -1,7 +1,7 @@
 import hmac
 import hashlib
 from datetime import datetime
-from flask import url_for, render_template
+from flask import url_for, render_template, g
 
 from formspree import settings
 from formspree.utils import send_email, IS_VALID_EMAIL
@@ -65,6 +65,8 @@ class User(DB.Model):
         ).hexdigest()
 
     def send_password_reset(self):
+        g.log.info('Sending password reset.', account=self.email)
+
         digest = self.reset_password_digest()
         link = url_for('reset-password', digest=digest, email=self.email, _external=True)
         res = send_email(
@@ -75,6 +77,7 @@ class User(DB.Model):
             sender=settings.ACCOUNT_SENDER
         )
         if not res[0]:
+            g.log.info('Failed to send email.', reason=res[1], code=res[2])
             return False
         else:
             return True
@@ -104,8 +107,12 @@ class Email(DB.Model):
 
     @staticmethod
     def send_confirmation(addr, user_id):
+        g.log = g.log.new(address=addr, user_id=user_id)
+        g.log.info('Sending email confirmation for new address on account.')
+
         addr = addr.lower().strip()
         if not IS_VALID_EMAIL(addr):
+            g.log.info('Failed. Invalid address.')
             raise ValueError('Cannot send confirmation. %s is not a valid email.' % addr)
 
         message = 'email={email}&user_id={user_id}'.format(email=addr, user_id=user_id)
@@ -119,6 +126,7 @@ class Email(DB.Model):
             sender=settings.ACCOUNT_SENDER
         )
         if not res[0]:
+            g.log.info('Failed to send email.', reason=res[1], code=res[2])
             return False
         else:
             return True

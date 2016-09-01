@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}{{config.SERVICE_NAME}}{% endblock %}</title>
-  <script src="//use.typekit.net/htc4dlo.js"></script>
+  <script src="//use.typekit.net/{{config.TYPEKIT_KEY}}.js"></script>
   <script>try{Typekit.load();}catch(e){}</script>
   <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
   <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/static/img/favicon.ico">

@@ -108,6 +108,7 @@ if (stripebutton.length) {
 $('a.resend').on('click', function () {
   $(this).hide()
   $('form.resend').show()
+  return false
 })
 
 /* scripts at other files */

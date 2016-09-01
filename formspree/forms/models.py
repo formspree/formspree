@@ -1,13 +1,15 @@
-import urlparse
 import datetime
 
 from formspree.app import DB, redis_store
-from formspree import settings, log
-from formspree.utils import send_email, unix_time_for_12_months_from_now, next_url, IS_VALID_EMAIL
-from flask import url_for, render_template
+from formspree import settings
+from formspree.utils import send_email, unix_time_for_12_months_from_now, \
+                            next_url, IS_VALID_EMAIL
+from flask import url_for, render_template, g
 from sqlalchemy.sql.expression import delete
-from werkzeug.datastructures import ImmutableMultiDict, ImmutableOrderedMultiDict
-from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, EXCLUDE_KEYS, http_form_to_dict, referrer_to_path
+from werkzeug.datastructures import ImmutableMultiDict, \
+                                    ImmutableOrderedMultiDict
+from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, \
+                    EXCLUDE_KEYS, http_form_to_dict, referrer_to_path
 
 class Form(DB.Model):
     __tablename__ = 'forms'
@@ -99,33 +101,47 @@ class Form(DB.Model):
         Assumes sender's email has been verified.
         '''
 
-        if type(submitted_data) in (ImmutableMultiDict, ImmutableOrderedMultiDict):
+        if type(submitted_data) in (ImmutableMultiDict,
+                                    ImmutableOrderedMultiDict):
             data, keys = http_form_to_dict(submitted_data)
         else:
             data, keys = submitted_data, submitted_data.keys()
 
-        subject = data.get('_subject', 'New submission from %s' % referrer_to_path(referrer))
-        reply_to = data.get('_replyto', data.get('email', data.get('Email', ''))).strip()
+        subject = data.get('_subject',
+                           'New submission from %s' %
+                           referrer_to_path(referrer))
+        reply_to = data.get('_replyto',
+                            data.get('email',
+                                     data.get('Email', ''))).strip()
         cc = data.get('_cc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
         format = data.get('_format', None)
 
-	    # turn cc emails into array
+        # turn cc emails into array
         if cc:
             cc = [email.strip() for email in cc.split(',')]
 
         # prevent submitting empty form
-        if not any([data[k] for k in keys]):
-            return { 'code': Form.STATUS_EMAIL_EMPTY }
+        if not any(data.values()):
+            return {'code': Form.STATUS_EMAIL_EMPTY}
 
         # return a fake success for spam
         if spam:
-            return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
+            g.log.info('Submission rejected.', gotcha=spam)
+            return {'code': Form.STATUS_EMAIL_SENT, 'next': next}
 
         # validate reply_to, if it is not a valid email address, reject
         if reply_to and not IS_VALID_EMAIL(reply_to):
-            return { 'code': Form.STATUS_REPLYTO_ERROR, 'error-message': '"%s" is not a valid email address.' % reply_to }
+            g.log.info('Submission rejected. Reply-To is invalid.',
+                       reply_to=reply_to)
+            return {
+                'code': Form.STATUS_REPLYTO_ERROR,
+                'error-message': '"%s" is not a valid email address.' %
+                                 reply_to,
+                'address': reply_to,
+                'referrer': referrer
+            }
 
         # increase the monthly counter
         request_date = datetime.datetime.now()
@@ -174,6 +190,7 @@ class Form(DB.Model):
                 html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
         else:
             if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
+                g.log.info('Submission rejected. Form over quota.', monthly_counter=monthly_counter)
                 # only send this overlimit notification for the first 25 overlimit emails
                 # after that, return an error so the user can know the website owner is not
                 # going to read his message.
@@ -182,15 +199,18 @@ class Form(DB.Model):
             text = render_template('email/overlimit-notification.txt', host=self.host)
             html = render_template('email/overlimit-notification.html', host=self.host)
 
-        result = send_email(to=self.email,
-                          subject=subject,
-                          text=text,
-                          html=html,
-                          sender=settings.DEFAULT_SENDER,
-                          reply_to=reply_to,
-                          cc=cc)
+        result = send_email(
+            to=self.email,
+            subject=subject,
+            text=text,
+            html=html,
+            sender=settings.DEFAULT_SENDER,
+            reply_to=reply_to,
+            cc=cc
+        )
 
         if not result[0]:
+            g.log.warning('Failed to send email.', reason=result[1], code=result[2])
             if result[1].startswith('Invalid replyto email address'):
                 return { 'code': Form.STATUS_REPLYTO_ERROR}
             return{ 'code': Form.STATUS_EMAIL_FAILED, 'mailer-code': result[2], 'error-message': result[1] }
@@ -218,8 +238,10 @@ class Form(DB.Model):
         different templates depending on the result
         '''
 
-        log.debug('Sending confirmation')
+        g.log = g.log.new(form=self.id, to=self.email, host=self.host)
+        g.log.debug('Sending confirmation.')
         if self.confirm_sent:
+            g.log.debug('Already sent in the past.')
             return { 'code': Form.STATUS_CONFIRMATION_DUPLICATED }
 
         # the nonce for email confirmation will be the hash when it exists
@@ -245,15 +267,12 @@ class Form(DB.Model):
                                       data=data,
                                       keys=keys)
 
-        log.debug('Sending email')
-
         result = send_email(to=self.email,
                             subject='Confirm email for %s' % settings.SERVICE_NAME,
                             text=render_content('txt'),
                             html=render_content('html'),
                             sender=settings.DEFAULT_SENDER)
-
-        log.debug('Sent')
+        g.log.debug('Confirmation email queued.')
 
         if not result[0]:
             return { 'code': Form.STATUS_CONFIRMATION_FAILED }

@@ -51,9 +51,48 @@
     color: $warning-orange;
   }
 
+  div.submissions-col {
+    overflow-x: auto;
+  }
+
   table {
     text-align: left;
     width: 100%;
+
+    &.responsive {
+      @media screen and (max-width: 600px) {
+        border: 0;
+
+        thead { display: none; }
+
+        tr {
+          margin-bottom: 10px;
+          display: block;
+          border-bottom: 5px solid #ddd;
+
+          td {
+            display: block;
+            text-align: center;
+            font-size: 13px;
+            border-bottom: 1px dotted #ccc;
+            margin: 10px auto;
+            max-width: 100%;
+          }
+
+          td:last-child {
+            border-bottom: 0;
+          }
+
+          td:before {
+            content: attr(data-label);
+            display: block;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+          }
+        }
+      }
+    }
   
     &.submissions {
       padding: 2px;
@@ -65,17 +104,25 @@
       tr:first-child td { padding-top: 10px; }
       td {
         padding: 3px 1px;
+        border: 1px ridge;
       }
       pre {
         font-family: inherit;
         margin: 0;
+        max-width: 300px;
+      }
+
+      // hiding full content when it is too big
+      tr pre.full { display: none }
+      tr:target pre {
+        // showing long text on click.
+        display: none;
+        & + pre.full { display: block; }
       }
     }
   
     &.forms,
     &.emails {
-      tr { height: 39px; }
-
       td.target-email {
         max-width: 250px;
         word-break: break-word;

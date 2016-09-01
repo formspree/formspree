@@ -43,3 +43,7 @@ RECAPTCHA_KEY = os.getenv('RECAPTCHA_KEY')
 
 RATE_LIMIT = os.getenv('RATE_LIMIT', '30 per hour')
 REDIS_RATE_LIMIT = os.getenv('REDIS_URL')  # heroku-redis
+
+CONTACT_FORM_HASHID = os.getenv('CONTACT_FORM_HASHID', CONTACT_EMAIL)
+
+TYPEKIT_KEY = os.getenv('TYPEKIT_KEY', '1234567')
