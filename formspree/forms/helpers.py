@@ -51,17 +51,19 @@ def http_form_to_dict(data):
     '''
 
     ret = {}
+    ordered_keys = []
 
     for elem in data.iteritems(multi=True):
         if not elem[0] in ret.keys():
             ret[elem[0]] = []
 
+            if not elem[0] in EXCLUDE_KEYS:
+                ordered_keys.append(elem[0])
+
         ret[elem[0]].append(elem[1])
 
     for k, v in ret.items():
         ret[k] = ', '.join(v)
-
-    ordered_keys = sorted(set(ret.keys()) - EXCLUDE_KEYS)
 
     return ret, ordered_keys
 
