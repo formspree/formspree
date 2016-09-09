@@ -11,14 +11,12 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
   <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
 <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-74724777-1', 'auto');
-  ga('send', 'pageview');
-
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-74724777-1', 'auto');
+ga('send', 'pageview');
 </script>
 </head>
 <body class="{% block bodyclass %}{% endblock %}" id="{% block bodyid %}card{% endblock %}">
@@ -53,6 +51,11 @@
         <span class="item"><a href="{{ url_for('forms') }}">Your forms</a></span>
         <span class="item"><a href="{{ url_for('account') }}">{% if current_user.upgraded %}Your{% else %}Upgrade{% endif %} account</a></span>
     {% else %}
+      <div class="greetings">
+        <h4 class="light">
+          <a href="http://testformspree.com/" target="_blank">Try Formspree!</a>
+        </h4>
+      </div>
       <div class="menu">
         {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
         {% if request.path != '/login' %}<span class="item"><a href="{{ url_for('login') }}" class="login">{{ config.UPGRADED_PLAN_NAME }} account login</a></span>{% endif %}
