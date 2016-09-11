@@ -6,7 +6,6 @@ def configure_routes(app):
     app.add_url_rule('/', 'index', view_func=static_pages.views.default, methods=['GET'])
     app.add_url_rule('/favicon.ico', view_func=static_pages.views.favicon)
     app.add_url_rule('/formspree-verify.txt', view_func=static_pages.views.formspree_verify)
-    app.add_url_rule('/<path:template>', 'default', view_func=static_pages.views.default, methods=['GET'])
 
     # Public forms
     app.add_url_rule('/<email_or_string>', 'send', view_func=forms.views.send, methods=['GET', 'POST'])
@@ -42,3 +41,6 @@ def configure_routes(app):
 
     # Webhooks
     app.add_url_rule('/webhooks/stripe', view_func=users.views.stripe_webhook, methods=['POST'])
+
+    # Any other static pages and 404
+    app.add_url_rule('/<path:template>', 'default', view_func=static_pages.views.default, methods=['GET'])
