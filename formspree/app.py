@@ -19,6 +19,7 @@ cdn = CDN()
 import routes
 from users.models import User
 
+
 def configure_login(app):
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -46,13 +47,15 @@ def configure_ssl_redirect(app):
     @app.after_request
     def set_headers(response):
         if request.is_secure:
-            response.headers.setdefault('Strict-Transport-Security', 'max-age=31536000')
+            response.headers.setdefault('Strict-Transport-Security',
+                                        'max-age=31536000')
         return response
 
 
 def configure_logger(app):
     def processor(_, method, event):
-        # we're on heroku, so we can count that heroku will timestamp the logs and so on
+        # we're on heroku, so we can count that heroku will
+        # timestamp the logs.
         levelcolor = {
             'debug': 32,
             'info': 34,
@@ -60,14 +63,25 @@ def configure_logger(app):
             'error': 31
         }.get(method, 37)
 
-        return '\x1b[{clr}m{met}\x1b[0m [\x1b[35m{rid}\x1b[0m] {msg} {rest}'.format(
-            clr=levelcolor,
-            met=method.upper(),
-            rid=request.headers.get('X-Request-Id', '~'),
-            msg=event.pop('event'),
-            rest=' '.join(['\x1b[%sm%s\x1b[0m=%s' % (levelcolor, k.upper(), v)
-                           for k, v in event.items()])
-        )
+        rest = []
+        for k, v in event.items():
+            if type(v) is unicode:
+                v = v.encode('utf-8', 'ignore')
+            rest.append('\x1b[{}m{}\x1b[0m={}'.format(
+                levelcolor,
+                k.upper(),
+                v
+            ))
+        rest = ' '.join(rest)
+
+        return '\x1b[{clr}m{met}\x1b[0m [\x1b[35m{rid}\x1b[0m] {msg} {rest}'. \
+            format(
+                clr=levelcolor,
+                met=method.upper(),
+                rid=request.headers.get('X-Request-Id', '~'),
+                msg=event.pop('event'),
+                rest=rest
+            )
 
     structlog.configure(
         processors=[
