@@ -137,8 +137,6 @@ class Form(DB.Model):
                        reply_to=reply_to)
             return {
                 'code': Form.STATUS_REPLYTO_ERROR,
-                'error-message': '"%s" is not a valid email address.' %
-                                 reply_to,
                 'address': reply_to,
                 'referrer': referrer
             }
@@ -210,12 +208,22 @@ class Form(DB.Model):
         )
 
         if not result[0]:
-            g.log.warning('Failed to send email.', reason=result[1], code=result[2])
+            g.log.warning('Failed to send email.',
+                          reason=result[1], code=result[2])
             if result[1].startswith('Invalid replyto email address'):
-                return { 'code': Form.STATUS_REPLYTO_ERROR}
-            return{ 'code': Form.STATUS_EMAIL_FAILED, 'mailer-code': result[2], 'error-message': result[1] }
+                return {
+                    'code': Form.STATUS_REPLYTO_ERROR,
+                    'address': reply_to,
+                    'referrer': referrer
+                }
 
-        return { 'code': Form.STATUS_EMAIL_SENT, 'next': next }
+            return {
+                'code': Form.STATUS_EMAIL_FAILED,
+                'mailer-code': result[2],
+                'error-message': result[1]
+            }
+
+        return {'code': Form.STATUS_EMAIL_SENT, 'next': next}
 
     def get_monthly_counter(self, basedate=None):
         basedate = basedate or datetime.datetime.now()
