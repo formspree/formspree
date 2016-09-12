@@ -84,12 +84,18 @@ def confirm_email(digest):
             DB.session.add(email)
             DB.session.commit()
             pending = request.cookies.get('pending-emails', '').split(',')
-            pending.remove(email.address)
+            try:
+                pending.remove(email.address)
+            except ValueError:
+                pass  # when not in list, means nothing serious.
             res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
             flash('%s confirmed.' % email.address, 'success')
         except IntegrityError as e:
-            g.log.error('Failed to save new email address to account.', exc_info=e)
-            flash('A unexpected error has ocurred while we were trying to confirm the email. Please contact us if this continues to happen.', 'error')
+            g.log.error('Failed to save new email address to account.',
+                        exc_info=e)
+            flash('A unexpected error has ocurred while we were trying '
+                  'to confirm the email. Please contact us if this continues '
+                  'to happen.', 'error')
             return res
     else:
         flash('Couldn\'t confirm %s. Wrong link.' % email, 'error')
