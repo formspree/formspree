@@ -47,9 +47,14 @@ def send(email_or_string):
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
         else:
-            return render_template('error.html',
-                                   title='Unable to submit form',
-                                   text='<p>Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. Also make sure that you\'re posting to <b>https://</b>{host}.</p><p>For geeks: could not find the "Referrer" header.</p>'.format(host=request.url.split('//')[1])), 400
+            return render_template(
+                'error.html',
+                title='Unable to submit form',
+                text='<p>Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. Also make sure that you\'re posting to <b>{host}{path}</b>.</p><p>For geeks: could not find the "Referrer" header.</p>'.format(
+                    host=settings.SERVICE_URL,
+                    path=request.path
+                )
+            ), 400
 
     g.log = g.log.bind(host=host, wants='json' if request_wants_json() else 'html')
 
@@ -143,7 +148,7 @@ def send(email_or_string):
         else:
             return render_template('error.html',
                                    title='Can\'t send an empty form',
-                                   text=str('<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank"><code>"name"</code> attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank"><code>"required"</code> property</a>. This error also happens when you have an <code>"enctype"</code> attribute set in your <code>&lt;form&gt;</code>, so make sure you don\'t.</p><p><a href="%s">Return to form</a></p>' % request.referrer)), 400
+                                   text=str('<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank"><code>"name"</code> attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank"><code>"required"</code> property</a>.</p><p>This error also happens when you have an <code>"enctype"</code> attribute set in your <code>&lt;form&gt;</code>, so make sure you don\'t.</p><p><a href="%s">Return to form</a></p>' % request.referrer)), 400
     elif status['code'] == Form.STATUS_CONFIRMATION_SENT or \
          status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED:
 
