@@ -272,7 +272,7 @@ def unblock_email(email):
                 g.log.warning('Failed to unblock email on SendGrid.')
                 return render_template('error.html',
                                        title='Failed to unblock address.',
-                                       text=email + ' is not a valid address or was\'t blocked on our side.')
+                                       text=email + ' is not a valid address or wasn\'t blocked on our side.')
 
         # fallback response -- should happen only when the recaptcha is failed.
         g.log.warning('Failed to unblock email. reCaptcha test failed.')
