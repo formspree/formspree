@@ -27,9 +27,9 @@ ga('send', 'pageview');
       <div class="row">
         <div class="container">
             <div class="col-1-1">
-            {% for category, message in messages %}
+            {% for category, flashed in messages %}
               <div class="alert-box {{ category }} banner">
-               {{ message|safe }}
+               {{ flashed|safe }}
               </div>
             {% endfor %}
            </div>
