@@ -113,11 +113,17 @@ class Email(DB.Model):
         addr = addr.lower().strip()
         if not IS_VALID_EMAIL(addr):
             g.log.info('Failed. Invalid address.')
-            raise ValueError('Cannot send confirmation. %s is not a valid email.' % addr)
+            raise ValueError(u'Cannot send confirmation. '
+                             '{} is not a valid email.'.format(addr))
 
-        message = 'email={email}&user_id={user_id}'.format(email=addr, user_id=user_id)
-        digest = hmac.new(settings.NONCE_SECRET, message, hashlib.sha256).hexdigest()
-        link = url_for('confirm-account-email', digest=digest, email=addr, _external=True)
+        message = u'email={email}&user_id={user_id}'.format(
+            email=addr,
+            user_id=user_id)
+        digest = hmac.new(
+            settings.NONCE_SECRET, message.encode('utf-8'), hashlib.sha256
+        ).hexdigest()
+        link = url_for('confirm-account-email',
+                       digest=digest, email=addr, _external=True)
         res = send_email(
             to=addr,
             subject='Confirm email for your account at %s' % settings.SERVICE_NAME,
@@ -134,8 +140,12 @@ class Email(DB.Model):
     @classmethod
     def create_with_digest(cls, addr, user_id, digest):
         addr = addr.lower()
-        message = 'email={email}&user_id={user_id}'.format(email=addr, user_id=user_id)
-        what_should_be = hmac.new(settings.NONCE_SECRET, message, hashlib.sha256).hexdigest()
+        message = u'email={email}&user_id={user_id}'.format(
+            email=addr,
+            user_id=user_id)
+        what_should_be = hmac.new(
+            settings.NONCE_SECRET, message.encode('utf-8'), hashlib.sha256
+        ).hexdigest()
         if digest == what_should_be:
             return cls(address=addr, owner_id=user_id)
         else:

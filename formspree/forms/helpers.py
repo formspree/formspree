@@ -8,7 +8,7 @@ from flask import request, g
 
 from formspree import settings
 
-HASH = lambda x, y: hashlib.md5(x+y+settings.NONCE_SECRET).hexdigest()
+HASH = lambda x, y: hashlib.md5(x.encode('utf-8')+y.encode('utf-8')+settings.NONCE_SECRET).hexdigest()
 EXCLUDE_KEYS = {'_gotcha', '_next', '_subject', '_cc', '_format'}
 MONTHLY_COUNTER_KEY = 'monthly_{form_id}_{month}'.format
 HASHIDS_CODEC = hashids.Hashids(alphabet='abcdefghijklmnopqrstuvwxyz',

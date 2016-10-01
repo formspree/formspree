@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import httpretty
 import json
 
@@ -42,20 +44,20 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
     def test_user_gets_previous_forms_assigned_to_him(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
 
-        # verify a form for mark@example.com
-        self.client.post('/mark@example.com',
+        # verify a form for márkö@example.com
+        self.client.post(u'/márkö@example.com',
             headers = {'Referer': 'tomatoes.com'},
             data={'name': 'alice'}
         )
-        f = Form.query.filter_by(host='tomatoes.com', email='mark@example.com').first()
+        f = Form.query.filter_by(host='tomatoes.com', email=u'márkö@example.com').first()
         f.confirm_sent = True
         f.confirmed = True
         DB.session.add(f)
         DB.session.commit()
 
-        # register mark@example.com
+        # register márkö@example.com
         r = self.client.post('/register',
-            data={'email': 'mark@example.com',
+            data={'email': u'márkö@example.com',
                   'password': 'russia'}
         )
 
@@ -78,7 +80,7 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         self.assertEqual(0, len(forms))
 
         # upgrade user
-        user = User.query.filter_by(email='mark@example.com').first()
+        user = User.query.filter_by(email=u'márkö@example.com').first()
         user.upgraded = True
         DB.session.add(user)
         DB.session.commit()
@@ -89,7 +91,7 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         )
         forms = json.loads(r.data)['forms']
         self.assertEqual(1, len(forms))
-        self.assertEqual(forms[0]['email'], 'mark@example.com')
+        self.assertEqual(forms[0]['email'], u'márkö@example.com')
         self.assertEqual(forms[0]['host'], 'tomatoes.com')
 
         # verify a form for another address
@@ -126,11 +128,11 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         self.assertEqual(forms[0]['host'], 'mark.com')
 
         # create a new form spontaneously with an email already verified
-        r = self.client.post('/mark@example.com',
+        r = self.client.post(u'/márkö@example.com',
             headers = {'Referer': 'elsewhere.com'},
             data={'name': 'luke'}
         )
-        f = Form.query.filter_by(host='elsewhere.com', email='mark@example.com').first()
+        f = Form.query.filter_by(host='elsewhere.com', email=u'márkö@example.com').first()
         f.confirm_sent = True
         f.confirmed = True
         DB.session.add(f)
@@ -142,5 +144,5 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         )
         forms = json.loads(r.data)['forms']
         self.assertEqual(3, len(forms))
-        self.assertEqual(forms[0]['email'], 'mark@example.com')
+        self.assertEqual(forms[0]['email'], u'márkö@example.com')
         self.assertEqual(forms[0]['host'], 'elsewhere.com')

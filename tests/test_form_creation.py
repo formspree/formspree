@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import httpretty
 import json
 
@@ -152,11 +154,11 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
     def test_sitewide_forms(self):
         httpretty.register_uri(httpretty.GET,
                                'http://mysite.com/formspree-verify.txt',
-                               body='other_email@forms.com\nmyemail@email.com',
+                               body=u'other_email@forms.com\nmyüñìćõð€email@email.com',
                                status=200)
         httpretty.register_uri(httpretty.GET,
                                'http://www.naive.com/formspree-verify.txt',
-                               body='myemail@email.com',
+                               body=u'myüñìćõð€email@email.com',
                                status=200)
 
         # register user
@@ -172,7 +174,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
 
         # manually verify an email
         email = Email()
-        email.address = 'myemail@email.com'
+        email.address = u'myüñìćõð€email@email.com'
         email.owner_id = user.id
         DB.session.add(email)
         DB.session.commit()
@@ -180,7 +182,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         # create a sitewide form with the verified email address
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'myemail@email.com',
+            data=json.dumps({'email': u'myüñìćõð€email@email.com',
                              'url': 'http://mysite.com',
                              'sitewide': 'true'})
         )
@@ -219,7 +221,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         # another form, now with a www prefix that will be stripped
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'myemail@email.com',
+            data=json.dumps({'email': u'myüñìćõð€email@email.com',
                              'url': 'http://www.naive.com',
                              'sitewide': 'true'})
         )
@@ -238,19 +240,19 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
 
         r = self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://naive.com/hipopotamo', 'content-type': 'application/json'},
+            headers={'Referer': 'http://naive.com/hipopotamo', 'content-type': 'application/json'},
             data=json.dumps({'name': 'alice'})
         )
         self.assertIn('alice', httpretty.last_request().body)
 
         self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://www.naive.com/baleia/urso?w=2', 'content-type': 'application/json'},
+            headers={'Referer': 'http://www.naive.com/baleia/urso?w=2', 'content-type': 'application/json'},
             data=json.dumps({'name': 'maria'})
         )
         self.assertIn('maria', httpretty.last_request().body)
 
         self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://www.naive.com/', 'content-type': 'application/json'},
+            headers={'Referer': 'http://www.naive.com/', 'content-type': 'application/json'},
             data=json.dumps({'name': 'laura'})
         )
         self.assertIn('laura', httpretty.last_request().body)
@@ -258,7 +260,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         # create a different form with the same email address, now using unprefixed url
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'myemail@email.com',
+            data=json.dumps({'email': u'myüñìćõð€email@email.com',
                              'url': 'mysite.com',
                              'sitewide': 'true'})
         )

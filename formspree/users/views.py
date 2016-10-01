@@ -24,13 +24,14 @@ def register():
         g.log.info('User account created.')
     except ValueError:
         DB.session.rollback()
-        flash("%s is not a valid email address." % request.form['email'], "error")
+        flash(u"{} is not a valid email address.".format(
+            request.form['email']), "error")
         g.log.info('Account creation failed. Invalid address.')
         return render_template('users/register.html')
     except IntegrityError:
         DB.session.rollback()
-        flash("An account with this email already exists.", "error")
-        g.log.info('Account creation failed. Address is use.')
+        flash(u"An account with this email already exists.", "error")
+        g.log.info('Account creation failed. Address is already registered.')
         return render_template('users/register.html')
 
     login_user(user, remember=True)
@@ -39,10 +40,17 @@ def register():
     res = redirect(request.args.get('next', url_for('account')))
     if sent:
         res.set_cookie('pending-emails', user.email, max_age=10800)
-        flash("Your {SERVICE_NAME} account was created successfully!".format(**settings.__dict__), 'success')
-        flash("We've sent an email confirmation to {addr}. Please go there and click on the confirmation link before you can use your {SERVICE_NAME} account.".format(addr=current_user.email, **settings.__dict__), 'info')
+        flash(u"Your {SERVICE_NAME} account was created successfully!".format(
+            **settings.__dict__), 'success')
+        flash(u"We've sent an email confirmation to {addr}. Please go there "
+              "and click on the confirmation link before you can use your "
+              "{SERVICE_NAME} account.".format(
+                addr=current_user.email,
+                **settings.__dict__), 'info')
     else:
-        flash("Your account was set up, but we couldn't send a verification email to your address, please try doing it again manually later.", "warning")
+        flash(u"Your account was set up, but we couldn't send a verification "
+              "email to your address, please try doing it again manually "
+              "later.", 'warning')
     return res
 
 
@@ -55,7 +63,8 @@ def add_email():
 
     if Email.query.get([address, current_user.id]):
         g.log.info('Failed to add email to account. Already registered.')
-        flash("%s is already registered for your account." % address, 'warning')
+        flash(u'{} is already registered for your account.'.format(
+            address), 'warning')
         return res
     try:
         g.log.info('Adding new email address to account.')
@@ -64,12 +73,15 @@ def add_email():
             pending = request.cookies.get('pending-emails', '').split(',')
             pending.append(address)
             res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
-            flash("We've sent a message with a verification link to %s." % address, 'info')
+            flash(u"We've sent a message with a verification link to {}."
+                  .format(address), 'info')
         else:
-            flash("We couldn't sent you the verification email at %s. Please "
-                  "try again later." % address, "error")
+            flash(u"We couldn't sent you the verification email at {}. "
+                  "Please try again later.".format(
+                    address), 'error')
     except ValueError:
-        flash("%s is not a valid email address." % request.form['address'], "warning")
+        flash(u'{} is not a valid email address.'.format(
+            request.form['address']), 'warning')
     return res
 
 
@@ -89,16 +101,17 @@ def confirm_email(digest):
             except ValueError:
                 pass  # when not in list, means nothing serious.
             res.set_cookie('pending-emails', ','.join(pending), max_age=10800)
-            flash('%s confirmed.' % email.address, 'success')
+            flash(u'{} confirmed.'.format(
+                email.address), 'success')
         except IntegrityError as e:
             g.log.error('Failed to save new email address to account.',
                         exc_info=e)
-            flash('A unexpected error has ocurred while we were trying '
+            flash(u'A unexpected error has ocurred while we were trying '
                   'to confirm the email. Please contact us if this continues '
                   'to happen.', 'error')
             return res
     else:
-        flash('Couldn\'t confirm %s. Wrong link.' % email, 'error')
+        flash(u"Couldn't confirm {}. Wrong link.".format(email), 'error')
     return res
 
 
@@ -111,13 +124,15 @@ def login():
     password = request.form['password']
     user = User.query.filter_by(email=email).first()
     if user is None:
-        flash("We couldn't find an account related with this email. Please verify the email entered.", "warning")
+        flash(u"We couldn't find an account related with this email. "
+              "Please verify the email entered.", "warning")
         return redirect(url_for('login'))
     elif not check_password(user.password, password):
-        flash("Invalid Password. Please verify the password entered.", 'warning')
+        flash(u"Invalid Password. Please verify the password entered.",
+              'warning')
         return redirect(url_for('login'))
     login_user(user, remember=True)
-    flash('Logged in successfully!', 'success')
+    flash(u'Logged in successfully!', 'success')
     return redirect(request.args.get('next') or url_for('dashboard'))
 
 
@@ -135,9 +150,14 @@ def forgot_password():
             return render_template('error.html', title='Not registered', text="We couldn't find an account associated with this email address.</p><p>Remember that you must use the primary email address you used to register the account, it can't be any other address you have confirmed later.")
 
         if user.send_password_reset():
-            return render_template('info.html', title='Reset email sent', text="We've sent a link to {addr}. Click on the link to be prompted to a new password.".format(addr=user.email))
+            return render_template(
+                'info.html',
+                title='Reset email sent',
+                text=u"We've sent a link to {addr}. Click on the link to be "
+                     "prompted to a new password.".format(addr=user.email)
+            )
         else:
-            flash("Something is wrong, please report this to us.", 'error')
+            flash(u"Something is wrong, please report this to us.", 'error')
         return redirect(url_for('login', next=request.args.get('next')))
 
 
@@ -148,24 +168,26 @@ def reset_password(digest):
             login_user(user, remember=True)
             return render_template('users/reset.html', digest=digest)
         else:
-            flash('The link you used to come to this screen has expired. Please try the reset process again.', 'error')
+            flash(u'The link you used to come to this screen has expired. '
+                  'Please try the reset process again.', 'error')
             return redirect(url_for('login', next=request.args.get('next')))
 
     elif request.method == 'POST':
-        email = current_user.email # at this point the user is already logged
         user = User.from_password_reset(current_user.email, digest)
         if user and user.id == current_user.id:
             if request.form['password1'] == request.form['password2']:
                 user.password = hash_pwd(request.form['password1'])
                 DB.session.add(user)
                 DB.session.commit()
-                flash('Changed password successfully!', 'success')
+                flash(u'Changed password successfully!', 'success')
                 return redirect(request.args.get('next') or url_for('dashboard'))
             else:
-                flash("The passwords don't match!", 'warning')
+                flash(u"The passwords don't match!", 'warning')
                 return redirect(url_for('reset-password', digest=digest, next=request.args.get('next')))
         else:
-            flash('<b>Failed to reset password</b>. The link you used to come to this screen has expired. Please try the reset process again.', 'error')
+            flash(u'<b>Failed to reset password</b>. The link you used '
+                  'to come to this screen has expired. Please try the reset '
+                  'process again.', 'error')
             return redirect(url_for('login', next=request.args.get('next')))
 
 
@@ -204,17 +226,22 @@ def upgrade():
                 source=token
             )
     except stripe.CardError as e:
-        g.log.warning("Couldn't charge card.", reason=e.json_body, status=e.http_status)
-        flash("Sorry. Your card could not be charged. Please contact us.", "error")
+        g.log.warning("Couldn't charge card.", reason=e.json_body,
+                      status=e.http_status)
+        flash(u"Sorry. Your card could not be charged. Please contact us.",
+              "error")
         return redirect(url_for('dashboard'))
 
     current_user.upgraded = True
     DB.session.add(current_user)
     DB.session.commit()
-    flash("Congratulations! You are now a {SERVICE_NAME} {UPGRADED_PLAN_NAME} user!".format(**settings.__dict__), 'success')
+    flash(u"Congratulations! You are now a {SERVICE_NAME} "
+          "{UPGRADED_PLAN_NAME} user!".format(**settings.__dict__),
+          'success')
     g.log.info('Subscription created.')
 
     return redirect(url_for('dashboard'))
+
 
 @login_required
 def resubscribe():
@@ -222,16 +249,21 @@ def resubscribe():
     sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
 
     if not sub:
-        flash("You can't do this. You are not subscribed to any plan.", "warning")
+        flash(u"You can't do this. You are not subscribed to any plan.",
+              "warning")
         return redirect(url_for('account'))
-        
+
     sub.plan = 'gold'
     sub.save()
-    
+
     g.log.info('Resubscribed user.', account=current_user.email)
-    flash('Glad to have you back! Your subscription will now automatically renew on {date}'.format(date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')), 'success')
-    
+    at = datetime.datetime.fromtimestamp(sub.current_period_end)
+    flash(u'Glad to have you back! Your subscription will now automatically '
+          'renew on {date}'.format(date=at.strftime('%A, %B %d, %Y')),
+          'success')
+
     return redirect(url_for('account'))
+
 
 @login_required
 def downgrade():
@@ -239,15 +271,19 @@ def downgrade():
     sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
 
     if not sub:
-        flash("You can't do this. You are not subscribed to any plan.", "warning")
+        flash(u"You can't do this. You are not subscribed to any plan.",
+              "warning")
         return redirect(url_for('account'))
 
     sub = sub.delete(at_period_end=True)
-    flash("You were unregistered from the {SERVICE_NAME} {UPGRADED_PLAN_NAME} plan."\
-        .format(**settings.__dict__), 'success')
-    flash("Your card will not be charged anymore, but your plan will remain active until {date}."\
-        .format(date=datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')),
-    'info')
+    flash(u"You were unregistered from the {SERVICE_NAME} "
+          "{UPGRADED_PLAN_NAME} plan.".format(**settings.__dict__),
+          'success')
+    at = datetime.datetime.fromtimestamp(sub.current_period_end)
+    flash(u"Your card will not be charged anymore, but your plan will "
+          "remain active until {date}.".format(
+            date=at.strftime('%A, %B %d, %Y')
+          ), 'info')
 
     g.log.info('Subscription canceled from dashboard.', account=current_user.email)
     return redirect(url_for('account'))
@@ -287,19 +323,25 @@ def add_card():
         # Make sure this card doesn't already exist
         new_fingerprint = stripe.Token.retrieve(token).card.fingerprint
         if new_fingerprint in (card.fingerprint for card in customer.sources.all(object='card').data):
-            flash('That card already exists in your wallet', 'error')
+            flash(u'That card already exists in your wallet', 'error')
         else:
             customer.sources.create(source=token)
-            flash('You\'ve successfully added a new card!', 'success')
+            flash(u"You've successfully added a new card!", 'success')
             g.log.info('Added card to stripe account.')
     except stripe.CardError as e:
-        flash("Sorry, there was an error in adding your card. If this persists, please contact us.", "error")
-        g.log.warning("Couldn't add card to Stripe account.", reason=e.json_body, status=e.http_status)
+        flash(u"Sorry, there was an error in adding your card. If this "
+              "persists, please contact us.", "error")
+        g.log.warning("Couldn't add card to Stripe account.",
+                      reason=e.json_body, status=e.http_status)
     except stripe.error.APIConnectionError:
-        flash('We\'re unable to establish a connection with our payment processor. For your security, we haven\'t added this card to your account. Please try again later.', 'error')
-        g.log.warning("Couldn't add card to Stripe account. Failed to communicate with Stripe API.")
+        flash(u"We're unable to establish a connection with our payment "
+              "processor. For your security, we haven't added this "
+              "card to your account. Please try again later.", 'error')
+        g.log.warning("Couldn't add card to Stripe account. Failed to "
+                      "communicate with Stripe API.")
     except stripe.error.StripeError:
-        flash('Sorry, an unknown error occured. Please try again later. If this problem persists, please contact us.', 'error')
+        flash(u'Sorry, an unknown error occured. Please try again '
+              'later. If this problem persists, please contact us.', 'error')
         g.log.warning("Couldn't add card to Stripe account. Unknown error.")
 
     return redirect(url_for('account'))
@@ -309,10 +351,10 @@ def delete_card(cardid):
     if current_user.stripe_id:
         customer = stripe.Customer.retrieve(current_user.stripe_id)
         customer.sources.retrieve(cardid).delete()
-        flash('Successfully deleted card', 'success')
+        flash(u'Successfully deleted card', 'success')
         g.log.info('Deleted card from account.', account=current_user.email)
     else:
-        flash("That's an invalid operation", 'error')
+        flash(u"That's an invalid operation", 'error')
     return redirect(url_for('account'))
 
 

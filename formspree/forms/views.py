@@ -146,9 +146,11 @@ def send(email_or_string):
         if request_wants_json():
             return jsonerror(400, {'error': "Can't send an empty form"})
         else:
-            return render_template('error.html',
-                                   title='Can\'t send an empty form',
-                                   text=str('<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank"><code>"name"</code> attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank"><code>"required"</code> property</a>.</p><p>This error also happens when you have an <code>"enctype"</code> attribute set in your <code>&lt;form&gt;</code>, so make sure you don\'t.</p><p><a href="%s">Return to form</a></p>' % request.referrer)), 400
+            return render_template(
+                'error.html',
+                title='Can\'t send an empty form',
+                text=u'<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank"><code>"name"</code> attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank"><code>"required"</code> property</a>.</p><p>This error also happens when you have an <code>"enctype"</code> attribute set in your <code>&lt;form&gt;</code>, so make sure you don\'t.</p><p><a href="{}">Return to form</a></p>'.format(request.referrer)
+            ), 400
     elif status['code'] == Form.STATUS_CONFIRMATION_SENT or \
          status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED:
 
@@ -170,15 +172,21 @@ def send(email_or_string):
         if request_wants_json():
             return jsonerror(500, {'error': "_replyto or email field has not been sent correctly"})
         else:
-            return render_template('error.html', title='Invalid email address', text='You entered <span class="code">{address}</span>. That is an invalid email address. Please correct the form and try to submit again <a href="{back}">here</a>.<p style="font-size: small">This could also be a problem with the form. For example, there could be two fields with <span class="code">_replyto</span> or <span class="code">email</span> name attribute. If you suspect the form is broken, please contact the form owner and ask them to investigate</p>'''.format(address=status['address'], back=status['referrer'])), 400
+            return render_template(
+                'error.html',
+                title='Invalid email address',
+                text=u'You entered <span class="code">{address}</span>. That is an invalid email address. Please correct the form and try to submit again <a href="{back}">here</a>.<p style="font-size: small">This could also be a problem with the form. For example, there could be two fields with <span class="code">_replyto</span> or <span class="code">email</span> name attribute. If you suspect the form is broken, please contact the form owner and ask them to investigate</p>'''.format(address=status['address'], back=status['referrer'])
+            ), 400
 
     # error fallback -- shouldn't happen
     if request_wants_json():
         return jsonerror(500, {'error': "Unable to send email"})
     else:
-        return render_template('error.html',
-                               title='Unable to send email',
-                               text='Unable to send email. If you can, please send the link to your form and the error information to  <b>{email}</b>. And send them the following: <p><pre><code>{message}</code></pre></p>'.format(message=json.dumps(status), email=settings.CONTACT_EMAIL)), 500
+        return render_template(
+            'error.html',
+            title='Unable to send email',
+            text=u'Unable to send email. If you can, please send the link to your form and the error information to  <b>{email}</b>. And send them the following: <p><pre><code>{message}</code></pre></p>'.format(message=json.dumps(status), email=settings.CONTACT_EMAIL)
+        ), 500
 
 
 def resend_confirmation(email):
@@ -366,7 +374,7 @@ def create_form():
         if request_wants_json():
             return jsonerror(400, {'error': "The provided email address is not valid."})
         else:
-            flash('The provided email address is not valid.', 'error')
+            flash(u'The provided email address is not valid.', 'error')
             return redirect(url_for('dashboard'))
 
     g.log.info('Creating a new form from the dashboard.')
@@ -383,7 +391,9 @@ def create_form():
                 form.host = remove_www(referrer_to_path(urljoin(url, '/'))[:-1])
                 form.sitewide = True
             else:
-                return jsonerror(403, {'error': "Couldn't verify the file at %s." % url})
+                return jsonerror(403, {
+                    'error': u"Couldn't verify the file at {}.".format(url)
+                })
 
     DB.session.add(form)
     DB.session.commit()
@@ -411,7 +421,7 @@ def create_form():
             'confirmed': form.confirmed
         })
     else:
-        flash('Your new form endpoint was created!', 'success')
+        flash(u'Your new form endpoint was created!', 'success')
         return redirect(url_for('dashboard', new=form.hashid) + '#form-' + form.hashid)
 
 
@@ -523,9 +533,9 @@ def form_toggle(hashid):
         DB.session.add(form)
         DB.session.commit()
         if form.disabled:
-            flash('Form successfully disabled', 'success')
+            flash(u'Form successfully disabled', 'success')
         else:
-            flash('Form successfully enabled', 'success')
+            flash(u'Form successfully enabled', 'success')
         return redirect(url_for('dashboard'))
 
 
@@ -555,7 +565,7 @@ def form_deletion(hashid):
             DB.session.delete(submission)
         DB.session.delete(form)
         DB.session.commit()
-        flash('Form successfully deleted', 'success')
+        flash(u'Form successfully deleted', 'success')
         return redirect(url_for('dashboard'))
 
 
@@ -590,5 +600,5 @@ def submission_deletion(hashid, submissionid):
         form.counter -= 1
         DB.session.add(form)
         DB.session.commit()
-        flash('Submission successfully deleted', 'success')
+        flash(u'Submission successfully deleted', 'success')
         return redirect(url_for('form-submissions', hashid=hashid))
