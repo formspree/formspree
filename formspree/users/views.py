@@ -105,7 +105,7 @@ def confirm_email(digest):
                 email.address), 'success')
         except IntegrityError as e:
             g.log.error('Failed to save new email address to account.',
-                        exc_info=e)
+                        exception=repr(e))
             flash(u'A unexpected error has ocurred while we were trying '
                   'to confirm the email. Please contact us if this continues '
                   'to happen.', 'error')
