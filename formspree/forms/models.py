@@ -110,9 +110,10 @@ class Form(DB.Model):
         subject = data.get('_subject',
                            'New submission from %s' %
                            referrer_to_path(referrer))
-        reply_to = data.get('_replyto',
-                            data.get('email',
-                                     data.get('Email', ''))).strip()
+        reply_to = (data.get(
+            '_replyto',
+            data.get('email', data.get('Email'))
+        ) or '').strip()
         cc = data.get('_cc', None)
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
