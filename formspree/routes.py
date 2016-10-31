@@ -12,6 +12,8 @@ def configure_routes(app):
     app.add_url_rule('/unblock/<email>', 'unblock_email', view_func=forms.views.unblock_email, methods=['GET', 'POST'])
     app.add_url_rule('/resend/<email>', 'resend_confirmation', view_func=forms.views.resend_confirmation, methods=['POST'])
     app.add_url_rule('/confirm/<nonce>', 'confirm_email', view_func=forms.views.confirm_email, methods=['GET'])
+    app.add_url_rule('/request_unconfirm/<hashid>', 'request_unconfirm', view_func=forms.views.request_unconfirm, methods=['GET', 'POST'])
+    app.add_url_rule('/unconfirm/<nonce>', 'unconfirm_form', view_func=forms.views.unconfirm_form, methods=['GET'])
     app.add_url_rule('/thanks', 'thanks', view_func=forms.views.thanks, methods=['GET'])
 
     # Users

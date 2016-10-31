@@ -21,4 +21,4 @@
 
 <hr style="color: #359173; border: 1px dashed #359173;" />
 
-<p>You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to {{config.CONTACT_EMAIL}}.</p>
+<p>You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or visit <a href="{{ url_for('request_unconfirm', hashid=hashid) }}">this address</a> to unconfirm this form and stop receiving submissions from it.</p>

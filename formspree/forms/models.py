@@ -184,15 +184,20 @@ class Form(DB.Model):
                         overlimit = False
                         break
 
-
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
-            text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
+            text = render_template('email/form.txt',
+                                   data=data, host=self.host, keys=keys,
+                                   now=now, hashid=self.hashid)
             # check if the user wants a new or old version of the email
             if format == 'plain':
-                html = render_template('email/plain_form.html', data=data, host=self.host, keys=keys, now=now)
+                html = render_template('email/plain_form.html',
+                                       data=data, host=self.host, keys=keys,
+                                       now=now, hashid=self.hashid)
             else:
-                html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
+                html = render_template('email/form.html',
+                                       data=data, host=self.host, keys=keys,
+                                       now=now, hashid=self.hashid)
         else:
             if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
                 g.log.info('Submission rejected. Form over quota.', monthly_counter=monthly_counter)

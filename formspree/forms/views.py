@@ -12,7 +12,7 @@ from urlparse import urljoin
 
 from formspree import settings
 from formspree.app import DB
-from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
+from formspree.utils import send_email, request_wants_json, jsonerror, IS_VALID_EMAIL
 from helpers import ordered_storage, referrer_to_path, remove_www, \
                     referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
@@ -317,6 +317,56 @@ def confirm_email(nonce):
 
     else:
         return render_template('forms/email_confirmed.html', email=form.email, host=form.host)
+
+
+def request_unconfirm(hashid):
+    '''
+    All submissions sent have a link to this URL, which should send
+    another email that will then confirm that the user really wants
+    to unconfirm the form. This is needed because the submissions
+    are likely to be forwarded to others, so we couldn't have just
+    a simple "unsubscribe" link.
+    '''
+
+    form = Form.get_with_hashid(hashid)
+    g.log = g.log.bind(email=form.email, host=form.host, id=form.id)
+
+    if request.method == 'GET':
+        g.log.info('Starting unconfirmation process.')
+        return render_template('forms/request_unconfirm.html', form=form)
+    elif request.method == 'POST':
+        g.log.info('Unconfirming form.')
+        # the first thing to do is to check the captcha
+        r = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data={
+                'secret': settings.RECAPTCHA_SECRET,
+                'response': request.form['g-recaptcha-response'],
+                'remoteip': request.remote_addr
+            })
+        if r.ok and r.json().get('success'):
+            # then proceed to send the email
+            send_email(
+                to=form.email,
+                subject='Disabling form at %s. Do you confirm?' % form.host,
+                text=render_template('email/unconfirm.txt', form=form),
+                html=render_template('email/unconfirm.html', form=form),
+                sender=settings.DEFAULT_SENDER
+            )
+        return render_template(
+            'info.html',
+            title='Email sent.',
+            text="We've sent and email to {addr} with a link that will "
+                 "finally disable the form at {host}."
+                 .format(addr=form.email, host=form.host))
+
+
+def unconfirm_form(nonce):
+    '''
+    People arrive here through a link sent to their email address
+    which means they are actually very sure they want to unconfirm
+    their form.
+    '''
 
 
 @login_required
