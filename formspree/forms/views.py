@@ -43,7 +43,7 @@ def send(email_or_string):
                                    text='Make sure your form has the <span class="code"><strong>method="POST"</strong></span> attribute'), 405
 
     host = referrer_to_path(request.referrer)
-    if not host:
+    if not host or host == 'www.google.com':
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
         else:
