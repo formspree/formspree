@@ -353,12 +353,18 @@ def request_unconfirm(hashid):
                 html=render_template('email/unconfirm.html', form=form),
                 sender=settings.DEFAULT_SENDER
             )
+            return render_template(
+                'info.html',
+                title='Email sent.',
+                text="We've sent and email to {addr} with a link that will "
+                     "finally disable the form at {host}."
+                     .format(addr=form.email, host=form.host))
         return render_template(
-            'info.html',
-            title='Email sent.',
-            text="We've sent and email to {addr} with a link that will "
-                 "finally disable the form at {host}."
-                 .format(addr=form.email, host=form.host))
+            'error.html',
+            title='Captcha error!',
+            text="Something has gone wrong with reCaptcha, please make sure "
+                 "it identifies you as a human before submitting."
+        )
 
 
 def unconfirm_form(nonce):
@@ -367,6 +373,20 @@ def unconfirm_form(nonce):
     which means they are actually very sure they want to unconfirm
     their form.
     '''
+
+    form = Form.query.filter_by(hash=nonce).first()
+    if not form:
+        return redirect(url_for('index'))
+
+    form.confirmed = False
+    DB.session.add(form)
+    DB.session.commit()
+    return render_template(
+        'info.html',
+        title='Form disabled!',
+        text='The form at {host} targeting {email} was successfully disabled.'
+        .format(host=form.host, email=form.email)
+    )
 
 
 @login_required
@@ -402,7 +422,8 @@ def forms():
             } for f in forms]
         })
     else:
-        return render_template('forms/list.html',
+        return render_template(
+            'forms/list.html',
             enabled_forms=[form for form in forms if not form.disabled],
             disabled_forms=[form for form in forms if form.disabled]
         )

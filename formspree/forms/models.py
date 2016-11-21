@@ -191,13 +191,15 @@ class Form(DB.Model):
                                    now=now, hashid=self.hashid)
             # check if the user wants a new or old version of the email
             if format == 'plain':
-                html = render_template('email/plain_form.html',
-                                       data=data, host=self.host, keys=keys,
-                                       now=now, hashid=self.hashid)
+                html = render_template(
+                    'email/plain_form.html',
+                    data=data, host=self.host, keys=keys,
+                    now=now, hashid=self.hashid)
             else:
-                html = render_template('email/form.html',
-                                       data=data, host=self.host, keys=keys,
-                                       now=now, hashid=self.hashid)
+                html = render_template(
+                    'email/form.html',
+                    data=data, host=self.host, keys=keys,
+                    now=now, hashid=self.hashid)
         else:
             if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
                 g.log.info('Submission rejected. Form over quota.', monthly_counter=monthly_counter)

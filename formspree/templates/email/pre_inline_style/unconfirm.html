@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Confirm Account</title>
+    <title>Unconfirm Form</title>
     <link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
 </head>
 <body itemscope itemtype="http://schema.org/EmailMessage">
@@ -23,7 +23,7 @@
                                     </tr>
                                     <tr>
                                         <td class="content-block">
-                                            <a href="{{ url_for('unconfirm_form', nonce=form.hash) }}" class="btn-primary">Remove form</a>
+                                            <a href="{{ url_for('unconfirm_form', nonce=form.hash, _external=True) }}" class="btn-primary">Cancel form</a>
                                         </td>
                                     </tr>
                                     <tr>

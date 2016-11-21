@@ -1,1 +1,8 @@
+To unconfirm the form at {{ form.host }} and stop receiving emails from it at {{ form.email }}, just visit the URL below:
+
+{{ url_for('unconfirm_form', nonce=form.hash, _external=True) }}
+
+Thank you for using {{config.SERVICE_NAME}}. It was good while it lasted.
+
+ALERT: This will cancel all further submissions from the form at {{ form.host }} targeting {{ form.email }}
 
