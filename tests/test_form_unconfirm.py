@@ -27,9 +27,12 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertIn('Form disabled', r.data)
 
         # try to submit again (should show confirmation screen)
+        httpretty.reset()
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = self.client.post('/luke@example.com',
             headers={'Referer': 'http://example.com'},
             data={'name': 'han'}
         )
         self.assertEqual(r.status_code, 200)
         self.assertIn('Confirm your email', r.data)
+        self.assertFalse(httpretty.has_request())
