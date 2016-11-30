@@ -44,13 +44,6 @@ def configure_ssl_redirect(app):
             r = redirect(url, code=301)
             return r
 
-    @app.after_request
-    def set_headers(response):
-        if request.is_secure:
-            response.headers.setdefault('Strict-Transport-Security',
-                                        'max-age=31536000')
-        return response
-
 
 def configure_logger(app):
     def processor(_, method, event):
