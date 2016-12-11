@@ -64,3 +64,5 @@ pro.env
 celerybeat-schedule.db
 .Python
 include
+
+bower_components/
