@@ -120,7 +120,7 @@ def login():
         if current_user.is_authenticated:
             return redirect(url_for('dashboard'))
         return render_template('users/login.html')
-    email = request.form['email']
+    email = request.form['email'].lower().strip()
     password = request.form['password']
     user = User.query.filter_by(email=email).first()
     if user is None:
