@@ -9,12 +9,23 @@
     <p class="small"><strong>Email: </strong> {{email}}, <strong>Site</strong> {{host}}</p>
 
     {% if resend %}
-      <a href="#" class="resend">Resend confirmation email?</a>
+      <style>
+        .g-recaptcha div { width: auto !important; height: auto !important; }
+        .hint--top::after { width: 305px; white-space: pre-wrap; text-align: left; }
+      </style>
+      <a href="#" class="resend">
+        <span class="tooltip hint--top" data-hint="In 99% of the cases our users don't receive their confirmation emails, that is because their mail servers weren't ready at the time they submitted the form. Please verify if you can receive normal email messages in this address and look at your spam folder.
+
+If you mailbox was unavailable at the time we sent the confirmation message, then we won't be able to send another, for spam concerns. Please send a message to our support telling this and your email address, so we can manually fix it.
+
+If you have already done that and everything is fixed now, click here to proceed.">
+          Didn't get a confirmation email?
+        </span>
+      </a>
       <form class="resend" style="display: none"
         action="{{ url_for('resend_confirmation', email=email) }}"
         method="POST"
       >
-        <style>.g-recaptcha div { width: auto !important; height: auto !important; }</style>
         <input type="hidden" name="host" value="{{ host }}">
         <script src='https://www.google.com/recaptcha/api.js'></script>
         <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_KEY }}"></div>
