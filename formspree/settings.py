@@ -8,7 +8,7 @@ if DEBUG:
     SQLALCHEMY_ECHO = True
 TESTING = os.getenv('TESTING') in ['True', 'true', '1', 'yes']
 
-SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+SQLALCHEMY_DATABASE_URI = os.getenv('SQLALCHEMY_DATABASE_URI') or os.getenv('DATABASE_URL')
 
 LOG_LEVEL = os.getenv('LOG_LEVEL') or 'debug'
 
@@ -18,7 +18,7 @@ HASHIDS_SALT = os.getenv('HASHIDS_SALT')
 
 MONTHLY_SUBMISSIONS_LIMIT = int(os.getenv('MONTHLY_SUBMISSIONS_LIMIT') or 1000)
 ARCHIVED_SUBMISSIONS_LIMIT = int(os.getenv('ARCHIVED_SUBMISSIONS_LIMIT') or 100)
-REDIS_URL = os.getenv('REDISTOGO_URL') or os.getenv('REDISCLOUD_URL')
+REDIS_URL = os.getenv('REDISTOGO_URL') or os.getenv('REDISCLOUD_URL') or 'redis://localhost:6379'
 
 CDN_URL = os.getenv('CDN_URL')
 

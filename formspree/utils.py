@@ -76,6 +76,12 @@ def unix_time_for_12_months_from_now(now=None):
     return calendar.timegm(start_of_next_month.utctimetuple())
 
 
+def unix_time_for_5_min_from_now(now=None):
+    now = now or datetime.datetime.now()
+    five_min_later = now + datetime.timedelta(minutes=5)
+    return calendar.timegm(five_min_later.utctimetuple())
+
+
 def next_url(referrer=None, next=None):
     referrer = referrer if referrer is not None else ''
 

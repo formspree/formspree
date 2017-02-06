@@ -3,14 +3,20 @@ import urlparse
 import requests
 import hashlib
 import hashids
+import uuid
 from urlparse import urljoin
 from flask import request, g
 
 from formspree import settings
+from formspree.app import redis_store
+
+CAPTCHA_URL = 'https://www.google.com/recaptcha/api/siteverify'
+CAPTCHA_VAL = 'g-recaptcha-response'
 
 HASH = lambda x, y: hashlib.md5(x.encode('utf-8')+y.encode('utf-8')+settings.NONCE_SECRET).hexdigest()
-EXCLUDE_KEYS = {'_gotcha', '_next', '_subject', '_cc', '_format'}
-MONTHLY_COUNTER_KEY = 'monthly_{form_id}_{month}'.format
+EXCLUDE_KEYS = {'_gotcha', '_next', '_subject', '_cc', '_format', CAPTCHA_VAL, '_host_nonce'}
+REDIS_COUNTER_KEY = 'monthly_{form_id}_{month}'.format
+REDIS_HOSTNAME_KEY = 'hostname_{nonce}'.format
 HASHIDS_CODEC = hashids.Hashids(alphabet='abcdefghijklmnopqrstuvwxyz',
                                 min_length=8,
                                 salt=settings.HASHIDS_SALT)
@@ -94,3 +100,31 @@ def sitewide_file_check(url, email):
 
     g.log.warn('Email not found in sitewide file.', contents=res.text[:100])
     return False
+
+
+def verify_captcha(form_data, request):
+    if not CAPTCHA_VAL in form_data:
+        return False
+    r = requests.post(CAPTCHA_URL, data={
+        'secret': settings.RECAPTCHA_SECRET,
+        'response': form_data[CAPTCHA_VAL],
+        'remoteip': request.remote_addr,
+    }, timeout=2)
+    return r.ok and r.json().get('success')
+
+
+def temp_store_hostname(hostname, referrer):
+    nonce = uuid.uuid4()
+    key = REDIS_HOSTNAME_KEY(nonce=nonce)
+    redis_store.set(key, hostname+','+referrer)
+    redis_store.expire(key, 300000)
+    return nonce
+
+
+def get_temp_hostname(nonce):
+    key = REDIS_HOSTNAME_KEY(nonce=nonce)
+    value = redis_store.get(key)
+    if value == None: raise KeyError()
+    redis_store.delete(key)
+    return value.split(',')
+

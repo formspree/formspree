@@ -15,6 +15,7 @@ from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
 from helpers import ordered_storage, referrer_to_path, remove_www, \
                     referrer_to_baseurl, sitewide_file_check, \
+                    verify_captcha, temp_store_hostname, get_temp_hostname, \
                     HASH, EXCLUDE_KEYS
 from models import Form, Submission
 
@@ -42,7 +43,13 @@ def send(email_or_string):
                                    title='Form should POST',
                                    text='Make sure your form has the <span class="code"><strong>method="POST"</strong></span> attribute'), 405
 
-    host = referrer_to_path(request.referrer)
+    received_data = request.form or request.get_json() or {}
+    try:
+        # Get stored hostname from redis (from captcha)
+        host, referrer = get_temp_hostname(received_data['_host_nonce'])
+    except KeyError:
+        host, referrer = referrer_to_path(request.referrer), request.referrer
+
     if not host or host == 'www.google.com':
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
@@ -130,9 +137,22 @@ def send(email_or_string):
 
     # If form exists and is confirmed, send email
     # otherwise send a confirmation email
-    received_data = request.form or request.get_json() or {}
+
     if form.confirmed:
-        status = form.send(received_data, request.referrer)
+        captcha_verified = verify_captcha(received_data, request)
+        needs_captcha = not (request_wants_json() or
+                             form.upgraded or
+                             captcha_verified or
+                             settings.TESTING)
+        if needs_captcha:
+            data_copy = received_data.copy()
+            # Temporarily store hostname in redis while doing captcha
+            data_copy['_host_nonce'] = temp_store_hostname(form.host, request.referrer)
+            action = urljoin(settings.API_ROOT, email_or_string)
+            return render_template('forms/captcha.html',
+                                   data=data_copy,
+                                   action=action)
+        status = form.send(received_data, referrer)
     else:
         status = form.send_confirmation()
 
@@ -149,7 +169,7 @@ def send(email_or_string):
             return render_template(
                 'error.html',
                 title='Can\'t send an empty form',
-                text=u'<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank"><code>"name"</code> attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank"><code>"required"</code> property</a>.</p><p>This error also happens when you have an <code>"enctype"</code> attribute set in your <code>&lt;form&gt;</code>, so make sure you don\'t.</p><p><a href="{}">Return to form</a></p>'.format(request.referrer)
+                text=u'<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank"><code>"name"</code> attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank"><code>"required"</code> property</a>.</p><p>This error also happens when you have an <code>"enctype"</code> attribute set in your <code>&lt;form&gt;</code>, so make sure you don\'t.</p><p><a href="{}">Return to form</a></p>'.format(referrer)
             ), 400
     elif status['code'] == Form.STATUS_CONFIRMATION_SENT or \
          status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED:
@@ -193,14 +213,8 @@ def resend_confirmation(email):
     g.log = g.log.bind(email=email, host=request.form.get('host'))
     g.log.info('Resending confirmation.')
 
-    # the first thing to do is to check the captcha
-    r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
-        'secret': settings.RECAPTCHA_SECRET,
-        'response': request.form['g-recaptcha-response'],
-        'remoteip': request.remote_addr
-    })
-    if r.ok and r.json().get('success'):
-        # then proceed to check if this email is listed on SendGrid's bounces
+    if verify_captcha(request.form, request):
+        # check if this email is listed on SendGrid's bounces
         r = requests.get('https://api.sendgrid.com/api/bounces.get.json',
             params={
                 'email': email,
@@ -255,14 +269,8 @@ def unblock_email(email):
         g.log = g.log.bind(email=email)
         g.log.info('Unblocking email on SendGrid.')
 
-        # check the captcha
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data={
-            'secret': settings.RECAPTCHA_SECRET,
-            'response': request.form['g-recaptcha-response'],
-            'remoteip': request.remote_addr
-        })
-        if r.ok and r.json().get('success'):
-            # then proceed to clear the bounce from SendGrid
+        if verify_captcha(request.form, request):
+            # clear the bounce from SendGrid
             r = requests.post(
                 'https://api.sendgrid.com/api/bounces.delete.json',
                 data={

@@ -8,7 +8,7 @@ from flask import url_for, render_template, g
 from sqlalchemy.sql.expression import delete
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
-from helpers import HASH, HASHIDS_CODEC, MONTHLY_COUNTER_KEY, \
+from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
                     EXCLUDE_KEYS, http_form_to_dict, referrer_to_path
 
 class Form(DB.Model):
@@ -86,6 +86,12 @@ class Form(DB.Model):
             .join(Form, User.id == Form.owner_id) \
             .filter(Form.id == self.id)
         return by_email.union(by_creation)
+
+
+    @property
+    def upgraded(self):
+        upgraded_controllers = [i for i in self.controllers if i.upgraded]
+        return len(upgraded_controllers) > 0
 
     @classmethod
     def get_with_hashid(cls, hashid):
@@ -229,14 +235,14 @@ class Form(DB.Model):
     def get_monthly_counter(self, basedate=None):
         basedate = basedate or datetime.datetime.now()
         month = basedate.month
-        key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
+        key = REDIS_COUNTER_KEY(form_id=self.id, month=month)
         counter = redis_store.get(key) or 0
         return int(counter)
 
     def increase_monthly_counter(self, basedate=None):
         basedate = basedate or datetime.datetime.now()
         month = basedate.month
-        key = MONTHLY_COUNTER_KEY(form_id=self.id, month=month)
+        key = REDIS_COUNTER_KEY(form_id=self.id, month=month)
         redis_store.incr(key)
         redis_store.expireat(key, unix_time_for_12_months_from_now(basedate))
 
