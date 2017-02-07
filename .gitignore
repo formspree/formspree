@@ -60,7 +60,10 @@ aliases.json
 dev.env
 sta.env
 pro.env
+test.env
 
 celerybeat-schedule.db
 .Python
 include
+
+mydata
