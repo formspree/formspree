@@ -12,10 +12,12 @@ from urlparse import urljoin
 
 from formspree import settings
 from formspree.app import DB
-from formspree.utils import send_email, request_wants_json, jsonerror, IS_VALID_EMAIL
+from formspree.utils import send_email, request_wants_json, jsonerror, \
+                            IS_VALID_EMAIL
 from helpers import ordered_storage, referrer_to_path, remove_www, \
                     referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
+                    temp_store_forms_to_disable, get_temp_forms_to_disable, \
                     HASH, EXCLUDE_KEYS
 from models import Form, Submission
 
@@ -323,9 +325,9 @@ def request_unconfirm(hashid):
     '''
     All submissions sent have a link to this URL, which should send
     another email that will then confirm that the user really wants
-    to unconfirm the form. This is needed because the submissions
-    are likely to be forwarded to others, so we couldn't have just
-    a simple "unsubscribe" link.
+    to unconfirm the selected forms. This is needed because the
+    submissions are likely to be forwarded to others, so we couldn't
+    have just a simple "unsubscribe" link.
     '''
 
     form = Form.get_with_hashid(hashid)
@@ -333,58 +335,78 @@ def request_unconfirm(hashid):
 
     if request.method == 'GET':
         g.log.info('Starting unconfirmation process.')
-        return render_template('forms/request_unconfirm.html', form=form)
+        other_forms = Form.query.filter(Form.email == form.email) \
+                                .filter(Form.host != '') \
+                                .filter(Form.confirmed)
+        return render_template('forms/request_unconfirm.html',
+                               form=form, other_forms=other_forms)
     elif request.method == 'POST':
         g.log.info('Unconfirming form.')
-        # the first thing to do is to check the captcha
-        r = requests.post(
-            'https://www.google.com/recaptcha/api/siteverify',
-            data={
-                'secret': settings.RECAPTCHA_SECRET,
-                'response': request.form['g-recaptcha-response'],
-                'remoteip': request.remote_addr
-            })
-        if r.ok and r.json().get('success'):
-            # then proceed to send the email
+        if verify_captcha(request.form, request):
+            # which forms are we going to disable?
+            forms = [Form.get_with_hashid(h)
+                     for h in request.form.getlist('disable')]
+            forms = [f for f in forms if f]
+
+            # stop if none is selected
+            if not forms:
+                return render_template(
+                    'error.html',
+                    title="You didn't select any form!",
+                    text="We are not going to disable anything, all "
+                         "your forms are still functional.")
+
+            # save these temporarily in redis
+            nonce = temp_store_forms_to_disable([f.id for f in forms])
+
+            # then proceed to send the email with the validation link
             send_email(
-                to=form.email,
-                subject='Disabling form at %s. Do you confirm?' % form.host,
-                text=render_template('email/unconfirm.txt', form=form),
-                html=render_template('email/unconfirm.html', form=form),
+                to=forms[0].email,
+                subject='Disabling forms. Do you confirm?',
+                html=render_template('email/unconfirm.html',
+                                     forms=forms, nonce=nonce),
+                text='',
                 sender=settings.DEFAULT_SENDER
             )
             return render_template(
                 'info.html',
                 title='Email sent.',
-                text="We've sent and email to {addr} with a link that will "
-                     "finally disable the form at {host}."
-                     .format(addr=form.email, host=form.host))
+                text="We've sent and email to {} with a link that will finally"
+                     " disable the selected forms.".format(form.email))
         return render_template(
             'error.html',
             title='Captcha error!',
             text="Something has gone wrong with reCaptcha, please make sure "
-                 "it identifies you as a human before submitting."
-        )
+                 "it identifies you as a human before submitting.")
 
 
 def unconfirm_form(nonce):
     '''
     People arrive here through a link sent to their email address
     which means they are actually very sure they want to unconfirm
-    their form.
+    their forms.
     '''
 
-    form = Form.query.filter_by(hash=nonce).first()
-    if not form:
+    try:
+        ids = get_temp_forms_to_disable(nonce)
+    except KeyError:
+        flash("The process of disabling forms took too long or "
+              "is already completed.")
         return redirect(url_for('index'))
 
-    form.confirmed = False
-    DB.session.add(form)
+    for id in ids:
+        form = Form.query.get(id)
+        if form:
+            form.confirmed = False
+            DB.session.add(form)
+
     DB.session.commit()
     return render_template(
         'info.html',
-        title='Form disabled!',
-        text='The form at {host} targeting {email} was successfully disabled.'
+        title='Forms disabled!',
+        text="The selected forms were successfully disabled. If you ever want "
+             "to use Formspree from these pages again with the same address "
+             "you'll have to manually trigger a reconfirmation email."
         .format(host=form.host, email=form.email)
     )
 

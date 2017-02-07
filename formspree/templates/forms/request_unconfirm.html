@@ -11,9 +11,7 @@
 
   <div class="container">
     <div class="col-1-1">
-      <h1>Are you sure you want to cancel this form?</h1>
-
-      <p>You'll receive an email with a link to finally disable it.</p>
+      <h1>Disable the following forms currently targeting {{ form.email }}:</h1>
     </div>
   </div>
 
@@ -24,13 +22,24 @@
         action="{{ url_for('request_unconfirm', hashid=form.hashid) }}"
         method="POST"
       >
+        <div style="text-align: left; padding-left: 5%">
+        {% for f in other_forms %}
+          <div class="float-left"><label>
+          {% if form.id == f.id %}
+            <input type="checkbox" name="disable" value="{{ form.hashid }}" checked> {{ form.host }} (current)
+          {% else %}
+            <input type="checkbox" name="disable" value="{{ f.hashid }}"> {{ f.host }}
+          {% endif %}
+          </label></div>
+        {% endfor %}
+        </div>
+        <p>Please prove that you are a human below and you'll receive an email with a confirmation link.</p>
         <style>.g-recaptcha div { width: auto !important; height: auto !important; }</style>
         <input type="hidden" name="host" value="{{ form.host }}">
         <script src='https://www.google.com/recaptcha/api.js'></script>
         <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_KEY }}"
                                  data-callback="submit"></div>
       </form>
-
     </div>
   </div>
 </div>

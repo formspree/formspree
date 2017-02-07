@@ -101,7 +101,7 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
     g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
-        raise ValueError('to, subject text and sender are required to send email')
+        raise ValueError('to, subject, text and sender are required to send email')
 
     data = {'api_user': settings.SENDGRID_USERNAME,
             'api_key': settings.SENDGRID_PASSWORD,

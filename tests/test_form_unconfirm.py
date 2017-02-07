@@ -2,6 +2,7 @@ import httpretty
 
 from formspree.app import DB
 from formspree.forms.models import Form
+from formspree.forms.helpers import temp_store_forms_to_disable
 
 from formspree_test_case import FormspreeTestCase
 
@@ -21,10 +22,13 @@ class FormPostsTestCase(FormspreeTestCase):
         DB.session.add(f)
         DB.session.commit()
 
-        # unconfirm (skips the email/recaptcha/email flow)
-        r = self.client.get('/unconfirm/' + f.hash)
+        # request unconfirm (bypassing the email + select forms + captcha process)
+        nonce = temp_store_forms_to_disable([f.id])
+
+        # proceed to unconfirm
+        r = self.client.get('/unconfirm/' + nonce)
         self.assertEqual(r.status_code, 200)
-        self.assertIn('Form disabled', r.data)
+        self.assertIn('Forms disabled', r.data)
 
         # try to submit again (should show confirmation screen)
         httpretty.reset()
