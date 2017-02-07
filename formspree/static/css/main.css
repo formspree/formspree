@@ -1,4 +1,4 @@
-@import 'https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css';
+@import "https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css";
 article,
 aside,
 details,
@@ -343,7 +343,8 @@ a {
 .caps {
   text-transform: uppercase; }
 
-/*-------------------------------------*	HINT.css - A CSS tooltip library
+/*-------------------------------------*\
+	HINT.css - A CSS tooltip library
 \*-------------------------------------*/
 /**
  * HINT.css is a tooltip library made in pure CSS.
@@ -369,11 +370,11 @@ a {
   position: relative;
   display: inline-block;
   /**
-	 * tooltip arrow
-	 */
+   * tooltip arrow
+   */
   /**
-	 * tooltip body
-	 */ }
+   * tooltip body
+   */ }
   .hint:before, .hint:after, [data-hint]:before, [data-hint]:after {
     position: absolute;
     -webkit-transform: translate3d(0, 0, 0);
@@ -437,14 +438,11 @@ a {
  */
 .hint--top:before {
   margin-bottom: -12px; }
-
 .hint--top:after {
   margin-left: -18px; }
-
 .hint--top:before, .hint--top:after {
   bottom: 100%;
   left: 18px; }
-
 .hint--top:hover:after, .hint--top:hover:before, .hint--top:focus:after, .hint--top:focus:before {
   -webkit-transform: translateY(-8px);
   -moz-transform: translateY(-8px);
@@ -455,14 +453,11 @@ a {
  */
 .hint--bottom:before {
   margin-top: -12px; }
-
 .hint--bottom:after {
   margin-left: -18px; }
-
 .hint--bottom:before, .hint--bottom:after {
   top: 100%;
   left: 18px; }
-
 .hint--bottom:hover:after, .hint--bottom:hover:before, .hint--bottom:focus:after, .hint--bottom:focus:before {
   -webkit-transform: translateY(8px);
   -moz-transform: translateY(8px);
@@ -474,14 +469,11 @@ a {
 .hint--right:before {
   margin-left: -12px;
   margin-bottom: -6px; }
-
 .hint--right:after {
   margin-bottom: -20px; }
-
 .hint--right:before, .hint--right:after {
   left: 100%;
   bottom: 50%; }
-
 .hint--right:hover:after, .hint--right:hover:before, .hint--right:focus:after, .hint--right:focus:before {
   -webkit-transform: translateX(8px);
   -moz-transform: translateX(8px);
@@ -493,14 +485,11 @@ a {
 .hint--left:before {
   margin-right: -12px;
   margin-bottom: -6px; }
-
 .hint--left:after {
   margin-bottom: -20px; }
-
 .hint--left:before, .hint--left:after {
   right: 100%;
   bottom: 50%; }
-
 .hint--left:hover:after, .hint--left:hover:before, .hint--left:focus:after, .hint--left:focus:before {
   -webkit-transform: translateX(-8px);
   -moz-transform: translateX(-8px);
@@ -523,16 +512,12 @@ a {
  */
 .hint--error:after {
   background-color: #b34e4d; }
-
 .hint--error.hint--top:before {
   border-top-color: #b34e4d; }
-
 .hint--error.hint--bottom:before {
   border-bottom-color: #b34e4d; }
-
 .hint--error.hint--left:before {
   border-left-color: #b34e4d; }
-
 .hint--error.hint--right:before {
   border-right-color: #b34e4d; }
 
@@ -541,16 +526,12 @@ a {
  */
 .hint--warning:after {
   background-color: #c09854; }
-
 .hint--warning.hint--top:before {
   border-top-color: #c09854; }
-
 .hint--warning.hint--bottom:before {
   border-bottom-color: #c09854; }
-
 .hint--warning.hint--left:before {
   border-left-color: #c09854; }
-
 .hint--warning.hint--right:before {
   border-right-color: #c09854; }
 
@@ -559,16 +540,12 @@ a {
  */
 .hint--info:after {
   background-color: #3986ac; }
-
 .hint--info.hint--top:before {
   border-top-color: #3986ac; }
-
 .hint--info.hint--bottom:before {
   border-bottom-color: #3986ac; }
-
 .hint--info.hint--left:before {
   border-left-color: #3986ac; }
-
 .hint--info.hint--right:before {
   border-right-color: #3986ac; }
 
@@ -577,16 +554,12 @@ a {
  */
 .hint--success:after {
   background-color: #458746; }
-
 .hint--success.hint--top:before {
   border-top-color: #458746; }
-
 .hint--success.hint--bottom:before {
   border-bottom-color: #458746; }
-
 .hint--success.hint--left:before {
   border-left-color: #458746; }
-
 .hint--success.hint--right:before {
   border-right-color: #458746; }
 
@@ -602,22 +575,18 @@ a {
 .hint--always:after, .hint--always:before {
   opacity: 1;
   visibility: visible; }
-
 .hint--always.hint--top:after, .hint--always.hint--top:before {
   -webkit-transform: translateY(-8px);
   -moz-transform: translateY(-8px);
   transform: translateY(-8px); }
-
 .hint--always.hint--bottom:after, .hint--always.hint--bottom:before {
   -webkit-transform: translateY(8px);
   -moz-transform: translateY(8px);
   transform: translateY(8px); }
-
 .hint--always.hint--left:after, .hint--always.hint--left:before {
   -webkit-transform: translateX(-8px);
   -moz-transform: translateX(-8px);
   transform: translateX(-8px); }
-
 .hint--always.hint--right:after, .hint--always.hint--right:before {
   -webkit-transform: translateX(8px);
   -moz-transform: translateX(8px);
@@ -702,7 +671,6 @@ a.alert-box.success:hover {
 
 .login .row {
   padding: 2.2em 0; }
-
 .login input, .login button {
   font-size: 1.2em;
   margin: 2px 0 1em 0; }
@@ -906,8 +874,7 @@ a.alert-box.success:hover {
     .dashboard .modal .card:hover {
       border-color: #2A735B;
       color: #2A735B; }
-  .dashboard .modal:not(.js):target > *,
-  .dashboard .modal.target > * {
+  .dashboard .modal:not(.js):target > *, .dashboard .modal.target > * {
     -webkit-transform: translate(0, 0);
     -ms-transform: translate(0, 0);
     transform: translate(0, 0);
@@ -1112,9 +1079,9 @@ body > nav {
 @media screen and (max-width: 40em) {
   body > nav.js {
     display: none; }
+
   .slicknav_menu {
     display: block; } }
-
 .slicknav_menu {
   background: #4CD1A7;
   /* our transcluded menu header ("Welcome...") */ }
@@ -1307,23 +1274,22 @@ button.toast-close-button {
   #toast-container > div {
     padding: 8px 8px 8px 50px;
     width: 11em; }
+
   #toast-container .toast-close-button {
     right: -0.2em;
     top: -0.2em; } }
-
 @media all and (min-width: 241px) and (max-width: 480px) {
   #toast-container > div {
     padding: 8px 8px 8px 50px;
     width: 18em; }
+
   #toast-container .toast-close-button {
     right: -0.2em;
     top: -0.2em; } }
-
 @media all and (min-width: 481px) and (max-width: 768px) {
   #toast-container > div {
     padding: 15px 15px 15px 50px;
     width: 25em; } }
-
 html {
   height: 100%; }
 
@@ -1337,6 +1303,9 @@ body#card {
   text-align: center; }
   body#card.dashboard {
     padding-top: 0; }
+  @media screen and (max-width: 40em) {
+    body#card {
+      padding-top: 0; } }
 
 .tooltip {
   font-weight: 600;
@@ -1493,7 +1462,6 @@ button, a.button {
     -webkit-transform: translate3d(0, 0, 0);
     -moz-transform: translate3d(0, 0, 0);
     opacity: 1; } }
-
 @-webkit-keyframes dropIn {
   0% {
     opacity: 0;
@@ -1503,7 +1471,6 @@ button, a.button {
     opacity: 1;
     -webkit-transform: translate3d(0, 0, 0);
     -moz-transform: translate3d(0, 0, 0); } }
-
 @-webkit-keyframes dropInLong {
   0% {
     opacity: 0;
@@ -1513,17 +1480,14 @@ button, a.button {
     opacity: 1;
     -webkit-transform: translate3d(0, 0, 0);
     -moz-transform: translate3d(0, 0, 0); } }
-
 @-webkit-keyframes rotate {
   100% {
     -webkit-transform: rotate(45deg);
     -moz-transform: rotate(45deg); } }
-
 @-webkit-keyframes rotateBack {
   100% {
     -webkit-transform: rotate(0deg);
     -moz-transform: rotate(0deg); } }
-
 .overlay {
   position: fixed;
   width: 100%;
@@ -1571,3 +1535,5 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
+
+/*# sourceMappingURL=main.css.map */
