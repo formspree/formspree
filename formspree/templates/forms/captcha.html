@@ -1,0 +1,58 @@
+{% extends 'layouts/message.html' %}
+
+{% block head_scripts %}
+  <script type="text/javascript">
+
+    var success = function(response) {
+      var form = document.querySelector('#passthrough');
+      form.submit();
+    };
+
+    var onloadCallback = function() {
+      var form = document.querySelector('#passthrough');
+      var data = {{ data|tojson|safe }};
+      for (var key in data) {
+        if (data.hasOwnProperty(key)) {
+          var input = document.createElement('input');
+          input.setAttribute('name', key);
+          input.setAttribute('value', data[key]);
+          input.setAttribute('style', 'display:none');
+          form.appendChild(input);
+        }
+      }
+
+      grecaptcha.render('recaptcha', {
+        'sitekey' : {{ config.RECAPTCHA_KEY|tojson|safe }},
+        'callback' : success
+      });
+    };
+  </script>
+{% endblock head_scripts %}
+
+{% block base %}
+  <div class="container narrow card">
+    <div class="container" id="header">
+      <div class="col-1-1 header success">
+        <i class="ion ion-email"></i>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="col-1-1">
+        <h1>Almost there</h1>
+        <p>Please help us fight spam by following the directions below:</p>
+
+        <form action="{{ action }}" method="POST" id="passthrough">
+          <div id="recaptcha" style="text-align:center; display:inline-block"></div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+{% endblock base %}
+
+{% block tail_scripts %}
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"
+        async defer>
+</script>
+{% endblock tail_scripts %}

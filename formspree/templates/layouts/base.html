@@ -18,6 +18,7 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 ga('create', 'UA-74724777-1', 'auto');
 ga('send', 'pageview');
 </script>
+{% block head_scripts %}{% endblock %}
 </head>
 <body class="{% block bodyclass %}{% endblock %}" id="{% block bodyid %}card{% endblock %}">
 
@@ -73,6 +74,8 @@ ga('send', 'pageview');
     {% block footer %}{% endblock %}
   </div>
 
+
+  {% block tail_scripts %}{% endblock %}
   <script src="//cdnjs.cloudflare.com/ajax/libs/SlickNav/1.0.3/jquery.slicknav.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
   <script>
