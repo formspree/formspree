@@ -88,7 +88,6 @@ class Form(DB.Model):
             .filter(Form.id == self.id)
         return by_email.union(by_creation)
 
-
     @property
     def upgraded(self):
         upgraded_controllers = [i for i in self.controllers if i.upgraded]
@@ -108,9 +107,8 @@ class Form(DB.Model):
         Assumes sender's email has been verified.
         '''
 
-        subject = data.get('_subject',
-                           'New submission from %s' %
-                           referrer_to_path(referrer))
+        subject = data.get('_subject') or \
+            'New submission from %s' % referrer_to_path(referrer)
         reply_to = (data.get(
             '_replyto',
             data.get('email', data.get('Email'))
