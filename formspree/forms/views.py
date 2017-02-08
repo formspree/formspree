@@ -141,7 +141,6 @@ def send(email_or_string):
     if form.confirmed:
         captcha_verified = verify_captcha(received_data, request)
         needs_captcha = not (request_wants_json() or
-                             form.upgraded or
                              captcha_verified or
                              settings.TESTING)
         if needs_captcha:
