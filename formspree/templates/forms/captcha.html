@@ -5,7 +5,7 @@
 
     var success = function(response) {
       var form = document.querySelector('#passthrough');
-      form.submit();
+      document.createElement('form').submit.call(form); //handles the case where user has a button named 'submit'
     };
 
     var onloadCallback = function() {
