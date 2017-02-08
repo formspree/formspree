@@ -185,30 +185,40 @@ class Form(DB.Model):
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
+            if self.upgraded:
+                unconfirm_url = url_for('request_unconfirm',
+                                        hashid=self.hashid, _external=True)
+            else:
+                unconfirm_url = url_for('request_unconfirm', host=self.host,
+                                        email=self.email, _external=True)
+
             text = render_template('email/form.txt',
                                    data=data, host=self.host, keys=keys,
-                                   now=now, hashid=self.hashid)
+                                   now=now, unconfirm_url=unconfirm_url)
             # check if the user wants a new or old version of the email
             if format == 'plain':
                 html = render_template(
                     'email/plain_form.html',
                     data=data, host=self.host, keys=keys,
-                    now=now, hashid=self.hashid)
+                    now=now, unconfirm_url=unconfirm_url)
             else:
                 html = render_template(
                     'email/form.html',
                     data=data, host=self.host, keys=keys,
-                    now=now, hashid=self.hashid)
+                    now=now, unconfirm_url=unconfirm_url)
         else:
             if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
-                g.log.info('Submission rejected. Form over quota.', monthly_counter=monthly_counter)
-                # only send this overlimit notification for the first 25 overlimit emails
-                # after that, return an error so the user can know the website owner is not
-                # going to read his message.
-                return { 'code': Form.STATUS_OVERLIMIT }
+                g.log.info('Submission rejected. Form over quota.',
+                           monthly_counter=monthly_counter)
+                # only send this overlimit notification for the first 25
+                # overlimit emails after that, return an error so the user can
+                # know the website owner is not going to read his message.
+                return {'code': Form.STATUS_OVERLIMIT}
 
-            text = render_template('email/overlimit-notification.txt', host=self.host)
-            html = render_template('email/overlimit-notification.html', host=self.host)
+            text = render_template('email/overlimit-notification.txt',
+                                   host=self.host)
+            html = render_template('email/overlimit-notification.html',
+                                   host=self.host)
 
         result = send_email(
             to=self.email,

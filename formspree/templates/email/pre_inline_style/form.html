@@ -61,7 +61,7 @@
 					<div class="footer">
 						<table width="100%">
 							<tr>
-								<td class="aligncenter content-block">You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or <a href="{{ url_for('request_unconfirm', hashid=hashid, _external=True) }}">click here to disable</a> this form and stop receiving submissions from it.</td>
+								<td class="aligncenter content-block">You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or <a href="{{ unconfirm_url }}">click here to disable</a> this form and stop receiving submissions from it.</td>
 							</tr>
 							<tr>
 								<td class="aligncenter content-block">

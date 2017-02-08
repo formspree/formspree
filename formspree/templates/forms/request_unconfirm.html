@@ -33,6 +33,12 @@
           </label></div>
         {% endfor %}
         </div>
+        {% if form.upgraded %}
+          <input name="hashid" value="{{ form.hashid }}" type="hidden">
+        {% else %}
+          <input name="email" value="{{ form.email }}" type="hidden">
+          <input name="host" value="{{ form.host }}" type="hidden">
+        {% endif %}
         <p>Please prove that you are a human below and you'll receive an email with a confirmation link.</p>
         <style>.g-recaptcha div { width: auto !important; height: auto !important; }</style>
         <input type="hidden" name="host" value="{{ form.host }}">

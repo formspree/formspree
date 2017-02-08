@@ -321,7 +321,7 @@ def confirm_email(nonce):
         return render_template('forms/email_confirmed.html', email=form.email, host=form.host)
 
 
-def request_unconfirm(hashid):
+def request_unconfirm():
     '''
     All submissions sent have a link to this URL, which should send
     another email that will then confirm that the user really wants
@@ -330,7 +330,13 @@ def request_unconfirm(hashid):
     have just a simple "unsubscribe" link.
     '''
 
-    form = Form.get_with_hashid(hashid)
+    # params for fetching the form may come through form post or querystring
+    if request.values.get('hashid'):
+        form = Form.get_with_hashid(request.values['hashid'])
+    else:
+        form = Form.query.filter(Form.email == request.values.get('email')) \
+                         .filter(Form.host == request.values.get('host')) \
+                         .first()
     g.log = g.log.bind(email=form.email, host=form.host, id=form.id)
 
     if request.method == 'GET':
