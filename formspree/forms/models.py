@@ -87,7 +87,6 @@ class Form(DB.Model):
             .filter(Form.id == self.id)
         return by_email.union(by_creation)
 
-
     @property
     def upgraded(self):
         upgraded_controllers = [i for i in self.controllers if i.upgraded]

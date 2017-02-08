@@ -365,7 +365,8 @@ def request_unconfirm(hashid):
                 subject='Disabling forms. Do you confirm?',
                 html=render_template('email/unconfirm.html',
                                      forms=forms, nonce=nonce),
-                text='',
+                text=render_template('email/unconfirm.txt',
+                                     forms=forms, nonce=nonce),
                 sender=settings.DEFAULT_SENDER
             )
             return render_template(

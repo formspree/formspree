@@ -22,9 +22,8 @@
                                             <table>
                                                 {% for f in forms %}
                                                 <tr>
-                                                    <td>
-                                                        {{ f.host }}
-                                                    </td>
+                                                    <td>&bull;</td>
+                                                    <td>{{ f.host }}</td>
                                                 </tr>
                                                 {% endfor %}
                                             </table>
@@ -37,7 +36,7 @@
                                     </tr>
                                     <tr>
                                         <td class="alert straight-edge alert-bad">
-                                            <strong>ALERT:</strong> This will cancel all further submissions from the selected forms.
+                                            <strong>ALERT:</strong> This will cancel all further submissions from the above forms.
                                         </td>
                                     </tr>
                                 </table>
