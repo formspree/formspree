@@ -9,7 +9,8 @@ from sqlalchemy.sql.expression import delete
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
-                    EXCLUDE_KEYS, http_form_to_dict, referrer_to_path
+                    http_form_to_dict, referrer_to_path
+
 
 class Form(DB.Model):
     __tablename__ = 'forms'
@@ -100,21 +101,14 @@ class Form(DB.Model):
         except IndexError:
             return None
 
-    def send(self, submitted_data, referrer):
+    def send(self, data, keys, referrer):
         '''
         Sends form to user's email.
         Assumes sender's email has been verified.
         '''
 
-        if type(submitted_data) in (ImmutableMultiDict,
-                                    ImmutableOrderedMultiDict):
-            data, keys = http_form_to_dict(submitted_data)
-        else:
-            data, keys = submitted_data, submitted_data.keys()
-
-        subject = data.get('_subject',
-                           'New submission from %s' %
-                           referrer_to_path(referrer))
+        subject = data.get('_subject') or \
+            'New submission from %s' % referrer_to_path(referrer)
         reply_to = (data.get(
             '_replyto',
             data.get('email', data.get('Email'))
@@ -273,7 +267,7 @@ class Form(DB.Model):
         g.log.debug('Sending confirmation.')
         if self.confirm_sent:
             g.log.debug('Already sent in the past.')
-            return { 'code': Form.STATUS_CONFIRMATION_DUPLICATED }
+            return {'code': Form.STATUS_CONFIRMATION_DUPLICATED}
 
         # the nonce for email confirmation will be the hash when it exists
         # (whenever the form was created from a simple submission) or
@@ -292,11 +286,11 @@ class Form(DB.Model):
                     data, keys = with_data, with_data.keys()
 
             return render_template('email/confirm.%s' % ext,
-                                      email=self.email,
-                                      host=self.host,
-                                      nonce_link=link,
-                                      data=data,
-                                      keys=keys)
+                                   email=self.email,
+                                   host=self.host,
+                                   nonce_link=link,
+                                   data=data,
+                                   keys=keys)
 
         result = send_email(to=self.email,
                             subject='Confirm email for %s' % settings.SERVICE_NAME,
@@ -306,13 +300,13 @@ class Form(DB.Model):
         g.log.debug('Confirmation email queued.')
 
         if not result[0]:
-            return { 'code': Form.STATUS_CONFIRMATION_FAILED }
+            return {'code': Form.STATUS_CONFIRMATION_FAILED}
 
         self.confirm_sent = True
         DB.session.add(self)
         DB.session.commit()
 
-        return { 'code': Form.STATUS_CONFIRMATION_SENT }
+        return {'code': Form.STATUS_CONFIRMATION_SENT}
 
     @classmethod
     def confirm(cls, nonce):
