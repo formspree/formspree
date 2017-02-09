@@ -148,7 +148,7 @@ def send(email_or_string):
         captcha_verified = verify_captcha(received_data, request)
         needs_captcha = not (request_wants_json() or
                              captcha_verified or
-                             settings.TESTING)
+                             settings.TESTING) and not form.captcha_disabled
         if needs_captcha:
             data_copy = received_data.copy()
             # Temporarily store hostname in redis while doing captcha
