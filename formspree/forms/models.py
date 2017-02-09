@@ -25,7 +25,7 @@ class Form(DB.Model):
     confirmed = DB.Column(DB.Boolean)
     counter = DB.Column(DB.Integer)
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
-    disable_captcha = DB.Column(DB.Boolean)
+    captcha_disabled = DB.Column(DB.Boolean)
 
     owner = DB.relationship('User') # direct owner, defined by 'owner_id'
                                     # this property is basically useless. use .controllers
