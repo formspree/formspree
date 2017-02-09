@@ -155,7 +155,6 @@ def send(email_or_string):
             # Temporarily store hostname in redis while doing captcha
             nonce = temp_store_hostname(form.host, request.referrer)
             data_copy['_host_nonce'] = nonce
-            sorted_keys.append('_host_nonce')
             action = urljoin(settings.API_ROOT, email_or_string)
             return render_template('forms/captcha.html',
                                    data=data_copy,
