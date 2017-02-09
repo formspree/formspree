@@ -11,7 +11,7 @@ from flask.ext.cors import cross_origin
 from urlparse import urljoin
 
 from formspree import settings
-from formspree.app import DB
+from formspree.app import DB, redis_store
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
 from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
@@ -144,7 +144,6 @@ def send(email_or_string):
 
     # If form exists and is confirmed, send email
     # otherwise send a confirmation email
-
     if form.confirmed:
         captcha_verified = verify_captcha(received_data, request)
         needs_captcha = not (request_wants_json() or
@@ -160,6 +159,15 @@ def send(email_or_string):
                                    data=data_copy,
                                    sorted_keys=sorted_keys,
                                    action=action)
+
+        # track if the form is using ajax most of the time, and open
+        # an exception for it in the need for hashcash:
+        if request_wants_json():
+            redis_store.incrby('usesajax_{}'.format(form.id), 1)
+        else:
+            redis_store.incrby('usesajax_{}'.format(form.id), -1)
+        # ~ this code is temporary.
+
         status = form.send(received_data, sorted_keys, referrer)
     else:
         status = form.send_confirmation()
