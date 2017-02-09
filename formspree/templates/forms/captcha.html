@@ -12,7 +12,9 @@
 
     var success = function(response) {
       var form = document.querySelector('#passthrough');
-      document.createElement('form').submit.call(form); //handles the case where user has a button named 'submit'
+
+      //handles the case where user has a button named 'submit'
+      document.createElement('form').submit.call(form);
     };
 
     var onloadCallback = function() {
