@@ -3,7 +3,7 @@ import datetime
 from formspree.app import DB, redis_store
 from formspree import settings
 from formspree.utils import send_email, unix_time_for_12_months_from_now, \
-                            next_url, IS_VALID_EMAIL
+                            next_url, IS_VALID_EMAIL, request_wants_json
 from flask import url_for, render_template, g
 from sqlalchemy.sql.expression import delete
 from werkzeug.datastructures import ImmutableMultiDict, \
@@ -26,6 +26,7 @@ class Form(DB.Model):
     counter = DB.Column(DB.Integer)
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
     captcha_disabled = DB.Column(DB.Boolean)
+    uses_ajax = DB.Column(DB.Boolean)
 
     owner = DB.relationship('User') # direct owner, defined by 'owner_id'
                                     # this property is basically useless. use .controllers
@@ -73,6 +74,7 @@ class Form(DB.Model):
         self.confirmed = False
         self.counter = 0
         self.disabled = False
+        self.uses_ajax = request_wants_json()
 
     def __repr__(self):
         return '<Form %s, email=%s, host=%s>' % (self.id, self.email, self.host)
