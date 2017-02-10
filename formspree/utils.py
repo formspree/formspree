@@ -20,6 +20,7 @@ def request_wants_json():
     if 'json' in request.headers.get('Content-Type', '') and \
             not accept_better('html', 'json'):
         return True
+    return False
 
 
 def accept_better(subject, against):
