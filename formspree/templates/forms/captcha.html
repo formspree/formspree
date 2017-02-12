@@ -36,7 +36,8 @@
 
       grecaptcha.render('recaptcha', {
         'sitekey' : {{ config.RECAPTCHA_KEY|tojson|safe }},
-        'callback' : success
+        'callback' : success,
+        'size': window.innerWidth < 400 ? 'compact' : 'normal'
       });
     };
   </script>

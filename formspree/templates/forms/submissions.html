@@ -59,8 +59,8 @@
 </div>
 <div class="container block">
   <div class="col-1-1 right">
-    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='csv') }}" target="_blank" class="button">Export as CSV</a>
-    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='json') }}" target="_blank" class="button">Export as JSON</a>
+    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='csv') }}" target="_blank" class="button export">Export&nbsp;as&nbsp;CSV</a>
+    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='json') }}" target="_blank" class="button export">Export&nbsp;as&nbsp;JSON</a>
   </div>
 
 {% endblock %}

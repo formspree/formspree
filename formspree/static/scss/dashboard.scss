@@ -72,7 +72,6 @@
 
           td {
             display: block;
-            text-align: center;
             font-size: 13px;
             border-bottom: 1px dotted #ccc;
             margin: 10px auto;
@@ -86,7 +85,6 @@
           td:before {
             content: attr(data-label);
             display: block;
-            text-align: center;
             text-transform: uppercase;
             font-weight: bold;
           }
@@ -104,7 +102,6 @@
       tr:first-child td { padding-top: 10px; }
       td {
         padding: 3px 1px;
-        border: 1px ridge;
       }
       pre {
         font-family: inherit;
@@ -350,4 +347,11 @@
   .equal { color: #808030 }
   .attrvalue { color: #0000e6 }
   .comment { color: #696969 }
+}
+
+a.button.export {
+  width: 11em;
+  text-align: center;
+  display: inline-block;
+  margin: 0 0 20px 20px;
 }

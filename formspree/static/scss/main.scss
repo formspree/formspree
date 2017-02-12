@@ -40,9 +40,6 @@ body#card {
         padding-top: 0;
     }
 
-    @media screen and (max-width: 40em) {
-        padding-top: 0;
-    }
 }
 
 .tooltip {
@@ -117,7 +114,6 @@ body#card {
 
     @media (max-width: 760px) {
         padding-bottom: 0 !important;
-        padding-top: 0 !important;
     }
 
     &.block {
@@ -125,7 +121,6 @@ body#card {
         padding-top: 1.5em;
 
         @media (max-width: 760px) {
-            padding-top: 0 !important;
             padding-bottom: 0 !important;
         }
 
@@ -138,7 +133,15 @@ body#card {
     }
 
     &.card {
-        max-width: 500px;
+        @media (min-width: 760px) {
+            max-width: 500px;
+        }
+
+        @media (max-width: 760px) {
+            margin-right: 20px;
+            margin-left: 20px;
+        }
+
     }
 
     &.index-card {
