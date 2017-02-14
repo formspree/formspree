@@ -535,13 +535,13 @@ def form_recaptcha_toggle(hashid):
     form = Form.get_with_hashid(hashid)
 
     if not valid_domain_request(request):
-        return render_template('error.html', title='Improper Request', text=''), 400
+        return jsonify(error='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
 
     if form.owner_id != current_user.id and form not in current_user.forms:
-        return render_template('error.html', title='Improper Request', text=''), 400
+        return jsonify(error='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
 
     if not form:
-        return render_template('error.html', title='Improper Request', text=''), 400
+        return jsonify(error='That form does not exist. Please check the link and try again.'), 400
     else:
         form.captcha_disabled = not form.captcha_disabled
         DB.session.add(form)
