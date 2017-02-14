@@ -343,7 +343,9 @@ def request_unconfirm():
         g.log.info('Starting unconfirmation process.')
         other_forms = Form.query.filter(Form.email == form.email) \
                                 .filter(Form.host != '') \
-                                .filter(Form.confirmed)
+                                .filter(Form.confirmed) \
+                                .filter(Form.id != form.id) \
+                                .all()
         return render_template('forms/request_unconfirm.html',
                                form=form, other_forms=other_forms)
     elif request.method == 'POST':

@@ -1344,6 +1344,10 @@ body#card {
   #header .done i, #header .current i {
     color: #359173; }
 
+hr {
+  border: none;
+  border-bottom: 1px solid #ddd; }
+
 .container {
   padding-top: 1em;
   padding-bottom: 1em; }

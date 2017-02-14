@@ -1,7 +1,21 @@
 {% extends 'layouts/message.html' %}
 
-{% block base %}
+{% block head_scripts %}
+  <script type="text/javascript">
+    var success = function() {
+      document.querySelector('form').submit()
+    };
 
+    var onloadCallback = function() {
+      grecaptcha.render('recaptcha', {
+        'sitekey' : {{ config.RECAPTCHA_KEY|tojson|safe }},
+        'callback' : success
+      });
+    };
+  </script>
+{% endblock %}
+
+{% block base %}
 <div class="container narrow card">
   <div class="container" id="header">
     <div class="col-1-1 header info">
@@ -11,27 +25,36 @@
 
   <div class="container">
     <div class="col-1-1">
-      <h1>Disable the following forms currently targeting {{ form.email }}:</h1>
+      {% if other_forms|count %}
+        <h1>Disable the following forms currently targeting {{ form.email }}:</h1>
+      {% else %}
+        <h1>Disable the form at {{ form.host }} targeting {{ form.email }}</h1>
+      {% endif %}
     </div>
   </div>
 
   <div class="container">
     <div class="col-1-1">
-      <script>function submit () { document.querySelector('form').submit() }</script>
       <form
         action="{{ url_for('request_unconfirm', hashid=form.hashid) }}"
         method="POST"
       >
         <div style="text-align: left; padding-left: 5%">
-        {% for f in other_forms %}
-          <div class="float-left"><label>
-          {% if form.id == f.id %}
-            <input type="checkbox" name="disable" value="{{ form.hashid }}" checked> {{ form.host }} (current)
-          {% else %}
-            <input type="checkbox" name="disable" value="{{ f.hashid }}"> {{ f.host }}
-          {% endif %}
-          </label></div>
-        {% endfor %}
+        {% if other_forms|count %}
+          <label><input type="checkbox" name="disable" value="{{ form.hashid }}" checked>
+            {{ form.host }} (current)
+          </label>
+          <hr>
+          <label> <input type="checkbox" id="disable-all"> Disable all forms</label>
+          <hr>
+          {% for f in other_forms %}
+            <div class="float-left"><label>
+              <input type="checkbox" name="disable" value="{{ f.hashid }}"> {{ f.host }}
+            </label></div>
+          {% endfor %}
+        {% else %}
+          <input type="hidden" name="disable" value="{{ form.hashid }}">
+        {% endif %}
         </div>
         {% if form.upgraded %}
           <input name="hashid" value="{{ form.hashid }}" type="hidden">
@@ -40,14 +63,37 @@
           <input name="host" value="{{ form.host }}" type="hidden">
         {% endif %}
         <p>Please prove that you are a human below and you'll receive an email with a confirmation link.</p>
-        <style>.g-recaptcha div { width: auto !important; height: auto !important; }</style>
-        <input type="hidden" name="host" value="{{ form.host }}">
-        <script src='https://www.google.com/recaptcha/api.js'></script>
-        <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_KEY }}"
-                                 data-callback="submit"></div>
+        <div id="recaptcha" style="text-align:center; display:inline-block"></div>
       </form>
     </div>
   </div>
 </div>
-
 {% endblock %}
+
+{% block tail_scripts %}
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"
+        async defer>
+</script>
+<script>
+  var options = document.querySelectorAll('[name="disable"]')
+  var toggleAll = document.getElementById('disable-all')
+
+  document.body.addEventListener('change', function(e) {
+    if (e.target.id === 'disable-all') {
+      // select all or unselect all when toggling "Disable all"
+      for (var i = 0; i < options.length; i++) {
+        options[i].checked = toggleAll.checked
+      }
+    } else if (e.target.name === 'disable') {
+      for (var i = 0; i < options.length; i++) {
+        // make "Disable all" box represent the actual state of selected checkboxes
+        toggleAll.checked = true
+        if (!options[i].checked) {
+          toggleAll.checked = false
+          break
+        }
+      }
+    }
+  })
+</script>
+{% endblock tail_scripts %}

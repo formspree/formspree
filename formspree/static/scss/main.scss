@@ -72,7 +72,6 @@ body#card {
 }
 
 #header {
-
     i {
         font-size: 4em;
         color: $dark-blue;
@@ -110,6 +109,10 @@ body#card {
     border-bottom: 1px solid #ddd;
 }
 
+hr {
+    border: none;
+    border-bottom: 1px solid #ddd;
+}
 
 .container {
     padding-top: 1em;
