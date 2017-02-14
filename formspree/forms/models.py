@@ -75,6 +75,7 @@ class Form(DB.Model):
         self.counter = 0
         self.disabled = False
         self.uses_ajax = request_wants_json()
+        self.captcha_disabled = False
 
     def __repr__(self):
         return '<Form %s, email=%s, host=%s>' % (self.id, self.email, self.host)
