@@ -35,6 +35,7 @@ def configure_routes(app):
     app.add_url_rule('/forms/sitewide-check', view_func=forms.views.sitewide_check, methods=['GET'])
     app.add_url_rule('/forms/<hashid>/', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
     app.add_url_rule('/forms/<hashid>.<format>', 'form-submissions', view_func=forms.views.form_submissions, methods=['GET'])
+    app.add_url_rule('/forms/<hashid>/toggle-recaptcha', 'toggle-recaptcha', view_func=forms.views.form_recaptcha_toggle, methods=['GET'])
     app.add_url_rule('/forms/<hashid>/toggle', 'form-toggle', view_func=forms.views.form_toggle, methods=['POST'])
     app.add_url_rule('/forms/<hashid>/delete', 'form-deletion', view_func=forms.views.form_deletion, methods=['POST'])
     app.add_url_rule('/forms/<hashid>/delete/<submissionid>', 'submission-deletion', view_func=forms.views.submission_deletion, methods=['POST'])
