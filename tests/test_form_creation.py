@@ -72,6 +72,16 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         # Make sure that it marks the first form as AJAX
         self.assertTrue(Form.query.first().uses_ajax)
 
+        # check captcha disabling
+        self.assertFalse(Form.query.first().captcha_disabled)
+        r = self.client.get('/forms/' + form_endpoint + '/toggle-recaptcha',
+            headers={'Referer': settings.SERVICE_URL})
+        self.assertTrue(Form.query.first().captcha_disabled)
+        r = self.client.get('/forms/' + form_endpoint + '/toggle-recaptcha',
+            headers={'Referer': settings.SERVICE_URL})
+        self.assertFalse(Form.query.first().captcha_disabled)
+
+
         # send 5 forms (monthly limits should not apply to the upgraded user)
         self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
         for i in range(5):
