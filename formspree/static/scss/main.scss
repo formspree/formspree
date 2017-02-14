@@ -8,6 +8,7 @@ $accent: #ddd;
 
 $red: #D9534F;
 $green: #359173;
+$gray: #707070;
 
 $warning-orange: #D87431;
 $info-blue: $navy;
@@ -236,6 +237,17 @@ button, a.button {
             color: white;
             background-color: $dark-green;
         }
+    }
+    &:focus {
+        outline:0;
+    }
+    &.destructive {
+        color: $red;
+        border-color: $red;
+    }
+    &.disabled {
+        color: $gray;
+        border-color: $gray;
     }
     &[disabled],
     &[disabled]:hover {

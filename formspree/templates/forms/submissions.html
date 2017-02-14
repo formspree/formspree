@@ -57,12 +57,21 @@
     {% endif %}
   </div>
 </div>
+  <script src="{{ url_for('static', filename='js/captcha-toggle.js') }}"></script>
+  <script>
+    $(function () {
+        $('#recaptcha-toggle').on('click', function (event) {
+            event.preventDefault();
+            toggleCaptcha('{{ form.hashid }}');
+        });
+    });
+  </script>
 <div class="container block">
     <div class="col-1-2">
-    {% if form.disable_recaptcha %}
-        <span class="tooltip hint--top no-uppercase" data-hint="Protect your form against spam by turning on reCAPTCHA"><a href="#" class="button no-uppercase" id="recaptcha-toggle" >Turn on reCAPTCHA</a></span>
+    {% if form.captcha_disabled %}
+        <span class="tooltip hint--top no-uppercase" data-hint="Turning on reCAPTCHA will help protect your form against spam"><a href="#" class="button no-uppercase" id="recaptcha-toggle" >Turn on reCAPTCHA</a></span>
     {% else %}
-        <span class="tooltip hint--top" data-hint="Turning off reCAPTCHA will remove the intermediate screen, but make your form suceptible to spam"><a href="#" class="button no-uppercase" id="recaptcha-toggle" >Turn off reCAPTCHA</a></span>
+        <span class="tooltip hint--top" data-hint="Turning off reCAPTCHA will remove the intermediate screen, but make your form suceptible to spam" id="recaptcha-tooltip"><a href="#" class="button destructive no-uppercase" id="recaptcha-toggle" >Turn off reCAPTCHA</a></span>
     {% endif %}
     </div>
   <div class="col-1-2 right">
