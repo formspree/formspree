@@ -216,6 +216,9 @@ form input, form textarea {
 }
 
 button, a.button {
+    &.no-uppercase {
+        text-transform: none !important;
+    }
     font-size: 1em;
     text-transform: uppercase;
     font-weight: 600;
@@ -239,6 +242,7 @@ button, a.button {
       color: lighten($green, 40%);
       border-color: lighten($green, 40%);
     }
+
 }
 
 

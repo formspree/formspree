@@ -1432,6 +1432,8 @@ button, a.button {
   line-height: 1em;
   padding: 0.6em 0.9em;
   transition: all 0.3s ease-in-out; }
+  button.no-uppercase, a.button.no-uppercase {
+    text-transform: none !important; }
   button:hover, a.button:hover {
     border-color: #2A735B;
     color: #2A735B; }
@@ -1535,5 +1537,3 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
-
-/*# sourceMappingURL=main.css.map */

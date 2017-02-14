@@ -44,7 +44,7 @@
                 <pre class="full">{{ value }} <a href=#p-{{ s.id }}>(see less)</a></pre>
               {% else %}
                 <pre>{{ value }}</pre>
-              {% endif %}</pre>
+              {% endif %}
               </td>
             {% endfor %}
               <td><form method="POST" action="{{ url_for('submission-deletion', hashid=form.hashid, submissionid=s.id) }}"><button class="no-border"><i class="fa fa-trash-o delete"></i></button></form></td>
@@ -58,7 +58,14 @@
   </div>
 </div>
 <div class="container block">
-  <div class="col-1-1 right">
+    <div class="col-1-2">
+    {% if form.disable_recaptcha %}
+        <span class="tooltip hint--top no-uppercase" data-hint="Protect your form against spam by turning on reCAPTCHA"><a href="#" class="button no-uppercase" id="recaptcha-toggle" >Turn on reCAPTCHA</a></span>
+    {% else %}
+        <span class="tooltip hint--top" data-hint="Turning off reCAPTCHA will remove the intermediate screen, but make your form suceptible to spam"><a href="#" class="button no-uppercase" id="recaptcha-toggle" >Turn off reCAPTCHA</a></span>
+    {% endif %}
+    </div>
+  <div class="col-1-2 right">
     <a href="{{ url_for('form-submissions', hashid=form.hashid, format='csv') }}" target="_blank" class="button">Export as CSV</a>
     <a href="{{ url_for('form-submissions', hashid=form.hashid, format='json') }}" target="_blank" class="button">Export as JSON</a>
   </div>
