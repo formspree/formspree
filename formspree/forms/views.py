@@ -378,7 +378,7 @@ def request_unconfirm():
                 sender=settings.DEFAULT_SENDER
             )
             return render_template(
-                'info.html',
+                'email-sent.html',
                 title='Email sent.',
                 text="We've sent and email to {} with a link that will finally"
                      " disable the selected forms.".format(form.email))

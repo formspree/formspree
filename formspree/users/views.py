@@ -151,7 +151,7 @@ def forgot_password():
 
         if user.send_password_reset():
             return render_template(
-                'info.html',
+                'email-sent.html',
                 title='Reset email sent',
                 text=u"We've sent a link to {addr}. Click on the link to be "
                      "prompted to a new password.".format(addr=user.email)

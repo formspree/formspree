@@ -3,8 +3,8 @@
 {% block base %}
   <div class="container narrow card">
     <div class="container" id="header">
-      <div class="col-1-1 header info">
-        <i class="ion ion-information-circled"></i>
+      <div class="col-1-1 header {% block header_class %}info {% endblock %}">
+        <i class="{% block header_icon %}ion ion-information-circled{% endblock %}"></i>
       </div>
     </div>
 
