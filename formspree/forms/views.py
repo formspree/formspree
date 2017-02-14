@@ -167,14 +167,6 @@ def send(email_or_string):
                                    sorted_keys=sorted_keys,
                                    action=action)
 
-        # track if the form is using ajax most of the time, and open
-        # an exception for it in the need for hashcash:
-        if request_wants_json():
-            redis_store.incrby('usesajax_{}'.format(form.id), 1)
-        else:
-            redis_store.incrby('usesajax_{}'.format(form.id), -1)
-        # ~ this code is temporary.
-
         status = form.send(received_data, sorted_keys, referrer)
     else:
         status = form.send_confirmation()
