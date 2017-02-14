@@ -16,7 +16,7 @@ from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
 from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
-                    HASH, EXCLUDE_KEYS, assign_ajax
+                    HASH, EXCLUDE_KEYS, assign_ajax, valid_domain_request
 from models import Form, Submission
 
 
@@ -531,13 +531,33 @@ def form_submissions(hashid, format=None):
 
 
 @login_required
+def form_recaptcha_toggle(hashid):
+    form = Form.get_with_hashid(hashid)
+
+    if not valid_domain_request(request):
+        return render_template('error.html', title='Improper Request', text=''), 400
+
+    if form.owner_id != current_user.id and form not in current_user.forms:
+        return render_template('error.html', title='Improper Request', text=''), 400
+
+    if not form:
+        return render_template('error.html', title='Improper Request', text=''), 400
+    else:
+        form.captcha_disabled = not form.captcha_disabled
+        DB.session.add(form)
+        DB.session.commit()
+
+        if form.captcha_disabled:
+            return jsonify(disabled=True, message='CAPTCHA successfully disabled')
+        else:
+            return jsonify(disabled=False, message='CAPTCHA successfully enabled')
+
+@login_required
 def form_toggle(hashid):
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
-    referrer = referrer_to_baseurl(request.referrer)
-    service = referrer_to_baseurl(settings.SERVICE_URL)
-    if referrer != service:
+    if not valid_domain_request(request):
         return render_template('error.html',
                                title='Improper Request',
                                text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
