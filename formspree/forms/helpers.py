@@ -117,7 +117,7 @@ def valid_domain_request(request):
     referrer = referrer_to_baseurl(request.referrer)
     service = referrer_to_baseurl(settings.SERVICE_URL)
 
-    return referrer != service
+    return referrer == service
 
 def assign_ajax(form, sent_using_ajax):
     if form.uses_ajax is None:
