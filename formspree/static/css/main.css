@@ -211,7 +211,6 @@ table {
     height: 0; }
 
 .container {
-  width: 100%;
   max-width: 950px;
   margin: 0 auto; }
   .container:after {
@@ -221,8 +220,9 @@ table {
     visibility: hidden;
     line-height: 0;
     height: 0; }
-  .container.narrow {
-    max-width: 600px; }
+  @media (min-width: 760px) {
+    .container.narrow {
+      max-width: 600px; } }
   @media (max-width: 760px) {
     .container {
       max-width: 100% !important; } }
@@ -717,7 +717,6 @@ a.alert-box.success:hover {
           border-bottom: 5px solid #ddd; }
           .dashboard table.responsive tr td {
             display: block;
-            text-align: center;
             font-size: 13px;
             border-bottom: 1px dotted #ccc;
             margin: 10px auto;
@@ -727,7 +726,6 @@ a.alert-box.success:hover {
           .dashboard table.responsive tr td:before {
             content: attr(data-label);
             display: block;
-            text-align: center;
             text-transform: uppercase;
             font-weight: bold; } }
     .dashboard table.submissions {
@@ -738,8 +736,7 @@ a.alert-box.success:hover {
       .dashboard table.submissions tr:first-child td {
         padding-top: 10px; }
       .dashboard table.submissions td {
-        padding: 3px 1px;
-        border: 1px ridge; }
+        padding: 3px 1px; }
       .dashboard table.submissions pre {
         font-family: inherit;
         margin: 0;
@@ -918,6 +915,12 @@ a.alert-box.success:hover {
     color: #0000e6; }
   .html-highlight .comment {
     color: #696969; }
+
+a.button.export {
+  width: 11em;
+  text-align: center;
+  display: inline-block;
+  margin: 0 0 20px 20px; }
 
 .slicknav_btn {
   position: relative;
@@ -1303,9 +1306,6 @@ body#card {
   text-align: center; }
   body#card.dashboard {
     padding-top: 0; }
-  @media screen and (max-width: 40em) {
-    body#card {
-      padding-top: 0; } }
 
 .tooltip {
   font-weight: 600;
@@ -1349,21 +1349,24 @@ body#card {
   padding-bottom: 1em; }
   @media (max-width: 760px) {
     .container {
-      padding-bottom: 0 !important;
-      padding-top: 0 !important; } }
+      padding-bottom: 0 !important; } }
   .container.block {
     padding-bottom: 1.5em;
     padding-top: 1.5em; }
     @media (max-width: 760px) {
       .container.block {
-        padding-top: 0 !important;
         padding-bottom: 0 !important; } }
     .container.block:first-child {
       padding-top: 0; }
     .container.block:last-child {
       padding-bottom: 0; }
-  .container.card {
-    max-width: 500px; }
+  @media (min-width: 760px) {
+    .container.card {
+      max-width: 500px; } }
+  @media (max-width: 760px) {
+    .container.card {
+      margin-right: 20px;
+      margin-left: 20px; } }
   .container.index-card {
     max-width: 950px; }
 
