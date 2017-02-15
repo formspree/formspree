@@ -40,6 +40,7 @@ ga('send', 'pageview');
     {% endwith %}
   </noscript>
 
+  {% block nav %}
   <nav>
     {% if g.user.is_authenticated %}
       <div class="greetings">
@@ -63,6 +64,7 @@ ga('send', 'pageview');
     {% endif %}
       </div>
   </nav>
+  {% endblock %}
 
   <div class="row">
     {% block base %}

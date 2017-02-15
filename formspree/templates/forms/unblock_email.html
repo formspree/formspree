@@ -1,5 +1,19 @@
 {% extends 'layouts/message.html' %}
 
+{% block head_scripts %}
+  <script type="text/javascript">
+    var onloadCallback = function() {
+      grecaptcha.render('recaptcha', {
+        'sitekey' : {{ config.RECAPTCHA_KEY|tojson|safe }},
+        'callback' : function () {
+          document.querySelector('form').submit()
+        },
+        'size': window.innerWidth < 400 ? 'compact' : 'normal'        
+      });
+    }
+  </script>
+{% endblock head_scripts %}
+
 {% block base %}
   <div class="container narrow card">
     <div class="container" id="header">
@@ -18,13 +32,14 @@
           action="{{ url_for('unblock_email', email=email) }}"
           method="POST"
         >
-          <style>.g-recaptcha div { width: auto !important; height: auto !important; }</style>
-          <script src='https://www.google.com/recaptcha/api.js'></script>
-          <div class="g-recaptcha" data-sitekey="{{ config.RECAPTCHA_KEY }}"></div>
-          <button type="submit">Unblock</button>
+          <div id="recaptcha" style="text-align:center; display:inline-block"></div>
         </form>
 
       </div>
     </div>
   </div>
 {% endblock base %}
+
+{% block tail_scripts %}
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+{% endblock tail_scripts %}

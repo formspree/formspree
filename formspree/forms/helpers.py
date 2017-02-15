@@ -8,7 +8,7 @@ from urlparse import urljoin
 from flask import request, g
 
 from formspree import settings
-from formspree.app import redis_store
+from formspree.app import redis_store, DB
 
 CAPTCHA_URL = 'https://www.google.com/recaptcha/api/siteverify'
 CAPTCHA_VAL = 'g-recaptcha-response'
@@ -113,6 +113,11 @@ def verify_captcha(form_data, request):
     }, timeout=2)
     return r.ok and r.json().get('success')
 
+def assign_ajax(form, sent_using_ajax):
+    if form.uses_ajax is None:
+        form.uses_ajax = sent_using_ajax
+        DB.session.add(form)
+        DB.session.commit()
 
 def temp_store_hostname(hostname, referrer):
     nonce = uuid.uuid4()

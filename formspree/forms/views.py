@@ -12,13 +12,12 @@ from urlparse import urljoin
 
 from formspree import settings
 from formspree.app import DB
-
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
 from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
                     temp_store_forms_to_disable, get_temp_forms_to_disable, \
-                    HASH, EXCLUDE_KEYS
+                    HASH, EXCLUDE_KEYS, assign_ajax
 from models import Form, Submission
 
 
@@ -82,6 +81,9 @@ def send(email_or_string):
         form = Form.get_with_hashid(hashid)
 
         if form:
+            # Check if it has been assigned about using AJAX or not
+            assign_ajax(form, request_wants_json())
+
             if form.disabled:
                 # owner has disabled the form, so it should not receive any submissions
                 if request_wants_json():
@@ -135,6 +137,10 @@ def send(email_or_string):
         # get the form for this request
         form = Form.query.filter_by(hash=HASH(email, host)).first() \
                or Form(email, host) # or create it if it doesn't exists
+
+        # Check if it has been assigned about using AJAX or not
+        assign_ajax(form, request_wants_json())
+
         if form.disabled:
             g.log.info('submission rejected. Form is disabled.')
             if request_wants_json():
@@ -146,23 +152,22 @@ def send(email_or_string):
 
     # If form exists and is confirmed, send email
     # otherwise send a confirmation email
-
     if form.confirmed:
         captcha_verified = verify_captcha(received_data, request)
         needs_captcha = not (request_wants_json() or
                              captcha_verified or
-                             settings.TESTING)
+                             settings.TESTING) and not form.captcha_disabled
         if needs_captcha:
             data_copy = received_data.copy()
             # Temporarily store hostname in redis while doing captcha
             nonce = temp_store_hostname(form.host, request.referrer)
             data_copy['_host_nonce'] = nonce
-            sorted_keys.append('_host_nonce')
             action = urljoin(settings.API_ROOT, email_or_string)
             return render_template('forms/captcha.html',
                                    data=data_copy,
                                    sorted_keys=sorted_keys,
                                    action=action)
+
         status = form.send(received_data, sorted_keys, referrer)
     else:
         status = form.send_confirmation()
