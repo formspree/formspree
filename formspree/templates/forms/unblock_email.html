@@ -7,7 +7,8 @@
         'sitekey' : {{ config.RECAPTCHA_KEY|tojson|safe }},
         'callback' : function () {
           document.querySelector('form').submit()
-        }
+        },
+        'size': window.innerWidth < 400 ? 'compact' : 'normal'        
       });
     }
   </script>
