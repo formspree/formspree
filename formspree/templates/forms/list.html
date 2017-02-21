@@ -6,94 +6,108 @@
 
 {% block section %}
 
-<div class="col-1-1">
-  <h4>Active Forms</h4>
-  <table class="forms responsive">
-  {# status icon | host or form link | target email | number of submissions #}
-  {% for form in enabled_forms %}
-    {% include "forms/list-item.html" %}
-  {% else %}
-    <p>No active forms found. Forms can be enabled by clicking the unlock icon below.</p>
-  {% endfor %}
-  </table>
-
-  {% if disabled_forms %}
-    <h4>Disabled Forms</h4>
+  <div class="col-1-1">
+    <h4>Active Forms</h4>
     <table class="forms responsive">
-    {# status icon | host or form link | target email | number of submissions #}
-    {% for form in disabled_forms %}
-      {% include "forms/list-item.html" %}
-    {% endfor %}
-    </table>
-  {% endif %}
-
-  {% if not enabled_forms and not disabled_forms and current_user.upgraded %}
-    <h6 class="light">You don't have any forms associated with this account, maybe you should <a href="{{ url_for('account') }}">verify your email</a>.</h6>
-  {% endif %}
-</div>
-
-      <script src="{{ url_for('static', filename='js/captcha-toggle.js') }}"></script>
-  <script>
-    $(function () {
-        $('.recaptcha-toggle').on('click', function (event) {
-            event.preventDefault();
-            toggleCaptcha(event.target.id);
-        });
-    });
-  </script>
-
-{% include "forms/create.html" %}
-
-{# modals for each form #}
-{% for form in (enabled_forms + disabled_forms) %}
-  <div class="modal" id="form-{{ form.hashid }}" aria-hidden="true">
-    <div>
-      {% if request.args.get('new') == form.hashid %}
-        <div class="x"><h4>Congratulations!</h4><a href="#">&times;</a></div>
-        <p style="clear: both">Now that you have created your form, use the following HTML code in your website, filling it with the <span class="code">&lt;input&gt;</span> fields you wish your visitors to fill:</p>
+      {# status icon | host or form link | target email | number of submissions #}
+      {% for form in enabled_forms %}
+        {% include "forms/list-item.html" %}
       {% else %}
-        <div class="x"><h4>Use this code in your HTML</h4><a href="#">&times;</a></div>
-      {% endif %}
-      <div class="html-highlight">
-        <span class="bracket">&lt;</span><span class="tagname">form</span>
-        <span class="attrkey">action</span><span class="equal">=</span><span class="attrvalue">"{{ config.SERVICE_URL }}/{{ form.hashid }}"</span>
-        <span class="attrkey">method</span><span class="equal">=</span><span class="attrvalue">"POST"</span><span class="bracket">></span>
-        <br>
-        &nbsp;&nbsp;<span class="bracket">&lt;</span><span class="tagname">input</span>
-        <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"text"</span>
-        <span class="attrkey">name</span><span class="equal">=</span><span class="attrvalue">"_gotcha"</span>
-        <span class="attrkey">style</span><span class="equal">=</span><span class="attrvalue">"display: none"</span><span class="bracket">></span>
-        <br>
-        <br>
-        &nbsp;&nbsp;<span class="comment">&lt;!-- your other form fields go here --></span>
-        <br>
-        <br>
-        &nbsp;&nbsp;<span class="bracket">&lt;</span><span class="tagname">button</span>
-        <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"submit"</span><span class="bracket">></span>Send<span class="bracket">&lt;/</span><span class="tagname">button</span><span class="bracket">></span>
-        <br>
-        <span class="bracket">&lt;/</span><span class="tagname">form</span><span class="bracket">></span>
-      </div>
-        <div class="captcha-container">
-    {% if form.captcha_disabled %}
-        <span class="tooltip hint--top no-uppercase" data-hint="Turn on reCAPTCHA to help protect your form against spam" id="recaptcha-tooltip-{{ form.hashid }}"><a href="#" class="button no-uppercase recaptcha-toggle" id="{{ form.hashid }}" >Turn on reCAPTCHA</a></span>
-    {% else %}
-        <span class="tooltip hint--top no-uppercase" data-hint="Turn off reCAPTCHA to remove the intermediate screen, but make your form suceptible to spam" id="recaptcha-tooltip-{{ form.hashid }}"><a href="#" class="button destructive no-uppercase recaptcha-toggle" id="{{ form.hashid }}" >Turn off reCAPTCHA</a></span>
+        <p>No active forms found. Forms can be enabled by clicking the unlock icon below.</p>
+      {% endfor %}
+    </table>
+
+    {% if disabled_forms %}
+      <h4>Disabled Forms</h4>
+      <table class="forms responsive">
+        {# status icon | host or form link | target email | number of submissions #}
+        {% for form in disabled_forms %}
+          {% include "forms/list-item.html" %}
+        {% endfor %}
+      </table>
     {% endif %}
-    </div>
-    </div>
+
+    {% if not enabled_forms and not disabled_forms and current_user.upgraded %}
+      <h6 class="light">You don't have any forms associated with this account, maybe you should <a
+              href="{{ url_for('account') }}">verify your email</a>.</h6>
+    {% endif %}
   </div>
 
-  <div class="modal" id="delete-{{ form.hashid }}" aria-hidden="true">
-    <div>
+  <script src="{{ url_for('static', filename='js/captcha-toggle.js') }}"></script>
+  <script>
+      $(function () {
+          $('.recaptcha-toggle').on('click', function (event) {
+              event.preventDefault();
+              toggleCaptcha(event.target.id);
+          });
+      });
+  </script>
+
+  {% include "forms/create.html" %}
+
+  {# modals for each form #}
+  {% for form in (enabled_forms + disabled_forms) %}
+    <div class="modal" id="form-{{ form.hashid }}" aria-hidden="true">
+      <div>
+        {% if request.args.get('new') == form.hashid %}
+          <div class="x"><h4>Congratulations!</h4><a href="#">&times;</a></div>
+          <p style="clear: both">Now that you have created your form, use the following HTML code in your website, filling it with the <span class="code">&lt;input&gt;</span> fields you wish your visitors to fill:</p>
+        {% else %}
+          <div class="x"><h4>Use this code in your HTML</h4><a href="#">&times;</a></div>
+        {% endif %}
+        <div class="html-highlight">
+          <span class="bracket">&lt;</span><span class="tagname">form</span>
+          <span class="attrkey">action</span><span class="equal">=</span><span
+                class="attrvalue">"{{ config.SERVICE_URL }}/{{ form.hashid }}"</span>
+          <span class="attrkey">method</span><span class="equal">=</span><span class="attrvalue">"POST"</span><span
+                class="bracket">></span>
+          <br>
+          &nbsp;&nbsp;<span class="bracket">&lt;</span><span class="tagname">input</span>
+          <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"text"</span>
+          <span class="attrkey">name</span><span class="equal">=</span><span class="attrvalue">"_gotcha"</span>
+          <span class="attrkey">style</span><span class="equal">=</span><span
+                class="attrvalue">"display: none"</span><span class="bracket">></span>
+          <br>
+          <br>
+          &nbsp;&nbsp;<span class="comment">&lt;!-- your other form fields go here --></span>
+          <br>
+          <br>
+          &nbsp;&nbsp;<span class="bracket">&lt;</span><span class="tagname">button</span>
+          <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"submit"</span><span
+                class="bracket">></span>Send<span class="bracket">&lt;/</span><span class="tagname">button</span><span
+                class="bracket">></span>
+          <br>
+          <span class="bracket">&lt;/</span><span class="tagname">form</span><span class="bracket">></span>
+        </div>
+        <div class="captcha-container">
+          {% if form.captcha_disabled %}
+            <span class="tooltip hint--top no-uppercase"
+                  data-hint="Turn on reCAPTCHA to help protect your form against spam"
+                  id="recaptcha-tooltip-{{ form.hashid }}"><a href="#" class="button no-uppercase recaptcha-toggle"
+                                                              id="{{ form.hashid }}">Turn on reCAPTCHA</a></span>
+          {% else %}
+            <span class="tooltip hint--top no-uppercase"
+                  data-hint="Turn off reCAPTCHA to remove the intermediate screen, but make your form suceptible to spam"
+                  id="recaptcha-tooltip-{{ form.hashid }}"><a href="#"
+                                                              class="button destructive no-uppercase recaptcha-toggle"
+                                                              id="{{ form.hashid }}">Turn off reCAPTCHA</a></span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="delete-{{ form.hashid }}" aria-hidden="true">
+      <div>
         <div class="x"><h4>Are you ABSOLUTELY sure?</h4><a href="#">&times;</a></div>
-      <br />
-      <p>This action <strong>CANNOT</strong> be undone. This will permanantly delete the form{% if form.host %} on <strong>{{form.host}}</strong>{% endif %} and all related submissions.</p>
+        <br/>
+        <p>This action <strong>CANNOT</strong> be undone. This will permanantly delete the form{% if form.host %} on
+          <strong>{{ form.host }}</strong>{% endif %} and all related submissions.</p>
         <form method="POST" action="{{ url_for('form-deletion', hashid=form.hashid) }}">
           <span class="cancel"><button type="button" onclick="return false;">Cancel</button></span>
           <button class="delete">Confirm deletion</button>
         </form>
+      </div>
     </div>
-  </div>
-{% endfor %}
+  {% endfor %}
 
 {% endblock %}
