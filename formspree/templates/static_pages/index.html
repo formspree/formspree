@@ -165,6 +165,7 @@
             <div class="col-1-1">
                 <h4><span class="code">_gotcha</span></h4>
                 <p>Add this "honeypot" field to avoid spam by fooling scrapers. If a value is provided, the submission will be silently ignored. The input should be hidden with CSS.</p>
+                <p>All forms come with <a href="https://www.google.com/recaptcha/intro/">reCAPTCHA</a>, which uses advanced machine learning techniques to distinguish between humans and bots, so for most forms this isn't necessary.</p>
                 <p><input type="text" class="code" value='<input type="text" name="_gotcha" style="display:none" />'></p>
             </div>
       </div>
@@ -198,7 +199,7 @@
   <div class="row section" id="plans">
       <div class="container narrow block">
             <div class="col-1-1">
-                <h2>For {{ config.SERVICE_NAME }} power users, we present </strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong></h1>
+                <h2>For {{ config.SERVICE_NAME }} power users, we present <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong></h2>
                 <p class="center">{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} costs</p>
                 <h1 class="center"><a class="button emphasis" href="{{ url_for('account') }}">$ 9.99</a></h1>
                 <p class="center">each month</p>
@@ -243,6 +244,13 @@
                 <p>Pre-verify email addresses on your account and you'll be able to create forms targetting them without having to submit the form and click on confirmation links.</p>
             </div>
       </div>
+
+        <div class="container narrow block">
+            <div class="col-1-1">
+                <h3>Disable reCAPTCHA</h3>
+                <p>Don't want your users to complete a reCAPTCHA? Each form now comes with the option to disable the reCAPTCHA, so you can maintain complete control over your form. You can even keep reCAPTCHA on a few forms that might be suceptible to spam, while disabling it on others.</p>
+            </div>
+        </div>
 
       <div class="container narrow block">
             <div class="col-1-1">

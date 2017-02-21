@@ -44,7 +44,7 @@
                 <pre class="full">{{ value }} <a href=#p-{{ s.id }}>(see less)</a></pre>
               {% else %}
                 <pre>{{ value }}</pre>
-              {% endif %}</pre>
+              {% endif %}
               </td>
             {% endfor %}
               <td><form method="POST" action="{{ url_for('submission-deletion', hashid=form.hashid, submissionid=s.id) }}"><button class="no-border"><i class="fa fa-trash-o delete"></i></button></form></td>
@@ -57,10 +57,26 @@
     {% endif %}
   </div>
 </div>
+  <script src="{{ url_for('static', filename='js/captcha-toggle.js') }}"></script>
+  <script>
+    $(function () {
+        $('#recaptcha-toggle').on('click', function (event) {
+            event.preventDefault();
+            toggleCaptcha('{{ form.hashid }}');
+        });
+    });
+  </script>
 <div class="container block">
-  <div class="col-1-1 right">
-    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='csv') }}" target="_blank" class="button export">Export&nbsp;as&nbsp;CSV</a>
-    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='json') }}" target="_blank" class="button export">Export&nbsp;as&nbsp;JSON</a>
+    <div class="col-1-3">
+    {% if form.captcha_disabled %}
+        <span class="tooltip hint--top no-uppercase" data-hint="Turning on reCAPTCHA will help protect your form against spam"><a href="#" class="button no-uppercase" id="recaptcha-toggle" >Turn on reCAPTCHA</a></span>
+    {% else %}
+        <span class="tooltip hint--top" data-hint="Turning off reCAPTCHA will remove the intermediate screen, but make your form suceptible to spam" id="recaptcha-tooltip"><a href="#" class="button destructive no-uppercase" id="recaptcha-toggle" >Turn off reCAPTCHA</a></span>
+    {% endif %}
+    </div>
+  <div class="col-2-3 right">
+    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='csv') }}" target="_blank" class="button">Export&nbsp;as&nbsp;CSV</a>
+    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='json') }}" target="_blank" class="button">Export&nbsp;as&nbsp;JSON</a>
   </div>
 
 {% endblock %}

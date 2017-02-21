@@ -8,6 +8,7 @@ $accent: #ddd;
 
 $red: #D9534F;
 $green: #359173;
+$gray: #707070;
 
 $warning-orange: #D87431;
 $info-blue: $navy;
@@ -219,6 +220,9 @@ form input, form textarea {
 }
 
 button, a.button {
+    &.no-uppercase {
+        text-transform: none !important;
+    }
     font-size: 1em;
     text-transform: uppercase;
     font-weight: 600;
@@ -237,11 +241,23 @@ button, a.button {
             background-color: $dark-green;
         }
     }
+    &:focus {
+        outline:0;
+    }
+    &.destructive {
+        color: $red;
+        border-color: $red;
+    }
+    &.disabled {
+        color: $gray;
+        border-color: $gray;
+    }
     &[disabled],
     &[disabled]:hover {
       color: lighten($green, 40%);
       border-color: lighten($green, 40%);
     }
+
 }
 
 

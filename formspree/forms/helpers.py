@@ -112,6 +112,13 @@ def verify_captcha(form_data, request):
     }, timeout=2)
     return r.ok and r.json().get('success')
 
+def valid_domain_request(request):
+    # check that this request came from user dashboard to prevent XSS and CSRF
+    referrer = referrer_to_baseurl(request.referrer)
+    service = referrer_to_baseurl(settings.SERVICE_URL)
+
+    return referrer == service
+
 def assign_ajax(form, sent_using_ajax):
     if form.uses_ajax is None:
         form.uses_ajax = sent_using_ajax

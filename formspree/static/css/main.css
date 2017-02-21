@@ -1435,12 +1435,22 @@ button, a.button {
   line-height: 1em;
   padding: 0.6em 0.9em;
   transition: all 0.3s ease-in-out; }
+  button.no-uppercase, a.button.no-uppercase {
+    text-transform: none !important; }
   button:hover, a.button:hover {
     border-color: #2A735B;
     color: #2A735B; }
     button:hover.emphasis, a.button:hover.emphasis {
       color: white;
       background-color: #2A735B; }
+  button:focus, a.button:focus {
+    outline: 0; }
+  button.destructive, a.button.destructive {
+    color: #D9534F;
+    border-color: #D9534F; }
+  button.disabled, a.button.disabled {
+    color: #707070;
+    border-color: #707070; }
   button[disabled], button[disabled]:hover, a.button[disabled], a.button[disabled]:hover {
     color: #b0e2d2;
     border-color: #b0e2d2; }
@@ -1538,5 +1548,3 @@ body.showOverlay .toggleOverlay {
   right: 30%;
   left: 30%;
   width: 40%; }
-
-/*# sourceMappingURL=main.css.map */
