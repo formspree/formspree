@@ -1,6 +1,6 @@
 function toggleCaptcha(hashid) {
     // alert('Entered js file');
-    var recaptchaButton = $("#recaptcha-toggle");
+    var recaptchaButton = $("#"+hashid);
 
     $.ajax({
         url: '/forms/'+ hashid+ '/toggle-recaptcha',
@@ -14,12 +14,12 @@ function toggleCaptcha(hashid) {
                 toastr.success("Successfully turned off reCAPTCHA");
                 recaptchaButton.text("Turn on reCAPTCHA");
                 recaptchaButton.removeClass("destructive");
-                $("#recaptcha-tooltip").attr("data-hint", "Turning on reCAPTCHA will help protect your form against spam");
+                $("#recaptcha-tooltip-"+hashid).attr("data-hint", "Turn on reCAPTCHA to help protect your form against spam");
             } else {
                 toastr.success("Successfully turned on reCAPTCHA");
                 recaptchaButton.text("Turn off reCAPTCHA");
                 recaptchaButton.addClass("destructive");
-                $("#recaptcha-tooltip").attr("data-hint", "Turning off reCAPTCHA will remove the intermediate screen, but make your form suceptible to spam");
+                $("#recaptcha-tooltip-"+hashid).attr("data-hint", "Turn off reCAPTCHA to remove the intermediate screen, but make your form suceptible to spam");
 
             }
         },
