@@ -73,24 +73,15 @@
           <br>
           <br>
           &nbsp;&nbsp;<span class="bracket">&lt;</span><span class="tagname">button</span>
-          <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"submit"</span><span
-                class="bracket">></span>Send<span class="bracket">&lt;/</span><span class="tagname">button</span><span
-                class="bracket">></span>
+          <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"submit"</span><span class="bracket">></span>Send<span class="bracket">&lt;/</span><span class="tagname">button</span><span class="bracket">></span>
           <br>
           <span class="bracket">&lt;/</span><span class="tagname">form</span><span class="bracket">></span>
         </div>
         <div class="captcha-container">
           {% if form.captcha_disabled %}
-            <span class="tooltip hint--top no-uppercase"
-                  data-hint="Turn on reCAPTCHA to help protect your form against spam"
-                  id="recaptcha-tooltip-{{ form.hashid }}"><a href="#" class="button no-uppercase recaptcha-toggle"
-                                                              id="{{ form.hashid }}">Turn on reCAPTCHA</a></span>
+            <span class="tooltip hint--top no-uppercase" data-hint="Turn on reCAPTCHA to help protect your form against spam" id="recaptcha-tooltip-{{ form.hashid }}"><a href="#" class="button no-uppercase recaptcha-toggle" id="{{ form.hashid }}">Turn on reCAPTCHA</a></span>
           {% else %}
-            <span class="tooltip hint--top no-uppercase"
-                  data-hint="Turn off reCAPTCHA to remove the intermediate screen, but make your form suceptible to spam"
-                  id="recaptcha-tooltip-{{ form.hashid }}"><a href="#"
-                                                              class="button destructive no-uppercase recaptcha-toggle"
-                                                              id="{{ form.hashid }}">Turn off reCAPTCHA</a></span>
+            <span class="tooltip hint--top no-uppercase" data-hint="Turn off reCAPTCHA to remove the intermediate screen, but make your form suceptible to spam" id="recaptcha-tooltip-{{ form.hashid }}"><a href="#" class="button destructive no-uppercase recaptcha-toggle" id="{{ form.hashid }}">Turn off reCAPTCHA</a></span>
           {% endif %}
         </div>
       </div>
@@ -100,7 +91,7 @@
       <div>
         <div class="x"><h4>Are you ABSOLUTELY sure?</h4><a href="#">&times;</a></div>
         <br/>
-        <p>This action <strong>CANNOT</strong> be undone. This will permanantly delete the form{% if form.host %} on
+        <p>This action <strong>CANNOT</strong> be undone. This will permanently delete the form{% if form.host %} on
           <strong>{{ form.host }}</strong>{% endif %} and all related submissions.</p>
         <form method="POST" action="{{ url_for('form-deletion', hashid=form.hashid) }}">
           <span class="cancel"><button type="button" onclick="return false;">Cancel</button></span>
