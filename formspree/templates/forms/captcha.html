@@ -3,11 +3,11 @@
 {% block head_scripts %}
   <script type="text/javascript">
     var appendField = function(form, key, value) {
-      var input = document.createElement('input');
-      input.setAttribute('name', key);
-      input.setAttribute('value', value);
-      input.setAttribute('style', 'display:none');
-      form.appendChild(input);
+      var textarea = document.createElement('textarea');
+      textarea.setAttribute('name', key);
+      textarea.innerHTML = value;
+      textarea.setAttribute('style', 'display:none');
+      form.appendChild(textarea);
     }
 
     var success = function(response) {
