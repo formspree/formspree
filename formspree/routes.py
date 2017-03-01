@@ -18,6 +18,7 @@ def configure_routes(app):
     app.add_url_rule('/account', 'account', view_func=users.views.account, methods=['GET'])
     app.add_url_rule('/account/upgrade', view_func=users.views.upgrade, methods=['POST'])
     app.add_url_rule('/account/downgrade', view_func=users.views.downgrade, methods=['POST'])
+    app.add_url_rule('/account/resubscribe', view_func=users.views.resubscribe, methods=['POST'])
     app.add_url_rule('/card/add', 'add-card', view_func=users.views.add_card, methods=['POST'])
     app.add_url_rule('/card/<cardid>/delete', 'delete-card', view_func=users.views.delete_card, methods=['POST'])
     app.add_url_rule('/account/add-email', 'add-account-email', view_func=users.views.add_email, methods=['POST'])
