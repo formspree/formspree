@@ -87,9 +87,11 @@ def sitewide_file_check(url, email):
 
     g.log = g.log.bind(url=url, email=email)
 
-    res = requests.get(url, timeout=2)
+    res = requests.get(url, timeout=3, headers={
+        'User-Agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.87 Chrome/55.0.2883.87 Safari/537.36'
+    })
     if not res.ok:
-        g.log.debug('Sitewide file not found.')
+        g.log.debug('Sitewide file not found.', contents=res.text[:100])
         return False
 
     for line in res.text.splitlines():
