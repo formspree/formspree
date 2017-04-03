@@ -20,4 +20,5 @@ class UtilsTest(FormspreeTestCase):
         self.assertEqual('http://fun.io/thanks.html', next_url(referrer='http://fun.io', next='/thanks.html'))
 
         # Referrer set and absolute next url should result in proper absolute next url.
-        self.assertEqual('//morefun.net/awesome.php', next_url(referrer='http://fun.io', next='//morefun.net/awesome.php'))
+        self.assertEqual('https://morefun.net/awesome.php', next_url(referrer='https://fun.io', next='//morefun.net/awesome.php'))
+        self.assertEqual('http://morefun.net/awesome.php', next_url(referrer='http://fun.io', next='//morefun.net/awesome.php'))

@@ -56,10 +56,12 @@ def uuid2slug(uuidobj):
 
 
 def slug2uuid(slug):
-    return str(uuid.UUID(bytes=(slug + '==').replace('_', '/').decode('base64')))
+    return str(
+        uuid.UUID(bytes=(slug + '==').replace('_', '/').decode('base64'))
+    )
 
 
-def get_url(endpoint, secure=False, **values):   
+def get_url(endpoint, secure=False, **values):
     ''' protocol preserving url_for '''
     path = url_for(endpoint, **values)
     if secure:
@@ -87,22 +89,31 @@ def next_url(referrer=None, next=None):
     referrer = referrer if referrer is not None else ''
 
     if next:
-        if urlparse.urlparse(next).netloc:  # check if next_url is an absolute url
-            return next
+        # use the referrer as base, replace its parts with the provided
+        # parts from _next. so, if _next is only a path it will just use
+        # that path. if it is a netloc without a scheme, will use that
+        # netloc, but reuse the scheme from base and so on.
+        parsed_next = urlparse.urlparse(next)
+        base = urlparse.urlparse(referrer)
 
-        parsed = list(urlparse.urlparse(referrer))  # results in [scheme, netloc, path, ...]
-        parsed[2] = next
-
-        return urlparse.urlunparse(parsed)
+        return urlparse.urlunparse([
+            parsed_next.scheme or base.scheme,
+            parsed_next.netloc or base.netloc,
+            parsed_next.path or base.path,
+            parsed_next.params or base.params,
+            parsed_next.query or base.query,
+            parsed_next.fragment or base.fragment,
+        ])
     else:
         return url_for('thanks', next=referrer)
 
 
-def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None, reply_to=None):
+def send_email(to=None, subject=None, text=None, html=None,
+               sender=None, cc=None, reply_to=None):
     g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
-        raise ValueError('to, subject text and sender are required to send email')
+        raise ValueError('to, subject text and sender required to send email')
 
     data = {'api_user': settings.SENDGRID_USERNAME,
             'api_key': settings.SENDGRID_PASSWORD,
@@ -111,7 +122,8 @@ def send_email(to=None, subject=None, text=None, html=None, sender=None, cc=None
             'text': text,
             'html': html}
 
-    # parse 'fromname' from 'sender' if it is formatted like "Name <name@email.com>"
+    # parse 'fromname' from 'sender' if it is
+    # formatted like "Name <name@email.com>"
     try:
         bracket = sender.index('<')
         data.update({
