@@ -1,0 +1,156 @@
+.\" $Id: sockd.8,v 1.54 2012/06/01 20:23:05 karls Exp $
+.\"
+.\" Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2008, 2009, 2010,
+.\"               2011, 2012
+.\"      Inferno Nettverk A/S, Norway.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. The above copyright notice, this list of conditions and the following
+.\"    disclaimer must appear in all copies of the software, derivative works
+.\"    or modified versions, and any portions thereof, aswell as in all
+.\"    supporting documentation.
+.\" 2. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"      This product includes software developed by
+.\"      Inferno Nettverk A/S, Norway.
+.\" 3. The name of the author may not be used to endorse or promote products
+.\"    derived from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\" Inferno Nettverk A/S requests users of this software to return to
+.\"
+.\"  Software Distribution Coordinator  or  sdc@inet.no
+.\"  Inferno Nettverk A/S
+.\"  Oslo Research Park
+.\"  Gaustadalleen 21
+.\"  NO-0349 Oslo
+.\"  Norway
+.\"
+.\" any improvements or extensions that they make and grant Inferno Nettverk A/S
+.\" the rights to redistribute these changes.
+.\"
+.TH SOCKD 8 "November 1 2009"
+.SH NAME
+sockd \- network proxyserver
+.SH SYNOPSIS
+.B sockd
+.RB [ \-DLVdhnv ]
+.RB [ \-N
+.IR number ]
+.RB [ \-f
+.IR file ]
+.RB [ \-p
+.IR file ]
+.SH DESCRIPTION
+.B Dante
+implements the socks standard and can function as a firewall between networks.
+.PP
+.B Dante
+relays TCP and UDP both from outside the network and in, and from inside
+and out.
+.PP
+The options are as follows:
+.TP
+.B \-D
+.B Dante
+will detach from the controlling terminal and run in
+the background as a system daemon.
+.TP
+.B \-L
+Displays the license
+.B Dante
+comes under.
+.TP
+.BI \-N number
+.B Dante
+will fork of
+.I number
+"main servers" when starting.  This can be used for servers that are
+extremely busy, or to provide a (very) poor mans redundancy setup,
+as Dante will try to make these "main servers" as independent of each
+others as possible.  It is unlikely that setting this number to anything
+higher than the number of CPUs will improve performance.
+.TP
+.B \-V
+Verifies config file and exits.
+.TP
+.BI \-d number
+Sets the level of debugging, zero to disable.
+.TP
+.BI \-f file
+.B Dante
+will read its configuration from
+.IR file .
+.TP
+.B \-h
+Shows the currently valid options.
+.TP
+.B \-n
+Disables TCP keep-alive messages.  Normally
+.B Dante
+enables TCP keep-alive messages so that connections from machines that
+have crashed or for other reasons no longer can be reached time out.
+Note that this can take several hours.  See also the "timeout"
+option in sockd.conf(5).
+.TP
+.BI \-p file
+.B Dante
+will write the pid of the main process to this file.
+.IR file .
+.TP
+.B \-v
+Displays
+.B Dante
+version.
+.SH SIGNALS
+.TP
+.B SIGHUP
+Reload the configuration file.  Will also reopen logfiles.
+.TP
+.B SIGINFO/SIGUSR1
+Print some information about the servers current state and clients.
+.SH ENVIRONMENT
+.TP
+.B TMPDIR
+Use
+.B TMPDIR
+for temporary files.
+.B Dante
+will use this directory for lockfiles and memory-mapped files.
+It is recommended that
+.B TMPDIR
+be set to a (local) filesystem with low latency.  The directory
+should have read/write/execute permission by both the
+privileged and unprivileged userid (as specified in
+/etc/sockd.conf), but no other non-privileged users.
+.SH FILES
+.TP
+/etc/sockd.conf
+.B Dante
+server configuration file.
+.SH AUTHORS
+For inferno Nettverk A/S:
+   Michael Shuldman
+   Karl-Andre' Skevik
+.SH SEE ALSO
+socks.conf(5), sockd.conf(5)
+.PP
+Information about new releases and other related issues can be found
+on the
+.B Dante
+WWW home page: http://www.inet.no/dante/
+.SH BUGS
+See the accompanying BUGS file.  New ones should be reported to
+dante\-bugs@inet.no.
