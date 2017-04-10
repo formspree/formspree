@@ -1,1 +1,1 @@
-web: gunicorn formspree:forms_app
+web: bin/proximo gunicorn formspree:forms_app
