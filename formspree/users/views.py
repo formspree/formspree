@@ -9,6 +9,7 @@ from helpers import check_password, hash_pwd
 from formspree.app import DB
 from formspree import settings
 from models import User, Email
+from formspree.utils import send_email
 
 
 def register():
@@ -302,6 +303,21 @@ def stripe_webhook():
             DB.session.add(user)
             DB.session.commit()
             g.log.info('Downgraded user from webhook.', account=user.email)
+            send_email(to=customer.email,
+                       subject='Successfully Downgraded from {} {}'.format(settings.SERVICE_NAME, settings.UPGRADED_PLAN_NAME),
+                       text=render_template('email/downgraded.txt'),
+                       html=render_template('email/downgraded.html'),
+                       sender=settings.DEFAULT_SENDER)
+    elif event['type'] == 'invoice.payment_failed':
+        customer_id = event['data']['object']['customer']
+        customer = stripe.Customer.retrieve(customer_id)
+        g.log.info('User payment failed', account=customer.email)
+        send_email(to=customer.email,
+                   subject='[ACTION REQUIRED] Failed Payment for {} {}'.format(settings.SERVICE_NAME,
+                                                                       settings.UPGRADED_PLAN_NAME),
+                   text=render_template('email/payment-failed.txt'),
+                   html=render_template('email/payment-failed.html'),
+                   sender=settings.DEFAULT_SENDER)
     return 'ok'
 
 
