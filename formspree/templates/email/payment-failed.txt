@@ -1,0 +1,7 @@
+ALERT:</strong> Your payment for {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} failed
+
+Uh oh. Looks like your latest payment for {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} was declined. This could be due to a change in your card number or your card expiring, cancellation of your credit card, or the bank not recognizing the payment and taking action to prevent it.
+
+Please update your payment information as soon as possible by logging in to your {{ config.SERVICE_NAME }} dashboard ({{ url_for('account') }})
+
+Please note that if future payments continue to fail, we will downgrade your account and your form may stop working. If you are having issues, please contact our team as soon as possible at {{ config.CONTACT_EMAIL }}

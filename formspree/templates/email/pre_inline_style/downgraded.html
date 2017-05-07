@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Confirm Form</title>
+    <title>Account Downgraded</title>
     <link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
 </head>
 <body itemscope itemtype="http://schema.org/EmailMessage">
@@ -28,12 +28,12 @@
                                   </tr>
                                   <tr>
                                       <td class="content-block">
-                                        We have successfully downgraded your subscription from {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}. If you didn't mean for this to happen you can easily resubscribe from your <a href="{{ url_for('account') }}">{{ config.SERVICE_NAME }} dashboard</a>.
+                                        We have successfully downgraded your subscription from {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}. If you didn't mean for this to happen you can easily resubscribe from your <a href="{{ url_for('account', _external=True) }}">{{ config.SERVICE_NAME }} dashboard</a>.
                                       </td>
                                   </tr>
                                     <tr>
                                         <td class="content-block">
-                                          Please note that your form will no longer have unlimited submissions and other <a href="{{ url_for('index') }}#features">{{ config.UPGRADED_PLAN_NAME }} features</a>.
+                                          Please note that your form will no longer have unlimited submissions and other <a href="{{ url_for('index', _external=True) }}#features">{{ config.UPGRADED_PLAN_NAME }} features</a>.
                                         </td>
                                     </tr>
                                 </table>

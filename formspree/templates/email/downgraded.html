@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Confirm Form</title>
+    <title>Account Downgraded</title>
 
 </head>
 
@@ -29,12 +29,12 @@
                                   </tr>
                                   <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                                       <td class="content-block" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                                        We have successfully downgraded your subscription from {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}. If you didn't mean for this to happen you can easily resubscribe from your <a href="{{ url_for('account') }}" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; color: #348eda; text-decoration: underline; margin: 0;">{{ config.SERVICE_NAME }} dashboard</a>.
+                                        We have successfully downgraded your subscription from {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}. If you didn't mean for this to happen you can easily resubscribe from your <a href="{{ url_for('account', _external=True) }}" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; color: #348eda; text-decoration: underline; margin: 0;">{{ config.SERVICE_NAME }} dashboard</a>.
                                       </td>
                                   </tr>
                                     <tr style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; margin: 0;">
                                         <td class="content-block" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; vertical-align: top; margin: 0; padding: 0 0 20px;" valign="top">
-                                          Please note that your form will no longer have unlimited submissions and other <a href="{{ url_for('index') }}#features" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; color: #348eda; text-decoration: underline; margin: 0;">{{ config.UPGRADED_PLAN_NAME }} features</a>.
+                                          Please note that your form will no longer have unlimited submissions and other <a href="{{ url_for('index', _external=True) }}#features" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; box-sizing: border-box; font-size: 14px; color: #348eda; text-decoration: underline; margin: 0;">{{ config.UPGRADED_PLAN_NAME }} features</a>.
                                         </td>
                                     </tr>
                                 </table>
