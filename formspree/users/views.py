@@ -294,7 +294,7 @@ def stripe_webhook():
     event = request.get_json()
     g.log.info('Webhook from Stripe', type=event['type'])
 
-    if event['type'] == 'customer.subscription.deleted':
+    if event['type'] == 'customer.subscription.deleted': # User subscription has expired
         customer_id = event['data']['object']['customer']
         customer = stripe.Customer.retrieve(customer_id)
         if len(customer.subscriptions.data) == 0:
@@ -308,7 +308,7 @@ def stripe_webhook():
                        text=render_template('email/downgraded.txt'),
                        html=render_template('email/downgraded.html'),
                        sender=settings.DEFAULT_SENDER)
-    elif event['type'] == 'invoice.payment_failed':
+    elif event['type'] == 'invoice.payment_failed': # User payment failed
         customer_id = event['data']['object']['customer']
         customer = stripe.Customer.retrieve(customer_id)
         g.log.info('User payment failed', account=customer.email)
