@@ -9,7 +9,8 @@ from sqlalchemy.sql.expression import delete
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
-                    http_form_to_dict, referrer_to_path
+                    http_form_to_dict, referrer_to_path, \
+                    store_first_submission, fetch_first_submission
 
 
 class Form(DB.Model):
@@ -243,7 +244,7 @@ class Form(DB.Model):
         redis_store.incr(key)
         redis_store.expireat(key, unix_time_for_12_months_from_now(basedate))
 
-    def send_confirmation(self, with_data=None):
+    def send_confirmation(self, store_data=None):
         '''
         Helper that actually creates confirmation nonce
         and sends the email to associated email. Renders
@@ -266,17 +267,18 @@ class Form(DB.Model):
 
         def render_content(ext):
             data, keys = None, None
-            if with_data:
-                if type(with_data) in (ImmutableMultiDict, ImmutableOrderedMultiDict):
-                    data, keys = http_form_to_dict(with_data)
+            if store_data:
+                if type(store_data) in (
+                        ImmutableMultiDict, ImmutableOrderedMultiDict):
+                    data, _ = http_form_to_dict(store_data)
+                    store_first_submission(nonce, data)
                 else:
-                    data, keys = with_data, with_data.keys()
+                    store_first_submission(nonce, store_data)
 
             return render_template('email/confirm.%s' % ext,
                                    email=self.email,
                                    host=self.host,
                                    nonce_link=link,
-                                   data=data,
                                    keys=keys)
 
         result = send_email(to=self.email,
@@ -315,6 +317,11 @@ class Form(DB.Model):
             form.confirmed = True
             DB.session.add(form)
             DB.session.commit()
+
+            stored_data = fetch_first_submission(nonce)
+            if stored_data:
+                form.send(stored_data, stored_data.keys(), form.host)
+
             return form
 
     @property

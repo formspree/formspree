@@ -174,7 +174,7 @@ def send(email_or_string):
 
         status = form.send(received_data, sorted_keys, referrer)
     else:
-        status = form.send_confirmation()
+        status = form.send_confirmation(store_data=received_data)
 
     # Respond to the request accordingly to the status code
     if status['code'] == Form.STATUS_EMAIL_SENT:

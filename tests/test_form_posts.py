@@ -23,7 +23,7 @@ class FormPostsTestCase(FormspreeTestCase):
     def test_submit_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         self.client.post('/alice@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'alice'}
         )
         self.assertEqual(1, Form.query.count())
@@ -32,7 +32,7 @@ class FormPostsTestCase(FormspreeTestCase):
     def test_second_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         self.client.post('/bob@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'bob'}
         )
         self.assertEqual(1, Form.query.count())
@@ -114,7 +114,7 @@ class FormPostsTestCase(FormspreeTestCase):
     def test_activation_workflow(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = self.client.post('/bob@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'bob'}
         )
         f = Form.query.first()
@@ -127,7 +127,7 @@ class FormPostsTestCase(FormspreeTestCase):
 
         # form has another submission, number of forms in the table should increase?
         r = self.client.post('/bob@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'bob'}
         )
         number_of_forms = Form.query.count()
@@ -146,10 +146,12 @@ class FormPostsTestCase(FormspreeTestCase):
 
         f = Form.query.first()
         self.assertEqual(f.confirmed, True)
+        self.assertEqual(f.counter, 1) # counter has increased
+        self.assertEqual(f.get_monthly_counter(), 1) # monthly submissions also
 
         # a third submission should now increase the counter
         r = self.client.post('/bob@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'bob'}
         )
         number_of_forms = Form.query.count()
@@ -160,8 +162,8 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(f.host, 'example.com')
         self.assertEqual(f.confirm_sent, True)
         self.assertEqual(f.owner_id, None)
-        self.assertEqual(f.counter, 1) # counter has increased
-        self.assertEqual(f.get_monthly_counter(), 1) # monthly submissions also
+        self.assertEqual(f.counter, 2) # counter has increased
+        self.assertEqual(f.get_monthly_counter(), 2) # monthly submissions also
 
     @httpretty.activate
     def test_monthly_limits(self):
@@ -172,7 +174,7 @@ class FormPostsTestCase(FormspreeTestCase):
 
         # manually verify luke@example.com
         r = self.client.post('/luke@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'luke'}
         )
         f = Form.query.first()
@@ -184,7 +186,7 @@ class FormPostsTestCase(FormspreeTestCase):
         # first submission
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = self.client.post('/luke@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'peter'}
         )
         self.assertEqual(r.status_code, 200)
@@ -193,7 +195,7 @@ class FormPostsTestCase(FormspreeTestCase):
         # second submission
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = self.client.post('/luke@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'ana'}
         )
         self.assertEqual(r.status_code, 200)
@@ -202,7 +204,7 @@ class FormPostsTestCase(FormspreeTestCase):
         # third submission, now we're over the limit
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = self.client.post('/luke@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'maria'}
         )
         self.assertEqual(r.status_code, 200) # the response to the user is the same
@@ -232,8 +234,35 @@ class FormPostsTestCase(FormspreeTestCase):
         # the user should receive form posts again
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         r = self.client.post('/luke@example.com',
-            headers = ajax_headers,
+            headers=ajax_headers,
             data={'name': 'noah'}
         )
         self.assertEqual(r.status_code, 200)
         self.assertIn('noah', httpretty.last_request().body)
+
+    @httpretty.activate
+    def test_first_submission_is_stored(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+        r = self.client.post('/what@firstsubmissed.com',
+            headers=ajax_headers,
+            data={'missed': 'this was important'}
+        )
+        f = Form.query.first()
+        self.assertEqual(f.email, 'what@firstsubmissed.com')
+        self.assertEqual(f.confirm_sent, True)
+        self.assertEqual(f.counter, 0) # the counter shows zero submissions
+        self.assertEqual(f.get_monthly_counter(), 0) # monthly submissions also 0
+
+        # got a confirmation email
+        self.assertIn('one+step+away', httpretty.last_request().body)
+
+        # clicking of activation link
+        self.client.get('/confirm/%s' % (f.hash,))
+
+        f = Form.query.first()
+        self.assertEqual(f.confirmed, True)
+        self.assertEqual(f.counter, 1) # counter has increased
+        self.assertEqual(f.get_monthly_counter(), 1) # monthly submissions also
+
+        # got the first (missed) submission
+        self.assertIn('this+was+important', httpretty.last_request().body)

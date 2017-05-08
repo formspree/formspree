@@ -4,6 +4,7 @@ import requests
 import hashlib
 import hashids
 import uuid
+import json
 from urlparse import urljoin
 from flask import request, g
 
@@ -17,6 +18,7 @@ HASH = lambda x, y: hashlib.md5(x.encode('utf-8')+y.encode('utf-8')+settings.NON
 EXCLUDE_KEYS = {'_gotcha', '_next', '_subject', '_cc', '_format', CAPTCHA_VAL, '_host_nonce'}
 REDIS_COUNTER_KEY = 'monthly_{form_id}_{month}'.format
 REDIS_HOSTNAME_KEY = 'hostname_{nonce}'.format
+REDIS_FIRSTSUBMISSION_KEY = 'first_{nonce}'.format
 HASHIDS_CODEC = hashids.Hashids(alphabet='abcdefghijklmnopqrstuvwxyz',
                                 min_length=8,
                                 salt=settings.HASHIDS_SALT)
@@ -142,3 +144,17 @@ def get_temp_hostname(nonce):
     redis_store.delete(key)
     return value.split(',')
 
+
+def store_first_submission(nonce, data):
+    key = REDIS_FIRSTSUBMISSION_KEY(nonce=nonce)
+    redis_store.set(key, json.dumps(data))
+    redis_store.expire(key, 300000)
+
+
+def fetch_first_submission(nonce):
+    key = REDIS_FIRSTSUBMISSION_KEY(nonce=nonce)
+    jsondata = redis_store.get(key)
+    try:
+        return json.loads(jsondata)
+    except:
+        return None
