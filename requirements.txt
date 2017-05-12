@@ -17,7 +17,7 @@ gunicorn==19.6.0
 hashids==1.0.2
 httpretty==0.8.14
 itsdangerous==0.24
-Jinja2==2.8.dev0
+git+https://github.com/mitsuhiko/jinja2@84f39ff5afd89760e1eff387ba4ce38e4a982977
 limits==1.2.1
 Mako==1.0.6
 MarkupSafe==0.23
