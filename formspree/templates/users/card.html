@@ -43,7 +43,6 @@ card.mount('#card-element');
    function stripeTokenHandler(token) {
     var form = $('#payment-form');
     form.append($('<input type="hidden" name="stripeToken">').val(token.id));
-    alert(token.id);
     form.submit();
   }
 
