@@ -13,6 +13,9 @@
     var success = function(response) {
       var form = document.querySelector('#passthrough');
 
+      //remove data from session storage
+      sessionStorage.removeItem("data");
+
       //handles the case where user has a button named 'submit'
       document.createElement('form').submit.call(form);
     };
