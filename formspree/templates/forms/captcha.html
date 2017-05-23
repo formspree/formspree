@@ -22,11 +22,14 @@
 
     var onloadCallback = function() {
       var form = document.querySelector('#passthrough');
-      var data;
+      var data = {{ data|tojson|safe }};
       if (sessionStorage.getItem("data")) {
-          data = JSON.parse(sessionStorage.getItem("data"));
+          if (Object.keys(data).length > 1) { //if data is valid overwrite current storage
+              sessionStorage.setItem("data", JSON.stringify(data));
+          } else { //passed in blank data except host_nonce
+              data = JSON.parse(sessionStorage.getItem("data"));
+          }
       } else {
-          data = {{ data|tojson|safe }};
           sessionStorage.setItem("data", JSON.stringify(data));
       }
       var keys = {{ sorted_keys|tojson|safe }};
