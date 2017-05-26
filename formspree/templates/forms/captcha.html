@@ -65,8 +65,10 @@
 
     <div class="container">
       <div class="col-1-1">
-        <h1>Almost there</h1>
-        <p>Please help us fight spam by following the directions below:</p>
+        {% block instructions %}
+          <h1>Almost there</h1>
+          <p>Please help us fight spam by following the directions below:</p>
+        {% endblock %}
 
         <form action="{{ action }}" method="POST" id="passthrough">
           <div id="recaptcha" style="text-align:center; display:inline-block"></div>

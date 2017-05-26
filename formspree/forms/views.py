@@ -19,6 +19,8 @@ from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     HASH, EXCLUDE_KEYS, assign_ajax, valid_domain_request
 from models import Form, Submission
 
+from jinja2.exceptions import TemplateNotFound
+
 
 def thanks():
     return render_template('forms/thanks.html')
@@ -167,10 +169,20 @@ def send(email_or_string):
             nonce = temp_store_hostname(form.host, request.referrer)
             data_copy['_host_nonce'] = nonce
             action = urljoin(settings.API_ROOT, email_or_string)
+            try:
+                if '_language' in received_data:
+                    return render_template('forms/captcha_lang/{}.html'.format(received_data['_language']),
+                                data=data_copy,
+                                sorted_keys=sorted_keys,
+                                action=action)
+            except TemplateNotFound:
+                g.log.error('Requested language not found for reCAPTCHA page, defaulting to English', referrer=request.referrer, lang=received_data['_language'])
+                pass
+
             return render_template('forms/captcha.html',
-                                   data=data_copy,
-                                   sorted_keys=sorted_keys,
-                                   action=action)
+                                           data=data_copy,
+                                           sorted_keys=sorted_keys,
+                                           action=action)
 
         status = form.send(received_data, sorted_keys, referrer)
     else:
