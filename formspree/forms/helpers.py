@@ -15,7 +15,7 @@ CAPTCHA_URL = 'https://www.google.com/recaptcha/api/siteverify'
 CAPTCHA_VAL = 'g-recaptcha-response'
 
 HASH = lambda x, y: hashlib.md5(x.encode('utf-8')+y.encode('utf-8')+settings.NONCE_SECRET).hexdigest()
-EXCLUDE_KEYS = {'_gotcha', '_next', '_subject', '_cc', '_format', CAPTCHA_VAL, '_host_nonce'}
+EXCLUDE_KEYS = {'_gotcha', '_next', '_subject', '_cc', '_format', CAPTCHA_VAL, '_host_nonce', '_language'}
 REDIS_COUNTER_KEY = 'monthly_{form_id}_{month}'.format
 REDIS_HOSTNAME_KEY = 'hostname_{nonce}'.format
 REDIS_FIRSTSUBMISSION_KEY = 'first_{nonce}'.format
