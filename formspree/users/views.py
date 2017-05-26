@@ -366,7 +366,20 @@ def add_card():
 
     return redirect(url_for('account'))
 
+@login_required
+def change_default_card(cardid):
+    try:
+        customer = stripe.Customer.retrieve(current_user.stripe_id)
+        customer.default_source = cardid
+        customer.save()
+        card = customer.sources.retrieve(cardid)
+        flash("Successfully changed default payment source to your {} ending in {}".format(card.brand, card.last4), "success")
+    except Error as e:
+        flash(u"Sorry something went wrong. If this error persists, please contact support", 'error')
+        g.log.warning("Failed to change default card", account=current_user.email, card=cardid)
+    return redirect(url_for('account'))
 
+@login_required
 def delete_card(cardid):
     if current_user.stripe_id:
         customer = stripe.Customer.retrieve(current_user.stripe_id)
