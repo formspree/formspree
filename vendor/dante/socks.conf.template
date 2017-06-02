@@ -1,0 +1,7 @@
+route {
+  from: 0.0.0.0/0 to: %PROXIMO_MASK% via: %PROXIMO_HOST% port = 1080
+  proxyprotocol: socks_v5
+  method: username
+  command: connect
+}
+

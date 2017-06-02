@@ -1,0 +1,200 @@
+.\" $Id: socks.conf.5,v 1.70 2012/06/01 20:23:05 karls Exp $
+.\"
+.\" Copyright (c) 1997, 1998, 1999, 2000, 2001, 2003, 2005, 2008, 2009, 2010,
+.\"               2011, 2012
+.\"      Inferno Nettverk A/S, Norway.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. The above copyright notice, this list of conditions and the following
+.\"    disclaimer must appear in all copies of the software, derivative works
+.\"    or modified versions, and any portions thereof, aswell as in all
+.\"    supporting documentation.
+.\" 2. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"      This product includes software developed by
+.\"      Inferno Nettverk A/S, Norway.
+.\" 3. The name of the author may not be used to endorse or promote products
+.\"    derived from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\" Inferno Nettverk A/S requests users of this software to return to
+.\"
+.\"  Software Distribution Coordinator  or  sdc@inet.no
+.\"  Inferno Nettverk A/S
+.\"  Oslo Research Park
+.\"  Gaustadalleen 21
+.\"  NO-0349 Oslo
+.\"  Norway
+.\"
+.\" any improvements or extensions that they make and grant Inferno Nettverk A/S
+.\" the rights to redistribute these changes.
+.\"
+.TH SOCKS.CONF 5 "November 1 2009"
+.SH NAME
+socks.conf \- socks client configuration file syntax
+.SH DESCRIPTION
+The configuration file for the socks client library allow control over
+logging and server selection.  It is divided into two parts;
+global settings and routes.  A line can be commented using the
+standard comment character \fB#\fP.
+.SH FORMAT
+The global settings are in the form of a keyword followed by a colon
+and the value.
+.TP
+\fBdebug\fP
+Setting this field to 1 turns on debugging.
+.TP
+\fBlogoutput\fP
+This value controls where the client library sends logoutput.  It can
+be either \fBsyslog\fP, \fBstdout\fP, \fBstderr\fP, a filename, or
+a combination.  The default is no logging.
+.IP \fBresolveprotocol\fP
+The protocol used to resolve hostnames.
+Valid values are \fBudp\fP, \fBtcp\fP and \fBfake\fP.  The default
+is \fBudp\fP.
+.IP \fBroute.badexpire\fP
+How long the "bad" marking of a route should remain set before
+it is removed.  Default is 300 seconds.
+.IP \fBroute.maxfail\fP
+How many times a route can fail before it is marked as bad.  Default is 1.
+.IP \fBtimeout.connect\fP
+The number of seconds the client will wait for a connect to the
+proxy server to complete.  The default is 0, indicating the client
+should use the systems default.
+.SH ROUTES
+The routes are specified with a \fBroute\fP keyword.
+Inside a pair of parenthesis ({}) a set of keywords control the behavior of
+the route.
+Each \fBroute\fP can contain
+three address specifications; \fBfrom\fP, \fBto\fP and \fBvia\fP.
+A route is selected for a connection based on the values within the
+\fBroute\fP block.
+
+When searching for a route to match the clients request, the library
+will first look for a \fBdirect\fP route.  Then for a \fBsocks_v4\fP
+route, a \fBsocks_v5\fP route, a \fBhttp\fP route, and lastly
+for a \fBupnp\fP route.
+
+Depending on how the library is configured and environment variables
+set (see the manual for \fBsocksify(1)\fP), there may or may not be an
+automatic fallback to an auto-generated \fBdirect\fP route if no
+other route is found.
+
+The \fBroute\fP block can contain the following:
+
+.IP \fBADDRESSES\fP
+Each address field can consist of a ipaddress (and where meaningful,
+a netmask, separated from the ipaddress by a '\fB/\fP' sign.), a hostname,
+a domainname (designated by the leading '\fB.\fP'), or an interfacename
+(where meaningful).
+Each address can be followed by a optional \fBport\fP specifier.
+
+.IP \fBfrom\fP
+The route is used only by requests coming from the address given as value.
+.IP \fBto\fP
+The route is used only by requests going to the address given as value.
+.IP \fBvia\fP
+Address of the proxy server that should be used as a gateway for the
+connection, or the special value \fBdirect\fP to indicate the connection
+should be direct rather than go via any proxy server.
+
+In the case of \fBupnp\fP, it can also be the name of the interface
+to use for discovering the upnp controlpoint, if the full url for
+the IGD is not yet known.
+.IP \fBport\fP
+Parameter to \fBfrom\fP, \fBto\fP and \fBvia\fP.  Accepts the keywords
+\fBeq/=, ne/!=, ge/>=, le/<=, gt/>, lt/<\fP followed by a number.
+A portrange can also be given as "port <start #> - <end #>", which
+will match all port numbers within the range <start #> and <end #>.
+
+.TP
+.SH Options
+.IP \fBclientcompatibility\fP
+Enables certain options for compatibility with broken servers.
+Valid values are: \fBnecgssapi\fP, for compatibility with servers
+implementing gssapi the NEC socks way.
+.IP \fBcommand\fP
+The server supports the given commands.  Valid commands
+are \fBbind\fP, \fBbindreply\fP, \fBconnect\fP, \fBudpassociate\fP
+and \fBudpreply\fP.   The default is all commands supported by the
+protocols set for the route.
+
+Can be used instead of, or to complement, \fBprotocol\fP.
+.IP \fBgssapi.enctype\fP
+Which encryption to enforce for GSSAPI-authenticated communication.
+Possible values are \fBclear\fP, \fBintegrity\fP, or \fBconfidentiality\fP.
+The default is to try for confidentially, but accept whatever the
+server offers except \fBclear\fP, as \fBclear\fP is not part of the
+SOCKS GSSAPI standard.
+.IP \fBgssapi.servicename\fP
+Which servicename to use when involving GSSAPI.  Default is "rcmd".
+
+.IP \fBmethod\fP
+List of authentication methods the \fBclient\fP supports and which to
+offer the server.  Currently supported values are \fBnone\fP, \fBgssapi\fP,
+and \fBusername\fP.  The default is all supported methods.
+.IP \fBprotocol\fP
+The protocols the server supports.
+Supported values are \fBtcp\fP and \fBudp\fP.  The default is all
+supported protocols.
+.IP \fBproxyprotocol\fP
+The proxy protocols the server supports.
+Currently supported values are \fBsocks_v4\fP, \fBsocks_v5\fP,
+\fBhttp\fP, and \fBupnp\fP.  The default is \fBsocks_v4\fP and
+\fBsocks_v5\fP.
+Note that if the socks server requires any form of authentication, you
+need to explicitly set this to to \fBsocks_v5\fP, as v4 does not support
+authentication.
+.SH EXAMPLES
+See the example directory in the distribution.
+.SH ENVIRONMENT
+.TP
+\fBSOCKS_USERNAME\fP
+Use the value of \fBSOCKS_USERNAME\fP as the username when doing
+username authentication.
+.TP
+\fBSOCKS_PASSWORD\fP
+Use the value of \fBSOCKS_PASSWORD\fP as the password when doing
+username authentication.  Not recommended as other users on the system
+might be able to see your password.
+.TP
+\fBSOCKS_AUTOADD_LANROUTES\fP
+If this variable is set to "no", the client will not try to auto-add
+direct routes for all addresses on the lan.  The default is to add
+them.
+.TP
+\fBSOCKS_DISABLE_THREADLOCK\fP
+If this variable is set, the client will not perform threadlocking.
+The default is for the client to attempt to figure out for itself
+whether the application to socksify needs threadlocking or not.
+.PP
+Some additional environment variables are documented in socksify(1).
+.TP
+.SH FILES
+.I /etc/socks.conf
+.SH AUTHORS
+For inferno Nettverk A/S:
+   Michael Shuldman
+   Karl-Andre' Skevik
+.SH SEE ALSO
+socksify(1), sockd(8), sockd.conf(5)
+.TP
+Information about new releases and other related issues can be found
+on the
+\fBDante\fP
+WWW home page: http://www.inet.no/dante/
+.SH BUGS
+See the accompanying BUGS file.  New ones should be reported to
+dante\-bugs@inet.no.

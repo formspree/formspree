@@ -1,0 +1,42 @@
+#!/bin/bash
+
+if [ "${PROXIMO_URL}" == "" ]; then
+  echo "You must first install Proximo:"
+  echo "heroku addons:add proximo:development"
+fi
+
+DANTE_DIR="$(dirname $(dirname $(readlink -f $0)))/vendor/dante"
+
+PROXIMO_LEADER=${PROXIMO_URL%%@*}
+PROXIMO_AUTH=$(echo $PROXIMO_LEADER | cut -d/ -f3)
+PROXIMO_USERNAME=${PROXIMO_AUTH%%:*}
+PROXIMO_PASSWORD=${PROXIMO_AUTH#*:}
+PROXIMO_HOST=${PROXIMO_URL#*@}
+PROXIMO_HOST=$(echo $PROXIMO_HOST | sed -e 's/proxy-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)-\([0-9]*\)\.proximo.io/\1\.\2\.\3\.\4/g')
+PROXIMO_MASK=${PROXIMO_MASK:-0.0.0.0/0}
+
+export SOCKS_CONF="${DANTE_DIR}/socks.conf"
+export SOCKS_LIBDIR="${DANTE_DIR}/lib"
+export SOCKS_USERNAME="${PROXIMO_USERNAME}"
+export SOCKS_PASSWORD="${PROXIMO_PASSWORD}"
+export SOCKS_LIBRARY="${DANTE_DIR}/lib/libdsocks.so"
+export SOCKS_USEFULLPATH="true"
+
+echo "Proxying traffic bound for ${PROXIMO_MASK} via Proximo host ${PROXIMO_HOST}:1080"
+
+OIFS=$IFS
+IFS=","
+
+rm -f $SOCKS_CONF
+
+for PROXIMO_MASK_PART in $PROXIMO_MASK; do
+  PROXIMO_MASK_ESCAPED=${PROXIMO_MASK_PART/\//\\/}
+  cat "${SOCKS_CONF}.template" | \
+    sed -e "s/%PROXIMO_HOST%/${PROXIMO_HOST}/g" \
+        -e "s/%PROXIMO_MASK%/${PROXIMO_MASK_ESCAPED}/g" \
+        >> $SOCKS_CONF
+done
+
+chmod +x ${DANTE_DIR}/bin/*
+
+exec ${DANTE_DIR}/bin/socksify $*

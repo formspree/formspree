@@ -1,0 +1,141 @@
+.\" $Id: socksify.1,v 1.11 2012/06/01 20:23:05 karls Exp $
+.\"
+.\" Copyright (c) 2009, 2011
+.\"      Inferno Nettverk A/S, Norway.  All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. The above copyright notice, this list of conditions and the following
+.\"    disclaimer must appear in all copies of the software, derivative works
+.\"    or modified versions, and any portions thereof, aswell as in all
+.\"    supporting documentation.
+.\" 2. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"      This product includes software developed by
+.\"      Inferno Nettverk A/S, Norway.
+.\" 3. The name of the author may not be used to endorse or promote products
+.\"    derived from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\" Inferno Nettverk A/S requests users of this software to return to
+.\"
+.\"  Software Distribution Coordinator  or  sdc@inet.no
+.\"  Inferno Nettverk A/S
+.\"  Oslo Research Park
+.\"  Gaustadalléen 21
+.\"  NO-0349 Oslo
+.\"  Norway
+.\"
+.\" any improvements or extensions that they make and grant Inferno Nettverk A/S
+.\" the rights to redistribute these changes.
+.\"
+.TH SOCKSIFY 1 "November 1 2009"
+.SH NAME
+socksify \- runtime socksification of selected programs
+.SH DESCRIPTION
+The shell script socksify is meant to aid in using socks with
+already compiled dynamic binaries.  This works by setting the
+LD_PRELOAD environment variable to libdsocks.  It will then attempt
+to wrap all networking-related system calls.
+
+When used the script can socksify a program by simply prefixing
+the given program and it's arguments with the the socksify script,
+like in the example below.
+
+$ socksify ftp ftp.example.org
+
+.SH ENVIRONMENT
+The socksify script, and the Dante socks library used by the socksify
+script, can interpret several environment variables.
+.TP
+\fBSOCKS_CONF\fP
+Gives the name of the socks.conf file.  Default is /etc/socks.conf, unless
+it was changed when compiling the Dante libsocks libraries.
+
+Creating a socks.conf is the recommended way to use socksify, but socksify
+can also be used for most simple configurations without any socks.conf
+file, as long as the proxy server to use is set in one of the supported
+environment variables.
+.TP
+\fBSOCKS_DEBUG\fP
+Enables debug loging.  The value given should be a number, one or up,
+indicating the level of debuging provided.
+.TP
+\fBSOCKS_LOGOUTPUT\fP
+This value controls where the client library sends logoutput.  It can
+be either \fBsyslog\fP, \fBstdout\fP, \fBstderr\fP, a filename, or
+a combination.  The default is nowhere.
+.TP
+\fBSOCKS_USERNAME\fP
+Use the value of \fBSOCKS_USERNAME\fP as the username when doing
+username authentication.
+.TP
+\fBSOCKS_PASSWORD\fP
+Use the value of \fBSOCKS_PASSWORD\fP as the password when doing
+username authentication.  Not recommended as other users on the system
+might be able to see your password.
+.TP
+\fBSOCKS_SERVER\fP, \fBSOCKS4_SERVER\fP, \fBSOCKS5_SERVER\fP,
+These variables allow the address of the server to be specified
+without having a socks.conf file. The accepted format is
+<ipaddress>:<port>.
+If the \fBSOCKS_SERVER\fP value is set, it indicates the specified server
+supports all socks versions supported by Dante.  If if either of the other
+two variables are used, they indicate the given socks server supports only
+the corresponding socks version, v4 or v5.
+Note that if the socks server requires any form of authentication, you
+need to use \fBSOCKS5_SERVER\fP, as v4 does not support authentication.
+.TP
+\fBHTTP_CONNECT_PROXY\fP
+This variable can be used to specify the location of a HTTP proxy supporting
+the connect request.  The format used to specify a HTTP proxy is
+http://<ipaddress>:<port>.
+.TP
+\fBUPNP_IGD\fP
+This variable can be used to specify the location of a UPNP enabled
+IGD router.  There are three possible value for this variable: a
+full URL, the interface name the router is reachable via, or the value
+"broadcast" to search for the IGD on all appropriate interfaces.
+
+.TP
+\fINote that if any of the above environment variables, indicating the
+\fIproxy server to use are set, the Dante client will not parse the
+\fI\fBsocks.conf\fP file.\fP
+
+.TP
+\fBSOCKS_AUTOADD_LANROUTES\fP
+If this variable is set to "no", the client will not try to auto-add
+direct routes for all addresses on the lan.  The default is to add
+them.
+.TP
+\fBSOCKS_DISABLE_THREADLOCK\fP
+If this variable is set, the client will not perform threadlocking.
+The default is for the client to attempt to figure out for itself
+whether the application to socksify needs threadlocking or not.
+.SH FILES
+.I /etc/socks.conf
+.SH AUTHORS
+For inferno Nettverk A/S:
+   Michael Shuldman
+   Karl-Andre' Skevik
+.SH SEE ALSO
+socks.conf(5), sockd(8), sockd.conf(5)
+.Pp
+Information about new releases and other related issues can be found
+on the
+\fBDante\fP
+WWW home page: http://www.inet.no/dante/
+.SH BUGS
+See the accompanying BUGS file.  New ones should be reported to
+dante\-bugs@inet.no.
