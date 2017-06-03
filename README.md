@@ -3,6 +3,8 @@
 FORMSPREE.IO
 ------------
 
+[![Join the chat at https://gitter.im/formspree/formspree](https://badges.gitter.im/formspree/formspree.svg)](https://gitter.im/formspree/formspree?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Functional HTML forms. Hosted at [https://formspree.io](https://formspree.io).
 
 Just send your form to our URL and we'll forward it to your email. No PHP, Javascript or sign up required — perfect for static sites!
