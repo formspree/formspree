@@ -22,6 +22,7 @@ from models import Form, Submission
 from jinja2.exceptions import TemplateNotFound
 
 
+@cross_origin(allow_headers=['Accept', 'Content-Type', 'X-Requested-With'])
 def thanks():
     return render_template('forms/thanks.html')
 
