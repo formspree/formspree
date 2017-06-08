@@ -95,11 +95,7 @@ def send(email_or_string):
 
             if not form.host:
                 # add the host to the form
-                form.host = host.rstrip('/') # we can remove ending slashes here because this
-                                             # form was surely created in the dashboard and
-                                             # doesn't have a hash.
-                form.host = remove_www(forms.host) # the same principle applies to
-                                                   # 'www.' prefixes.
+                form.host = host
                 DB.session.add(form)
                 DB.session.commit()
 
