@@ -95,19 +95,22 @@ def send(email_or_string):
 
             if not form.host:
                 # add the host to the form
-                form.host = host
+                form.host = host.rstrip('/') # we can remove ending slashes here because this
+                                             # form was surely created in the dashboard and
+                                             # doesn't have a hash.
                 DB.session.add(form)
                 DB.session.commit()
 
                 # it is an error when
-                #   form is sitewide, but submission came from a host rooted somewhere else, or
                 #   form is not sitewide, and submission came from a different host
-            elif (not form.sitewide and form.host != host) or (
-                   form.sitewide and (
-                     not host.startswith(form.host) and \
-                     not remove_www(host).startswith(form.host)
-                   )
-                 ):
+                #   form is sitewide, but submission came from a host rooted somewhere else, or
+            elif (not form.sitewide and
+                  # ending slashes can be safely ignored here:
+                  form.host.rstrip('/') != host.rstrip('/')) or \
+                 (form.sitewide and (
+                   not host.startswith(form.host) and
+                   not remove_www(host).startswith(form.host)
+                 )):
                 g.log.info('Submission rejected. From a different host than confirmed.')
                 if request_wants_json():
                     return jsonerror(403, {
