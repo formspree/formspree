@@ -98,6 +98,8 @@ def send(email_or_string):
                 form.host = host.rstrip('/') # we can remove ending slashes here because this
                                              # form was surely created in the dashboard and
                                              # doesn't have a hash.
+                form.host = remove_www(forms.host) # the same principle applies to
+                                                   # 'www.' prefixes.
                 DB.session.add(form)
                 DB.session.commit()
 
@@ -107,10 +109,10 @@ def send(email_or_string):
             elif (not form.sitewide and
                   # ending slashes can be safely ignored here:
                   form.host.rstrip('/') != host.rstrip('/')) or \
-                 (form.sitewide and (
-                   not host.startswith(form.host) and
-                   not remove_www(host).startswith(form.host)
-                 )):
+                 (form.sitewide and \
+                  # removing www from both sides makes this a neutral operation:
+                  not remove_www(host).startswith(remove_www(form.host))
+                 ):
                 g.log.info('Submission rejected. From a different host than confirmed.')
                 if request_wants_json():
                     return jsonerror(403, {
