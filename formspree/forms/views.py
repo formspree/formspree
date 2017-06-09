@@ -102,13 +102,14 @@ def send(email_or_string):
                 DB.session.commit()
 
                 # it is an error when
-                #   form is sitewide, but submission came from a host rooted somewhere else, or
                 #   form is not sitewide, and submission came from a different host
-            elif (not form.sitewide and form.host != host) or (
-                   form.sitewide and (
-                     not host.startswith(form.host) and \
-                     not remove_www(host).startswith(form.host)
-                   )
+                #   form is sitewide, but submission came from a host rooted somewhere else, or
+            elif (not form.sitewide and
+                  # ending slashes can be safely ignored here:
+                  form.host.rstrip('/') != host.rstrip('/')) or \
+                 (form.sitewide and \
+                  # removing www from both sides makes this a neutral operation:
+                  not remove_www(host).startswith(remove_www(form.host))
                  ):
                 g.log.info('Submission rejected. From a different host than confirmed.')
                 if request_wants_json():
