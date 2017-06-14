@@ -11,7 +11,7 @@ from flask.ext.cors import cross_origin
 from urlparse import urljoin
 
 from formspree import settings
-from formspree.app import DB, redis_store
+from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
 from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
@@ -26,7 +26,8 @@ def thanks():
     return render_template('forms/thanks.html')
 
 
-@cross_origin(allow_headers=['Accept', 'Content-Type', 'X-Requested-With'])
+@cross_origin(allow_headers=['Accept', 'Content-Type',
+                             'X-Requested-With', 'Authorization'])
 @ordered_storage
 def send(email_or_string):
     '''
