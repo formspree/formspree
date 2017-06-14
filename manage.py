@@ -9,7 +9,7 @@ import datetime
 from flask.ext.script import Manager, prompt_bool
 from flask.ext.migrate import Migrate, MigrateCommand
 
-from formspree import create_app, app
+from formspree import create_app, app, settings
 from formspree.app import redis_store
 from formspree.forms.helpers import REDIS_COUNTER_KEY
 from formspree.forms.models import Form
@@ -25,7 +25,7 @@ manager.add_command('db', MigrateCommand)
 @manager.command
 def run_debug(port=os.getenv('PORT', 5000)):
     '''runs the app with debug flag set to true'''
-    forms_app.run(host='0.0.0.0', debug=True, port=int(port))
+    forms_app.run(host='0.0.0.0', debug=settings.DEBUG, port=int(port))
 
 
 @manager.option('-H', '--host', dest='host', default=None, help='referer hostname')

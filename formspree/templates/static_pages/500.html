@@ -1,12 +1,14 @@
 {% extends 'layouts/base.html' %}
 
 {% block base %}
-  <div class="container narrow card">
+  <div class="container narrow card" style="max-width: 1200px">
     <div class="row">
       <div class="full-col">
-        <h1>Something went wrong</h1>
-
-        <p>Sorry, we're investigating.</p>
+        <h1>Something went very wrong</h1>
+        <p>You shouldn't be seeing this page. This is probably happening because there's a bug somewhere on {{config.SERVICE_NAME}}.</p>
+        <p>If you want to help, please let us know you've hit this.</p>
+        <h3>Stack trace:</h3>
+        <pre class="code" style="text-align: left">{{exception}}</pre>
       </div>
     </div>
   </div>
