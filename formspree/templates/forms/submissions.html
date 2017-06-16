@@ -37,7 +37,7 @@
           <tr id="submission-{{ s.id }}">
             <td id="p-{{ s.id }}" data-label="Submitted at">{{ s.submitted_at.strftime('%A, %B %d, %Y at %X') }} UTC</td>
             {% for f in fields %}
-              {% set value = s.data[f] %}
+              {% set value = s.data[f] or '' %}
               <td data-label="{{ f }}">
               {% if 320 < (value | length) %}
                 <pre>{{ value[:270] }}&hellip; <a href=#submission-{{ s.id }}>(see more)</a></pre>
