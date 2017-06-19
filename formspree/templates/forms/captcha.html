@@ -47,9 +47,10 @@
       }
 
       grecaptcha.render('recaptcha', {
-        'sitekey' : {{ config.RECAPTCHA_KEY|tojson|safe }},
-        'callback' : success,
-        'size': window.innerWidth < 400 ? 'compact' : 'normal'
+        'sitekey': {{ config.RECAPTCHA_KEY|tojson|safe }},
+        'callback': success,
+        'size': window.innerWidth < 400 ? 'compact' : 'normal',
+        'hl': {{ lang|tojson|safe }} || undefined
       });
     };
   </script>
