@@ -185,7 +185,8 @@ def send(email_or_string):
             return render_template('forms/captcha.html',
                                            data=data_copy,
                                            sorted_keys=sorted_keys,
-                                           action=action)
+                                           action=action,
+                                           lang=None)
 
         status = form.send(received_data, sorted_keys, referrer)
     else:
