@@ -9,7 +9,7 @@ Just send your form to our URL and we'll forward it to your email. No PHP, Javas
 Example:
 
 ```html
-<form action="https://formspree.io/you@email.com">
+<form action="https://formspree.io/you@email.com" method="POST">
     <input type="text" name="name">
     <input type="email" name="_replyto">
     <input type="submit" value="Send">
@@ -55,6 +55,18 @@ This value is used for the email's CC Field. This lets you send a copy of each s
 ### _gotcha
 
 Add this "honeypot" field to avoid spam by fooling scrapers. If a value is provided, the submission will be silently ignored. The input should be hidden with CSS.
+
+### _format
+
+Adding this to your form will allow for you to receive plain text versions of emails for form submissions.
+
+```
+<input type="hidden" name="_format" value="plain" />
+```
+
+### _language
+
+If you want to display the reCAPTCHA page in a language other than English you can.
 
 ### Using AJAX
 
