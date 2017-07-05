@@ -59,6 +59,15 @@ def send(email_or_string):
         host, referrer = get_temp_hostname(received_data['_host_nonce'])
     except KeyError:
         host, referrer = referrer_to_path(request.referrer), request.referrer
+    except ValueError as err:
+        g.log.error('Invalid hostname stored on Redis.', err=err)
+        return render_template(
+            'error.html',
+            title='Unable to submit form',
+            text='<p>We had a problem identifying to whom we should have submitted this form. Please try submitting again. If it fails once more, please let us know at {email}</p>'.format(
+                email=settings.CONTACT_EMAIL,
+            )
+        ), 500
 
     if not host or host == 'www.google.com':
         if request_wants_json():

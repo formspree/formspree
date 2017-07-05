@@ -116,6 +116,7 @@ def verify_captcha(form_data, request):
     }, timeout=2)
     return r.ok and r.json().get('success')
 
+
 def valid_domain_request(request):
     # check that this request came from user dashboard to prevent XSS and CSRF
     referrer = referrer_to_baseurl(request.referrer)
@@ -123,11 +124,13 @@ def valid_domain_request(request):
 
     return referrer == service
 
+
 def assign_ajax(form, sent_using_ajax):
     if form.uses_ajax is None:
         form.uses_ajax = sent_using_ajax
         DB.session.add(form)
         DB.session.commit()
+
 
 def temp_store_hostname(hostname, referrer):
     nonce = uuid.uuid4()
@@ -140,9 +143,14 @@ def temp_store_hostname(hostname, referrer):
 def get_temp_hostname(nonce):
     key = REDIS_HOSTNAME_KEY(nonce=nonce)
     value = redis_store.get(key)
-    if value == None: raise KeyError()
+    if value is None:
+        raise KeyError("no temp_hostname stored.")
     redis_store.delete(key)
-    return value.split(',')
+    values = value.split(',')
+    if len(values) != 2:
+        raise ValueError("temp_hostname value is invalid: " + value)
+    else:
+        return values
 
 
 def store_first_submission(nonce, data):
