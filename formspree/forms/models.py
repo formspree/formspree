@@ -252,9 +252,9 @@ class Form(DB.Model):
         '''
 
         g.log = g.log.new(form=self.id, to=self.email, host=self.host)
-        g.log.debug('Sending confirmation.')
+        g.log.debug('Confirmation.')
         if self.confirm_sent:
-            g.log.debug('Already sent in the past.')
+            g.log.debug('Previously sent.')
             return {'code': Form.STATUS_CONFIRMATION_DUPLICATED}
 
         # the nonce for email confirmation will be the hash when it exists

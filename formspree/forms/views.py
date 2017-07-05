@@ -75,7 +75,7 @@ def send(email_or_string):
 
     g.log = g.log.bind(host=host, wants='json' if request_wants_json() else 'html')
 
-    g.log.info('Received submission.')
+    g.log.info('Submitted.')
     if not IS_VALID_EMAIL(email_or_string):
         # in this case it can be a hashid identifying a
         # form generated from the dashboard

@@ -56,6 +56,8 @@ def configure_logger(app):
             'error': 31
         }.get(method, 37)
 
+        msg = event.pop('event')
+
         rest = []
         for k, v in event.items():
             if type(v) is unicode:
@@ -72,7 +74,7 @@ def configure_logger(app):
                 clr=levelcolor,
                 met=method.upper(),
                 rid=request.headers.get('X-Request-Id', '~'),
-                msg=event.pop('event'),
+                msg=msg,
                 rest=rest
             )
 

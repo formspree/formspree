@@ -145,13 +145,14 @@ def send_email(to=None, subject=None, text=None, html=None,
         data=data
     )
 
-    g.log.info('Queued email.', to=to)
     errmsg = ""
     if result.status_code / 100 != 2:
         try:
             errmsg = '; \n'.join(result.json().get("errors"))
         except ValueError:
             errmsg = result.text
-        g.log.warning('Email could not be sent.', err=errmsg)
+        g.log.warning('Could not send email.', err=errmsg)
+    else:
+        g.log.info('Sent email.', to=to)
 
     return result.status_code / 100 == 2, errmsg, result.status_code
