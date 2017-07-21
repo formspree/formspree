@@ -141,7 +141,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         self.assertEqual(resp['confirmed'], False)
         self.assertEqual(httpretty.has_request(), True)
         self.assertIn('Confirm+email', httpretty.last_request().body)
-        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body)
+        self.assertIn('testsite.com%2Fcontact', httpretty.last_request().body)
 
         # manually verify an email
         email = Email()
@@ -158,7 +158,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         )
         resp = json.loads(r.data)
         self.assertEqual(resp['confirmed'], True)
-        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body) # same as the last, means no new request was made
+        self.assertIn('testsite.com%2Fcontact', httpretty.last_request().body) # same as the last, means no new request was made
 
         # should have three created forms in the end
         self.assertEqual(Form.query.count(), 3)
@@ -214,22 +214,24 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
 
         r = self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://www.mysite.com/hipopotamo', 'content-type': 'application/json'},
-            data=json.dumps({'name': 'alice'})
+            headers={'Referer': 'http://www.mysite.com/hipopotamo', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'alice', '_format': 'plain'})
         )
         self.assertIn('alice', httpretty.last_request().body)
 
+        httpretty.reset()
         self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://mysite.com/baleia/urso?w=2', 'content-type': 'application/json'},
-            data=json.dumps({'name': 'maria'})
-        )
-        self.assertIn('maria', httpretty.last_request().body)
-
-        self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://mysite.com/', 'content-type': 'application/json'},
-            data=json.dumps({'name': 'laura'})
+            headers={'Referer': 'https://mysite.com/', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'laura', '_format': 'plain'})
         )
         self.assertIn('laura', httpretty.last_request().body)
+
+        httpretty.reset()
+        self.client.post('/' + form.hashid,
+            headers={'Referer': 'http://mysite.com/baleia/urso.html?w=2', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'maria', '_format': 'plain'})
+        )
+        self.assertIn('maria', httpretty.last_request().body)
 
         # another form, now with a www prefix that will be stripped
         r = self.client.post('/forms',

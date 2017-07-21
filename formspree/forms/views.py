@@ -126,7 +126,7 @@ def send(email_or_string):
             #   form is not sitewide, and submission came from a different host
             #   form is sitewide, but submission came from a host rooted somewhere else, or
             if (not form.sitewide and form.host != host) or \
-                 (form.sitewide and host.startwith(form.host)):
+                    (form.sitewide and host.startswith(form.host)):
                 g.log.info('Submission rejected. From a different host than confirmed.')
                 if request_wants_json():
                     return jsonerror(403, {

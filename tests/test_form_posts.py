@@ -69,7 +69,6 @@ class FormPostsTestCase(FormspreeTestCase):
 
         # different strange submissions
         httpretty.reset()
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         headers['Referer'] += '.html'
         r = self.client.post('/bob@testwebsite.com',
             headers=headers,
@@ -80,7 +79,6 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(1, Form.query.count())
 
         httpretty.reset()
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         headers['Referer'] = http_headers['Referer'] + '/'
         r = self.client.post('/bob@testwebsite.com',
             headers=headers,
@@ -91,7 +89,6 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(1, Form.query.count())
 
         httpretty.reset()
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         headers['Referer'] = 'www.' + headers['Referer']
         r = self.client.post('/bob@testwebsite.com',
             headers=headers,
@@ -102,7 +99,6 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(1, Form.query.count())
 
         httpretty.reset()
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         headers['Referer'] = 'www.' + http_headers['Referer'] + '/'
         r = self.client.post('/bob@testwebsite.com',
             headers=headers,
