@@ -13,7 +13,7 @@ from werkzeug.datastructures import ImmutableMultiDict, \
 from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
                     http_form_to_dict, referrer_to_path, \
                     store_first_submission, fetch_first_submission, \
-                    remove_www, remove_dothtml
+                    host_cleanup
 
 
 class Form(DB.Model):
@@ -111,12 +111,10 @@ class Form(DB.Model):
 
     @classmethod
     def get_with_email_and_host(cls, email, host):
-        return cls.query.filter_by(hash=HASH(email, host)).first() or \
-            cls.query.filter_by(hash=HASH(email, remove_www(host))).first() or \
-            cls.query.filter_by(hash=HASH(email, remove_dothtml(host))).first() or \
-            cls.query.filter_by(hash=HASH(email, host.rstrip('/'))).first() or \
-            cls.query.filter_by(hash=HASH(email, remove_www(host.rstrip('/')))).first() or \
-            cls.query.filter_by(hash=HASH(email, remove_www(remove_dothtml(host)))).first()
+        return cls.query.filter(
+            (cls.hash == HASH(email, host)) |
+            (cls.hash == HASH(email, host_cleanup(host)))
+        ).first()
 
     def send(self, data, keys, referrer):
         '''

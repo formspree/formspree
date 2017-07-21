@@ -60,7 +60,7 @@ class FormPostsTestCase(FormspreeTestCase):
         )
         self.assertEqual(1, Form.query.count())
 
-        # activate
+        # confirm form
         f = Form.query.first()
         f.confirm_sent = True
         f.confirmed = True
@@ -97,7 +97,6 @@ class FormPostsTestCase(FormspreeTestCase):
             headers=headers,
             data={'name': 'bob'}
         )
-
         self.assertEqual(True, httpretty.has_request())
         self.assertEqual(200, r.status_code)
         self.assertEqual(1, Form.query.count())
