@@ -80,6 +80,19 @@ def remove_www(host):
     return host
 
 
+def remove_dothtml(host):
+    if host.endswith('.html'):
+        return host[:-5]
+    if host.endswith('.htm'):
+        return host[:-4]
+    return host
+
+
+def host_cleanup(host):
+    # this will fail if the url is example.com/mypage/.html, but one one ever used one like that.
+    return remove_www(remove_dothtml(host).rstrip('/'))
+
+
 def sitewide_file_check(url, email):
     if not url.startswith('http://') and not url.startswith('https://'):
         url = 'http://' + url
@@ -97,7 +110,7 @@ def sitewide_file_check(url, email):
     for line in res.text.splitlines():
         line = line.strip(u'\xef\xbb\xbf ')
         if line == email:
-            g.log.debug('Email found in sitewide file.')
+            g.log.debug('email found in sitewide file.')
             return True
 
     g.log.warn('Email not found in sitewide file.', contents=res.text[:100])

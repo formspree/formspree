@@ -49,6 +49,73 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertNotIn('plain', httpretty.last_request().body)
 
     @httpretty.activate
+    def test_unequal_but_equivalent_hosts(self):
+        headers = http_headers.copy()
+
+        # first submission
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+        self.client.post('/bob@testwebsite.com',
+            headers=headers,
+            data={'name': 'bob'}
+        )
+        self.assertEqual(1, Form.query.count())
+
+        # activate
+        f = Form.query.first()
+        f.confirm_sent = True
+        f.confirmed = True
+        DB.session.add(f)
+        DB.session.commit()
+
+        # different strange submissions
+        httpretty.reset()
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+        headers['Referer'] += '.html'
+        r = self.client.post('/bob@testwebsite.com',
+            headers=headers,
+            data={'name': 'bob'}
+        )
+        self.assertEqual(True, httpretty.has_request())
+        self.assertEqual(200, r.status_code)
+        self.assertEqual(1, Form.query.count())
+
+        httpretty.reset()
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+        headers['Referer'] = http_headers['Referer'] + '/'
+        r = self.client.post('/bob@testwebsite.com',
+            headers=headers,
+            data={'name': 'bob'}
+        )
+        self.assertEqual(True, httpretty.has_request())
+        self.assertEqual(200, r.status_code)
+        self.assertEqual(1, Form.query.count())
+
+        httpretty.reset()
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+        headers['Referer'] = 'www.' + headers['Referer']
+        r = self.client.post('/bob@testwebsite.com',
+            headers=headers,
+            data={'name': 'bob'}
+        )
+
+        self.assertEqual(True, httpretty.has_request())
+        self.assertEqual(200, r.status_code)
+        self.assertEqual(1, Form.query.count())
+
+        httpretty.reset()
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+        headers['Referer'] = 'www.' + http_headers['Referer'] + '/'
+        r = self.client.post('/bob@testwebsite.com',
+            headers=headers,
+            data={'name': 'bob'}
+        )
+        self.assertEqual(True, httpretty.has_request())
+        self.assertEqual(200, r.status_code)
+        self.assertEqual(1, Form.query.count())
+
+        self.assertEqual(4, Form.query.first().counter)
+
+    @httpretty.activate
     def test_fail_form_without_header(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         httpretty.reset()
@@ -139,10 +206,10 @@ class FormPostsTestCase(FormspreeTestCase):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         httpretty.reset()
 
-        ajax_headers = http_headers.copy()
-        ajax_headers['X_REQUESTED_WITH'] = 'xmlhttprequest'
-        r = self.client.post('/bob@example.com',
-            headers = ajax_headers,
+        http_headers = http_headers.copy()
+        http_headers['X_REQUESTED_WITH'] = 'xmlhttprequest'
+        r = self.client.post('/bob@testwebsite.com',
+            headers = http_headers,
             data={'name': 'bob'}
         )
         self.assertEqual(False, httpretty.has_request())
@@ -210,7 +277,7 @@ class FormPostsTestCase(FormspreeTestCase):
         # monthly limit is set to 2 during tests
         self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
 
-        # manually verify luke@example.com
+        # manually verify luke@testwebsite.com
         r = self.client.post('/luke@testwebsite.com',
             headers=http_headers,
             data={'name': 'luke'}
