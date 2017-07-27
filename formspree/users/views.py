@@ -146,7 +146,8 @@ def forgot_password():
     if request.method == 'GET':
         return render_template('users/forgot.html')
     elif request.method == 'POST':
-        user = User.query.filter_by(email=request.form['email']).first()
+        email = request.form['email'].lower().strip()
+        user = User.query.filter_by(email=email).first()
         if not user:
             return render_template('error.html', title='Not registered', text="We couldn't find an account associated with this email address.</p><p>Remember that you must use the primary email address you used to register the account, it can't be any other address you have confirmed later.")
 
@@ -164,7 +165,8 @@ def forgot_password():
 
 def reset_password(digest):
     if request.method == 'GET':
-        user = User.from_password_reset(request.args['email'], digest)
+        email = request.args['email'].lower().strip()
+        user = User.from_password_reset(email, digest)
         if user:
             login_user(user, remember=True)
             return render_template('users/reset.html', digest=digest)
