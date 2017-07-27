@@ -1,59 +1,70 @@
 {% extends 'layouts/message.html' %}
 
 {% block head_scripts %}
-  <script type="text/javascript">
-    var appendField = function(form, key, value) {
-      var textarea = document.createElement('textarea');
-      textarea.setAttribute('name', key);
-      textarea.innerHTML = value;
-      textarea.setAttribute('style', 'display:none');
-      form.appendChild(textarea);
-    };
+<script type="text/javascript">
+var appendField = function(form, key, value) {
+  var textarea = document.createElement('textarea')
+  textarea.setAttribute('name', key)
+  textarea.innerHTML = value
+  textarea.setAttribute('style', 'display:none')
+  form.appendChild(textarea)
+}
 
-    var success = function(response) {
-      var form = document.querySelector('#passthrough');
+var success = function(response) {
+  var form = document.querySelector('#passthrough')
 
-      //remove data from session storage
-      sessionStorage.removeItem("data");
+  try {
+    // remove data from sessionStorage
+    sessionStorage.removeItem('data')
+    sessionStorage.removeItem('sorted_keys')
+  } catch (e) {}
 
-      //handles the case where user has a button named 'submit'
-      document.createElement('form').submit.call(form);
-    };
+  // handles the case where user has a button named 'submit'
+  document.createElement('form').submit.call(form)
+}
 
-    var onloadCallback = function() {
-      var form = document.querySelector('#passthrough');
-      var data = {{ data|tojson|safe }};
-      if (sessionStorage.getItem("data")) {
-          if (Object.keys(data).length > 1) { //if data is valid overwrite current storage
-              sessionStorage.setItem("data", JSON.stringify(data));
-          } else { //passed in blank data except host_nonce
-              data = JSON.parse(sessionStorage.getItem("data"));
-          }
+var onloadCallback = function() {
+  var form = document.querySelector('#passthrough')
+  var data = {{ data|tojson|safe }}
+  var keys = {{ sorted_keys|tojson|safe }}
+
+  try {
+    if (sessionStorage.getItem('data')) {
+      if (Object.keys(data).length > 1) { // if data is valid overwrite current storage
+        sessionStorage.setItem('data', JSON.stringify(data))
+        sessionStorage.setItem('sorted_keys', JSON.stringify(keys))
       } else {
-          sessionStorage.setItem("data", JSON.stringify(data));
+        // passed in blank data except host_nonce
+        data = JSON.parse(sessionStorage.getItem('data'))
+        keys = JSON.parse(sessionStorage.getItem('sorted_keys'))
       }
-      var keys = {{ sorted_keys|tojson|safe }};
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        if (data.hasOwnProperty(key)) {
-          appendField(form, key, data[key])
-          delete data[key];
-        }
-      }
-      for (var key in data) {
-        if (data.hasOwnProperty(key)) {
-          appendField(form, key, data[key])
-        }
-      }
+    } else {
+      sessionStorage.setItem('data', JSON.stringify(data))
+      sessionStorage.setItem('sorted_keys', JSON.stringify(keys))
+    }
+  } catch (e) { /* Safari for iOS in incognito mode doesn't provide sessionStorage. */ }
 
-      grecaptcha.render('recaptcha', {
-        'sitekey': {{ config.RECAPTCHA_KEY|tojson|safe }},
-        'callback': success,
-        'size': window.innerWidth < 400 ? 'compact' : 'normal',
-        'hl': {{ lang|tojson|safe }} || undefined
-      });
-    };
-  </script>
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i]
+    if (data.hasOwnProperty(key)) {
+      appendField(form, key, data[key])
+      delete data[key]
+    }
+  }
+  for (var key in data) {
+    if (data.hasOwnProperty(key)) {
+      appendField(form, key, data[key])
+    }
+  }
+
+  grecaptcha.render('recaptcha', {
+    'sitekey': {{ config.RECAPTCHA_KEY|tojson|safe }},
+    'callback': success,
+    'size': window.innerWidth < 400 ? 'compact' : 'normal',
+    'hl': {{ lang|tojson|safe }} || undefined
+  })
+}
+</script>
 {% endblock head_scripts %}
 
 {% block base %}
