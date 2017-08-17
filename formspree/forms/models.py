@@ -165,7 +165,7 @@ class Form(DB.Model):
         DB.session.commit()
 
         # sometimes we'll delete all archived submissions over the limit
-        if random.random() < settings.PERCENT_EXPENSIVE_QUERY:
+        if random.random() < settings.EXPENSIVELY_WIPE_SUBMISSIONS_FREQUENCY:
             records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
             total_records = DB.session.query(func.count(Submission.id)) \
                 .filter_by(form_id=self.id) \

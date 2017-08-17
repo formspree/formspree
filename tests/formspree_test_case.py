@@ -5,7 +5,6 @@ import fakeredis
 
 from flask.ext.testing import TestCase
 import mock
-import formspree
 from formspree import create_app
 from formspree import settings
 from formspree.app import DB, redis_store
@@ -22,7 +21,7 @@ class FormspreeTestCase(TestCase):
 
         settings.MONTHLY_SUBMISSIONS_LIMIT = 2
         settings.ARCHIVED_SUBMISSIONS_LIMIT = 2
-        settings.PERCENT_EXPENSIVE_QUERY = 1
+        settings.EXPENSIVELY_WIPE_SUBMISSIONS_FREQUENCY = 1
         settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
         settings.SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL')
         settings.STRIPE_PUBLISHABLE_KEY = settings.STRIPE_TEST_PUBLISHABLE_KEY
