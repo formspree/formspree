@@ -6,8 +6,10 @@ from formspree import settings
 from formspree.utils import send_email, unix_time_for_12_months_from_now, \
                             next_url, IS_VALID_EMAIL, request_wants_json
 from flask import url_for, render_template, g
-from sqlalchemy.sql.expression import delete
 from sqlalchemy import func
+from sqlalchemy.sql.expression import delete
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.ext.mutable import MutableDict
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
@@ -31,27 +33,32 @@ class Form(DB.Model):
     captcha_disabled = DB.Column(DB.Boolean)
     uses_ajax = DB.Column(DB.Boolean)
 
-    owner = DB.relationship('User') # direct owner, defined by 'owner_id'
-                                    # this property is basically useless. use .controllers
-    submissions = DB.relationship('Submission',
-        backref='form', lazy='dynamic', order_by=lambda: Submission.id.desc())
+    # direct owner, defined by 'owner_id'
+    # this property is basically useless. use .controllers
+    owner = DB.relationship('User')
+
+    submissions = DB.relationship(
+        'Submission',
+        backref='form', lazy='dynamic',
+        order_by=lambda: Submission.id.desc())
 
     '''
     When the form is created by a spontaneous submission, it is added to
     the table with a `host`, an `email` and a `hash` made of these two
     (+ a secret nonce).
 
-    `hash` is UNIQUE because it is used to query these spontaneous forms
-    when the form is going to be confirmed and whenever a new submission arrives.
+    `hash` is UNIQUE because it is used to query these spontaneous forms when
+    the form is going to be confirmed and whenever a new submission arrives.
 
     When a registered user POSTs to /forms, a new form is added to the table
     with an `email` (provided by the user) and an `owner_id`. Later, when this
     form receives its first submission and confirmation, `host` is added, so
     we can ensure that no one will submit to this same form from another host.
 
-    `hash` is never added to these forms, because they could conflict with other
-    forms, created by the spontaneous process, with the same email and host. So
-    for these forms a different confirmation method is used (see below).
+    `hash` is never added to these forms, because they could conflict with
+    other forms, created by the spontaneous process, with the same email and
+    host. So for these forms a different confirmation method is used
+    (see below).
     '''
 
     STATUS_EMAIL_SENT              = 0
@@ -172,11 +179,21 @@ class Form(DB.Model):
                 .scalar()
 
             if total_records > records_to_keep:
-                newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
+                q_last_records = DB.session \
+                    .query(Submission.id) \
+                    .filter_by(form_id=self.id) \
+                    .order_by(Submission.id.desc()) \
+                    .limit(records_to_keep) \
+                    .subquery()
+
+                q_last_record = DB.session.query(q_last_records) \
+                    .order_by('id') \
+                    .limit(1)
+
                 DB.engine.execute(
-                  delete('submissions'). \
-                  where(Submission.form_id == self.id). \
-                  where(~Submission.id.in_(newest))
+                    delete('submissions')
+                    .where(Submission.form_id == self.id)
+                    .where(Submission.id < q_last_record)
                 )
 
         # check if the forms are over the counter and the user is not upgraded
@@ -189,7 +206,6 @@ class Form(DB.Model):
                     if c.upgraded:
                         overlimit = False
                         break
-
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
@@ -343,9 +359,6 @@ class Form(DB.Model):
                 raise Exception("this form doesn't have an id yet, commit it first.")
             self._hashid = HASHIDS_CODEC.encode(self.id)
         return self._hashid
-
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.ext.mutable import MutableDict
 
 class Submission(DB.Model):
     __tablename__ = 'submissions'
