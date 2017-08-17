@@ -7,6 +7,7 @@ from formspree.utils import send_email, unix_time_for_12_months_from_now, \
                             next_url, IS_VALID_EMAIL, request_wants_json
 from flask import url_for, render_template, g
 from sqlalchemy.sql.expression import delete
+from sqlalchemy import func
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
@@ -164,14 +165,19 @@ class Form(DB.Model):
         DB.session.commit()
 
         # sometimes we'll delete all archived submissions over the limit
-        if random.choice([False, False, False, False, True]):
+        if random.random() < settings.PERCENT_EXPENSIVE_QUERY:
             records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
-            newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
-            DB.engine.execute(
-              delete('submissions'). \
-              where(Submission.form_id == self.id). \
-              where(~Submission.id.in_(newest))
-            )
+            total_records = DB.session.query(func.count(Submission.id)) \
+                .filter_by(form_id=self.id) \
+                .scalar()
+
+            if total_records > records_to_keep:
+                newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
+                DB.engine.execute(
+                  delete('submissions'). \
+                  where(Submission.form_id == self.id). \
+                  where(~Submission.id.in_(newest))
+                )
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
