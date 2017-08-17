@@ -1,3 +1,4 @@
+import random
 import datetime
 
 from formspree.app import DB, redis_store
@@ -162,14 +163,15 @@ class Form(DB.Model):
         # commit changes
         DB.session.commit()
 
-        # delete all archived submissions over the limit
-        records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
-        newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
-        DB.engine.execute(
-          delete('submissions'). \
-          where(Submission.form_id == self.id). \
-          where(~Submission.id.in_(newest))
-        )
+        # sometimes we'll delete all archived submissions over the limit
+        if random.choice([False, False, False, False, True]):
+            records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
+            newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
+            DB.engine.execute(
+              delete('submissions'). \
+              where(Submission.form_id == self.id). \
+              where(~Submission.id.in_(newest))
+            )
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
