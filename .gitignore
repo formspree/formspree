@@ -67,3 +67,4 @@ celerybeat-schedule.db
 include
 
 mydata
+*.dump

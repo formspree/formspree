@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta name="viewport" content="width=device-width" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>90% Warning</title>
+	<link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
+</head>
+<body itemscope itemtype="http://schema.org/EmailMessage">
+	<table class="body-wrap">
+		<tr>
+			<td></td>
+			<tr>
+				<td class="header">
+					<img src="{{url_for('static', filename='img/email_headers/form-confirmation@3x.png', _external=True)}}" width="400">
+				</td>
+			</tr>
+			<td class="container" width="600">
+				<div class="content">
+					<table class="main" width="100%" cellpadding="0" cellspacing="0">
+						<tr>
+							<td class="content-wrap">
+								<table width="100%" cellpadding="0" cellspacing="0">
+									<tr>
+										<td class="alert alert-warning">
+											You've hit 90% of the {{config.SERVICE_NAME}} monthly limit
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											Hey there,
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											We want to let you know that you've approached the 90% of the limit of {{ config.SERVICE_NAME }} monthly limit. Please note that you get up to {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per month as a non {{ config.UPGRADED_PLAN_NAME }} customer, before your form will be disabled.
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											We've made it easy to upgrade! Simply register using the link below with this email, and we'll automatically upgrade all your forms. In addition to getting unlimited monthly submissions, you get all the <a href="{{ url_for('index', _external=True) }}#features">{{ config.UPGRADED_PLAN_NAME }} features</a>, including invisible emails, sitewide forms, and a submission archive.
+										</td>
+									</tr>
+									<tr>
+										<td class="content-block">
+											<a href="{{ url_for('register') }}" class="btn-primary">Unlock Gold</a>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+					<div class="footer">
+						<table width="100%">
+							<tr>
+								<td class="aligncenter content-block">You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</td>
+							</tr>
+                            {% include "email/footer.html" %}
+						</table>
+					</div>
+				</div>
+			</td>
+			<td></td>
+		</tr>
+	</table>
+</body>
+</html>
