@@ -182,14 +182,18 @@ class Form(DB.Model):
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
         monthly_counter = self.get_monthly_counter()
-        if monthly_counter > settings.MONTHLY_SUBMISSIONS_LIMIT:
+        if monthly_counter > settings.MONTHLY_SUBMISSIONS_LIMIT and not self.upgraded:
             overlimit = True
-            if self.controllers:
-                for c in self.controllers:
-                    if c.upgraded:
-                        overlimit = False
-                        break
 
+        if monthly_counter == int(settings.MONTHLY_SUBMISSIONS_LIMIT * 0.9) and not self.upgraded:
+            # send email notification
+            send_email(
+                to=self.email,
+                subject="[WARNING] Approaching submission limit",
+                text=render_template('email/90-percent-warning.txt'),
+                html=render_template('email/90-percent-warning.html'),
+                sender=settings.DEFAULT_SENDER
+            )
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
         if not overlimit:
