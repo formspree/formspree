@@ -2,7 +2,7 @@ import stripe
 import datetime
 
 from flask import request, flash, url_for, render_template, redirect, g
-from flask.ext.login import login_user, logout_user, \
+from flask_login import login_user, logout_user, \
                             current_user, login_required
 from sqlalchemy.exc import IntegrityError
 from helpers import check_password, hash_pwd
