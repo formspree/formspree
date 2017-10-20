@@ -424,3 +424,6 @@ def account():
         except stripe.error.StripeError:
             return render_template('error.html', title='Unable to connect', text="We're unable to make a secure connection to verify your account details. Please try again in a little bit. If this problem persists, please contact <strong>%s</strong>" % settings.CONTACT_EMAIL)
     return render_template('users/account.html', emails=emails, cards=cards, sub=sub)
+
+def billing():
+    return 'Hello'

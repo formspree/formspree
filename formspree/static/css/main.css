@@ -770,6 +770,8 @@ a.alert-box.success:hover {
       padding-top: 10px; }
     .dashboard table.emails td:last-child {
       text-align: center; }
+  .dashboard .pad-top {
+    padding-top: 0.9em; }
   .dashboard #card-list {
     border-collapse: collapse; }
   .dashboard #card-list tr {
