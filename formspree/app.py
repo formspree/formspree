@@ -3,9 +3,9 @@ import stripe
 import structlog
 
 from flask import Flask, g, request, redirect
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager, current_user
-from flask.ext.cdn import CDN
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, current_user
+from flask_cdn import CDN
 from flask_redis import Redis
 from flask_limiter import Limiter
 from flask_limiter.util import get_ipaddr
