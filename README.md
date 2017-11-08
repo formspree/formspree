@@ -58,7 +58,27 @@ Add this "honeypot" field to avoid spam by fooling scrapers. If a value is provi
 
 ### Using AJAX
 
-You can use Formspree via AJAX. This even works cross-origin. The trick is to set the Accept header to application/json. If you're using jQuery this can be done like so:
+You can use Formspree via AJAX. This even works cross-origin. The trick is to set the Accept header to application/json. If you're using vanilla JavaScript this can be done like so:
+
+```javascript
+var form = document.getElementsByTagName("form")[0];
+var formData = new FormData(form);
+
+var request = new XMLHttpRequest();
+
+request.open("POST", "https://formspree.io/you@email.com", true);
+request.setRequestHeader("accept", "application/json");
+request.send(formData);
+
+request.onreadystatechange = function() {
+    if (request.readyState === 4 && request.status === 200) {
+        // Success 
+    }
+  }
+}
+```
+
+If you're using jQuery this can be done like so:
 
 ```javascript
 $.ajax({
@@ -66,6 +86,24 @@ $.ajax({
     method: "POST",
     data: {message: "hello!"},
     dataType: "json"
+});
+```
+
+You can also use fetch since it is now [supported](https://caniuse.com/#search=fetch) on most browsers. Fetch will work on Internet Explorer using a [fetch polyfill](https://github.com/github/fetch) and a [Promise polyfill](https://github.com/taylorhakes/promise-polyfill). This can be done like so:
+
+```javascript
+var form = document.getElementsByTagName("form")[0];
+
+fetch("https://formspree.io/you@email.com", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: new FormData(form)
+}).then(function() {
+    // Success
+}).catch(function() {
+    // Error
 });
 ```
 
