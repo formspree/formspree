@@ -24,18 +24,19 @@ class FormPostsTestCase(FormspreeTestCase):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         self.client.post('/alice@example.com',
             headers=ajax_headers,
-            data={'name': 'alice'}
+            data={'name': 'alice', '_subject': 'my-nice-subject'}
         )
         self.assertEqual(1, Form.query.count())
+        f = Form.query.first()
+        f.confirmed = True
 
-    @httpretty.activate
-    def test_second_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        self.client.post('/bob@example.com',
+        self.client.post('/alice@example.com',
             headers=ajax_headers,
-            data={'name': 'bob'}
+            data={'name': 'alice', '_subject': 'my-nice-subject'}
         )
-        self.assertEqual(1, Form.query.count())
+        self.assertIn('my-nice-subject', httpretty.last_request().body)
+        self.assertNotIn('_subject', httpretty.last_request().body)
 
     @httpretty.activate    
     def test_fail_form_without_header(self):
