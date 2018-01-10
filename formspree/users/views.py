@@ -294,7 +294,6 @@ def send_downgrade_email(customer, user):
                html=render_template('email/downgraded.html'),
                sender=settings.DEFAULT_SENDER)
 
-
 def stripe_webhook():
     payload = request.data
     g.log.info('Received webhook from Stripe')
