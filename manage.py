@@ -10,6 +10,8 @@ from formspree.app import redis_store
 from formspree.forms.helpers import REDIS_COUNTER_KEY
 from formspree.forms.models import Form
 
+from celery.bin.celery import main as celery_main
+
 forms_app = create_app()
 
 # add flask-migrate commands
@@ -92,6 +94,11 @@ def test(testname=None):
 
     test_runner = unittest.TextTestRunner()
     test_runner.run(test_suite)
+
+@forms_app.cli.command()
+def celery():
+    celery_args = ['celery', 'worker', '-B', '-s', '/tmp/celery.db', '--concurrency=5']
+    return celery_main(celery_args)
 
 if __name__ == "__main__":
     forms_app.run()
