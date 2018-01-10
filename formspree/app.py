@@ -9,12 +9,14 @@ from flask_cdn import CDN
 from flask_redis import Redis
 from flask_limiter import Limiter
 from flask_limiter.util import get_ipaddr
+from celery import Celery
 import settings
 
 DB = SQLAlchemy()
 redis_store = Redis()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 cdn = CDN()
+celery = Celery(__name__, broker=settings.CELERY_BROKER_URL)
 
 import routes
 from users.models import User
@@ -106,6 +108,8 @@ def create_app():
     app.config['CDN_DOMAIN'] = settings.CDN_URL
     app.config['CDN_HTTPS'] = True
     cdn.init_app(app)
+
+    celery.conf.update(app.config)
 
     if not app.debug and not app.testing:
         configure_ssl_redirect(app)

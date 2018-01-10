@@ -6,7 +6,7 @@ from flask_login import login_user, logout_user, \
                             current_user, login_required
 from sqlalchemy.exc import IntegrityError
 from helpers import check_password, hash_pwd
-from formspree.app import DB
+from formspree.app import DB, celery
 from formspree import settings
 from models import User, Email
 from formspree.utils import send_email
@@ -291,6 +291,15 @@ def downgrade():
     g.log.info('Subscription canceled from dashboard.', account=current_user.email)
     return redirect(url_for('account'))
 
+@celery.task()
+def send_failed_email(customer):
+    g.log.info('User payment failed', account=customer.email)
+    send_email(to=customer.email,
+               subject='[ACTION REQUIRED] Failed Payment for {} {}'.format(settings.SERVICE_NAME,
+                                                                           settings.UPGRADED_PLAN_NAME),
+               text=render_template('email/payment-failed.txt'),
+               html=render_template('email/payment-failed.html'),
+               sender=settings.DEFAULT_SENDER)
 
 def stripe_webhook():
     event = request.get_json()
@@ -314,13 +323,8 @@ def stripe_webhook():
         elif event['type'] == 'invoice.payment_failed': # User payment failed
             customer_id = event['data']['object']['customer']
             customer = stripe.Customer.retrieve(customer_id)
-            g.log.info('User payment failed', account=customer.email)
-            send_email(to=customer.email,
-                       subject='[ACTION REQUIRED] Failed Payment for {} {}'.format(settings.SERVICE_NAME,
-                                                                           settings.UPGRADED_PLAN_NAME),
-                       text=render_template('email/payment-failed.txt'),
-                       html=render_template('email/payment-failed.html'),
-                       sender=settings.DEFAULT_SENDER)
+            send_failed_email.delay(4)
+
     except Exception as e:
         g.log.error('Webhook failed for customer', json=event, error=e)
         return 'Failure, developer please check logs', 500
@@ -376,7 +380,7 @@ def change_default_card(cardid):
         customer.save()
         card = customer.sources.retrieve(cardid)
         flash("Successfully changed default payment source to your {} ending in {}".format(card.brand, card.last4), "success")
-    except Error as e:
+    except Exception as e:
         flash(u"Sorry something went wrong. If this error persists, please contact support", 'error')
         g.log.warning("Failed to change default card", account=current_user.email, card=cardid)
     return redirect(url_for('account'))
