@@ -73,7 +73,7 @@ def configure_logger(app):
             format(
                 clr=levelcolor,
                 met=method.upper(),
-                rid=request.headers.get('X-Request-Id', '~'),
+                rid=request.headers.get('X-Request-Id', '~')[-7:],
                 msg=msg,
                 rest=rest
             )
