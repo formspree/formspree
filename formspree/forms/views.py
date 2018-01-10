@@ -2,6 +2,7 @@ import unicodecsv as csv
 import json
 import requests
 import datetime
+import pyaml
 import io
 
 from flask import request, url_for, render_template, redirect, \
@@ -504,21 +505,27 @@ def form_submissions(hashid, format=None):
         else:
             return redirect(url_for('dashboard'))
 
-    submissions = form.submissions
-
     if not format:
         # normal request.
         if request_wants_json():
             return jsonify({
                 'host': form.host,
                 'email': form.email,
-                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in form.submissions]
             })
         else:
             fields = set()
-            for s in submissions:
+            for s in form.submissions:
                 fields.update(s.data.keys())
             fields -= EXCLUDE_KEYS
+
+            submissions = []
+            for sub in form.submissions:
+                for f in fields:
+                    value = sub.data.get(f, '')
+                    typ = type(value)
+                    sub.data[f] = value if typ is unicode or typ is str else pyaml.dump(value)
+                submissions.append(sub)
 
             return render_template('forms/submissions.html',
                 form=form,
@@ -532,7 +539,7 @@ def form_submissions(hashid, format=None):
                 json.dumps({
                     'host': form.host,
                     'email': form.email,
-                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in form.submissions]
                 }, sort_keys=True, indent=2),
                 mimetype='application/json',
                 headers={
@@ -542,12 +549,12 @@ def form_submissions(hashid, format=None):
             )
         elif format == 'csv':
             out = io.BytesIO()
-            fieldnames = set(field for sub in submissions for field in sub.data.keys())
+            fieldnames = set(field for sub in form.submissions for field in sub.data.keys())
             fieldnames = ['date'] + sorted(fieldnames)
             
             w = csv.DictWriter(out, fieldnames=fieldnames, encoding='utf-8')
             w.writeheader()
-            for sub in submissions:
+            for sub in form.submissions:
                 w.writerow(dict(sub.data, date=sub.submitted_at.isoformat()))
 
             return Response(
