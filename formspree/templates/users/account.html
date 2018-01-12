@@ -52,9 +52,6 @@
             </form>
           {% else %}
             <p>Your subscription will automatically renew on {{ sub.current_period_end }}.</p>
-            <form action="/account/downgrade" method="POST">
-              <button type="submit">Cancel subscription</button>
-            </form>
           {% endif %}
 			<div class="pad-top">
 		  <a class="button" href="{{ url_for('billing-dashboard') }}">Manage Billing</a>

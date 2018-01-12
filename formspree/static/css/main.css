@@ -1429,6 +1429,32 @@ input[type="radio"] {
 form input, form textarea {
   margin-bottom: 0.5em; }
 
+table#invoices {
+  line-height: 3em;
+  overflow-x: auto; }
+  @media screen and (max-width: 736px) {
+    table#invoices {
+      border: 0; }
+      table#invoices thead {
+        display: none; }
+      table#invoices tr {
+        margin-bottom: 10px;
+        display: block;
+        border-bottom: 5px solid #ddd; }
+        table#invoices tr td {
+          display: block;
+          font-size: 13px;
+          border-bottom: 1px dotted #ccc;
+          margin: 10px auto;
+          max-width: 100%; }
+        table#invoices tr td:last-child {
+          border-bottom: 0; }
+        table#invoices tr td:before {
+          content: attr(data-label);
+          display: block;
+          text-transform: uppercase;
+          font-weight: bold; } }
+
 button, a.button {
   font-size: 1em;
   text-transform: uppercase;

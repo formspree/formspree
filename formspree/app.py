@@ -103,6 +103,12 @@ def create_app():
     configure_logger(app)
 
     app.jinja_env.filters['json'] = json.dumps
+
+    def epoch_to_date(s):
+        import datetime
+        return datetime.datetime.fromtimestamp(s).strftime('%B %-d, %Y')
+
+    app.jinja_env.filters['epoch_to_date'] = epoch_to_date
     app.config['CDN_DOMAIN'] = settings.CDN_URL
     app.config['CDN_HTTPS'] = True
     cdn.init_app(app)
