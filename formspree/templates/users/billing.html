@@ -123,7 +123,7 @@
 		<td>{{ invoice.receipt_number }}</td>
 		<td>${{ invoice.total/100 }}</td>
 		<td>{% if invoice.paid %}Paid{% else %}Unpaid{% endif %}</td>
-		<td><a href="{{ url_for('invoice', invoice=invoice.id[3:]) }}" class="button">View Details</a></td>
+		<td><a href="{{ url_for('invoice', invoice_id=invoice.id[3:]) }}" class="button" target="_blank">View Details</a></td>
 		</tr>
 		{% endif %}
 	  {% endfor %}

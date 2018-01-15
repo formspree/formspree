@@ -452,5 +452,19 @@ def billing():
         invoices = stripe.Invoice.list(customer=customer)
         return render_template('users/billing.html', cards=cards, sub=sub, invoices=invoices)
 
-def invoice(invoice):
-    return 'Hello'
+def invoice(invoice_id):
+    invoice = stripe.Invoice.retrieve('in_' + invoice_id)
+    if invoice.charge:
+        charge = stripe.Charge.retrieve(invoice.charge)
+        card_mappings = {
+            'Visa': 'cc-visa',
+            'American Express': 'cc-amex',
+            'MasterCard': 'cc-mastercard',
+            'Discover': 'cc-discover',
+            'JCB': 'cc-jcb',
+            'Diners Club': 'cc-diners-club',
+            'Unknown': 'credit-card'
+        }
+        charge.source.css_name = card_mappings[charge.source.brand]
+        return render_template('users/invoice.html', invoice=invoice, charge=charge)
+    return render_template('users/invoice.html', invoice=invoice)
