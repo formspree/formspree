@@ -35,6 +35,10 @@
     vertical-align: middle;
   }
 
+  strong {
+    color: $dark-blue;
+  }
+
   img {
     display: inline;
     height: 50px;
@@ -82,8 +86,8 @@
   .invoice-unpaid:after {
     content: "UNPAID";
     position: absolute;
-    top: 70px;
-    right: 20%;
+    top: 120px;
+    right: 15%;
     z-index: 1;
     font-family: 'Special Elite', Arial, sans-serif;
     //-webkit-transform: rotate(-45deg); /* Safari */
@@ -95,7 +99,7 @@
     color: #c00;
     //background:#fff;
     border: solid 4px #c00;
-    padding: 15px 5px 0px;
+    padding: 15px 5px 5px;
     border-radius: 5px;
     //zoom:1;
     //filter:alpha(opacity=20);

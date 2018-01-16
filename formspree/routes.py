@@ -23,6 +23,7 @@ def configure_routes(app):
     app.add_url_rule('/card/<cardid>/default', 'change-default-card', view_func=users.views.change_default_card, methods=['POST'])
     app.add_url_rule('/card/<cardid>/delete', 'delete-card', view_func=users.views.delete_card, methods=['POST'])
     app.add_url_rule('/account/billing', 'billing-dashboard', view_func=users.views.billing, methods=['GET'])
+    app.add_url_rule('/account/billing/invoice/update-invoice-address', 'update-invoice-address', view_func=users.views.update_invoice_address, methods=['POST'])
     app.add_url_rule('/account/billing/invoice/<invoice_id>', view_func=users.views.invoice, methods=['GET'])
     app.add_url_rule('/account/add-email', 'add-account-email', view_func=users.views.add_email, methods=['POST'])
     app.add_url_rule('/account/confirm/<digest>', 'confirm-account-email', view_func=users.views.confirm_email, methods=['GET'])

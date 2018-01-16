@@ -376,7 +376,7 @@ def change_default_card(cardid):
         customer.save()
         card = customer.sources.retrieve(cardid)
         flash("Successfully changed default payment source to your {} ending in {}".format(card.brand, card.last4), "success")
-    except Error as e:
+    except Exception as e:
         flash(u"Sorry something went wrong. If this error persists, please contact support", 'error')
         g.log.warning("Failed to change default card", account=current_user.email, card=cardid)
     return redirect(url_for('account'))
@@ -425,6 +425,7 @@ def account():
             return render_template('error.html', title='Unable to connect', text="We're unable to make a secure connection to verify your account details. Please try again in a little bit. If this problem persists, please contact <strong>%s</strong>" % settings.CONTACT_EMAIL)
     return render_template('users/account.html', emails=emails, cards=cards, sub=sub)
 
+@login_required
 def billing():
     if current_user.stripe_id:
         try:
@@ -449,11 +450,32 @@ def billing():
         except stripe.error.StripeError:
             return render_template('error.html', title='Unable to connect', text="We're unable to make a secure connection to verify your account details. Please try again in a little bit. If this problem persists, please contact <strong>%s</strong>" % settings.CONTACT_EMAIL)
 
-        invoices = stripe.Invoice.list(customer=customer)
+        invoices = stripe.Invoice.list(customer=customer, limit=12)
         return render_template('users/billing.html', cards=cards, sub=sub, invoices=invoices)
 
+@login_required
+def update_invoice_address():
+    new_address = request.form.get('invoice-address')
+    if len(new_address) == 0:
+        new_address = None
+    user = User.query.filter_by(email=current_user.email).first()
+    user.invoice_address = new_address
+
+    DB.session.add(user)
+    DB.session.commit()
+    flash('Successfully updated invoicing address', 'success')
+    return redirect(url_for('billing-dashboard'))
+
+
+@login_required
 def invoice(invoice_id):
     invoice = stripe.Invoice.retrieve('in_' + invoice_id)
+    if invoice.customer != current_user.stripe_id:
+        return render_template(
+            'error.html',
+            title='Unauthorized Invoice',
+            text='Only the account owner can open this invoice'
+        ), 403
     if invoice.charge:
         charge = stripe.Charge.retrieve(invoice.charge)
         card_mappings = {

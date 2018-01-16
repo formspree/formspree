@@ -310,7 +310,7 @@ table {
 
 @media print {
   .col-1-1 {
-    width: 100%; }
+    width: 100% !important; }
 
   .col-1-2 {
     width: 50% !important; }
@@ -715,6 +715,8 @@ a.alert-box.success:hover {
   line-height: 1.2em; }
   .invoice .middle > * {
     vertical-align: middle; }
+  .invoice strong {
+    color: #1b3544; }
   .invoice img {
     display: inline;
     height: 50px;
@@ -743,15 +745,15 @@ a.alert-box.success:hover {
   .invoice .invoice-unpaid:after {
     content: "UNPAID";
     position: absolute;
-    top: 70px;
-    right: 20%;
+    top: 120px;
+    right: 15%;
     z-index: 1;
     font-family: 'Special Elite', Arial, sans-serif;
     transform: rotate(-45deg);
     font-size: 40px;
     color: #c00;
     border: solid 4px #c00;
-    padding: 15px 5px 0px;
+    padding: 15px 5px 5px;
     border-radius: 5px;
     opacity: 0.7;
     text-shadow: 0 0 2px #c00;
