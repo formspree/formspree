@@ -1,3 +1,4 @@
+sqlalchemy==1.0.13
 alembic==0.8.10
 click==6.7
 fakeredis==0.8.2
