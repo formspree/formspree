@@ -1,0 +1,115 @@
+{% extends 'static_pages/index.html' %}
+{% block head_scripts %}
+  <link href="https://fonts.googleapis.com/css?family=Special+Elite" rel="stylesheet">
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block base %}
+  <div class="container invoice">
+	<div class="row caps">
+	  <div class="col-1-2 middle">
+		<img src="{{ url_for('static', filename='img/logo.png') }}">
+		<h1>{{ config.SERVICE_NAME }}</h1>
+	  </div>
+	  <div class="col-1-2 right {% if not invoice.paid %}invoice-unpaid{% endif %}"><h1>Invoice</h1></div>
+	</div>
+	<div class="row">
+	  <div class="col-1-3">
+		<h3 class="caps">Sold To</h3>
+		<p>
+		  {% if current_user.invoice_address %}
+			{{ current_user.invoice_address | replace("\n", "<br/>") | safe }}
+		  {% else %}
+			{{ current_user.email }}
+		  {% endif %}
+		</p>
+	  </div>
+	  <div class="col-1-3">
+		<h3 class="caps">Invoice Summary</h3>
+		<p>Invoice Date: {{ invoice.date|epoch_to_date }}<br/>
+		  Invoice Number: {{ invoice.id }}<br/>
+		  Payment Terms: Due Upon Receipt</p>
+	  </div>
+	  <div class="col-1-3">
+		<div class="right">
+		  <h3 class="caps">Billing Overview</h3>
+		  <p>Total: ${{ invoice.total/100 }}<br/>
+			{% if invoice.paid %}
+			  Payments: ${{ invoice.total/100 }}<br/>
+			  <strong>Balance Due: $0.00</strong>
+			{% else %}
+			  Payments: $0.00<br/>
+			  <strong>Balance Due: ${{ invoice.amount_due/100 }}</strong>
+			{% endif %}
+		  </p>
+		</div>
+	  </div>
+	</div>
+	<div id="invoice-table">
+	  <div class="row">
+		<h3 class="caps center">Charge Summary</h3>
+		<table>
+		  <thead>
+		  <td width="20%">Charge Name</td>
+		  <td width="40%">Description</td>
+		  <td width="30%">Service Period</td>
+		  <td width="10%">Period</td>
+		  </thead>
+		  <tbody>
+		  <td>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</td>
+		  <td>{{ config.UPGRADED_PLAN_NAME }} includes unlimited submissions, invisible emails, sitewide forms,
+			preconfirmed forms, submissions archive, and option to disable reCAPTCHA
+		  </td>
+		  <td>{{ invoice.lines.data[0].period.start|epoch_to_ts }}
+			to {{ invoice.lines.data[0].period.end|epoch_to_ts }}</td>
+		  <td>${{ invoice.total/100 }}</td>
+		  </tbody>
+		</table>
+	  </div>
+	  {% if invoice.paid %}
+		<div class="row">
+		  <h3 class="caps center">Transaction Summary</h3>
+		  <table width="100%" class="center">
+			<thead>
+			<td>Type</td>
+			<td>Date</td>
+			<td>Number</td>
+			<td>Description</td>
+			<td>Amount</td>
+			</thead>
+			<tbody>
+			<td>Payment</td>
+			<td>{{ charge.created|epoch_to_date }}</td>
+			<td>{{ charge.id }}</td>
+			<td></td>
+			<td>(${{ charge.amount/100 }})</td>
+			</tbody>
+		  </table>
+		</div>
+		<div class="row">
+		  <h3 class="caps center">Payment Summary</h3>
+		  <table width="100%" class="center">
+			<thead>
+			<td>Type</td>
+			<td>Date</td>
+			<td>Number</td>
+			<td>Method</td>
+			<td>Description</td>
+			<td>Amount</td>
+			</thead>
+			<tbody>
+			<td>Electronic</td>
+			<td>{{ charge.created|epoch_to_date }}</td>
+			<td>{{ charge.id }}</td>
+			<td>{{ charge.source.funding|title }} {{ charge.source.object|title }}</td>
+			<td><i class="fa fa-{{ charge.source.css_name }}" aria-hidden="true"></i> ••••{{ charge.source.last4 }}</td>
+			<td>${{ charge.amount/100 }}</td>
+			</tbody>
+		  </table>
+		</div>
+	  {% endif %}
+	</div>
+  </div>
+
+{% endblock %}
