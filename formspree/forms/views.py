@@ -55,6 +55,8 @@ def send(email_or_string):
         received_data = request.get_json() or {}
         sorted_keys = received_data.keys()
 
+    sorted_keys = [k for k in sorted_keys if k not in EXCLUDE_KEYS]
+
     try:
         # Get stored hostname from redis (from captcha)
         host, referrer = get_temp_hostname(received_data['_host_nonce'])

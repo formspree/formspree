@@ -64,9 +64,7 @@ def http_form_to_dict(data):
     for elem in data.iteritems(multi=True):
         if not elem[0] in ret.keys():
             ret[elem[0]] = []
-
-            if not elem[0] in EXCLUDE_KEYS:
-                ordered_keys.append(elem[0])
+            ordered_keys.append(elem[0])
 
         ret[elem[0]].append(elem[1])
 
