@@ -24,7 +24,7 @@ MarkupSafe==0.23
 mock==2.0.0
 Paste==2.0.3
 pbr==1.10.0
-psycopg2==2.6.2
+psycopg2==2.7
 python-dotenv==0.3.0
 redis==2.10.5
 requests==2.1.0
