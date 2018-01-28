@@ -17,6 +17,7 @@ class User(DB.Model):
     upgraded = DB.Column(DB.Boolean)
     stripe_id = DB.Column(DB.String(50))
     registered_on = DB.Column(DB.DateTime)
+    invoice_address = DB.Column(DB.Text)
 
     emails = DB.relationship('Email', backref='owner', lazy='dynamic')
 

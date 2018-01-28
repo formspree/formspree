@@ -75,7 +75,7 @@ def configure_logger(app):
             format(
                 clr=levelcolor,
                 met=method.upper(),
-                rid=request.headers.get('X-Request-Id', '~'),
+                rid=request.headers.get('X-Request-Id', '~')[-7:],
                 msg=msg,
                 rest=rest
             )
@@ -105,6 +105,17 @@ def create_app():
     configure_logger(app)
 
     app.jinja_env.filters['json'] = json.dumps
+
+    def epoch_to_date(s):
+        import datetime
+        return datetime.datetime.fromtimestamp(s).strftime('%B %-d, %Y')
+
+    def epoch_to_ts(s):
+        import datetime
+        return datetime.datetime.fromtimestamp(s).strftime('%m-%-d-%Y %H:%M')
+
+    app.jinja_env.filters['epoch_to_date'] = epoch_to_date
+    app.jinja_env.filters['epoch_to_ts'] = epoch_to_ts
     app.config['CDN_DOMAIN'] = settings.CDN_URL
     app.config['CDN_HTTPS'] = True
     cdn.init_app(app)

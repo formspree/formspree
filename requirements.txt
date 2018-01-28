@@ -1,3 +1,4 @@
+sqlalchemy==1.0.13
 alembic==0.8.10
 click==6.7
 fakeredis==0.8.2
@@ -24,10 +25,11 @@ MarkupSafe==0.23
 mock==2.0.0
 Paste==2.0.3
 pbr==1.10.0
-psycopg2==2.6.2
+psycopg2==2.7
 python-dotenv==0.3.0
 redis==2.10.5
 requests==2.1.0
 stripe==1.55.0
 structlog==16.1.0
 unicodecsv==0.14.1
+pyaml==17.12.1
