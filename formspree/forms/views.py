@@ -526,7 +526,8 @@ def form_submissions(hashid, format=None):
                 for f in fields:
                     value = sub.data.get(f, '')
                     typ = type(value)
-                    sub.data[f] = value if typ is unicode or typ is str else pyaml.dump(value)
+                    sub.data[f] = value if typ is unicode or typ is str \
+                                  else pyaml.dump(value, safe=True)
                 submissions.append(sub)
 
             return render_template('forms/submissions.html',
