@@ -70,6 +70,11 @@ def get_url(endpoint, secure=False, **values):
     return path
 
 
+def url_domain(url):
+    parsed = urlparse.urlparse(url)
+    return '.'.join(parsed.netloc.split('.')[-2:])
+
+
 def unix_time_for_12_months_from_now(now=None):
     now = now or datetime.date.today()
     month = now.month - 1 + 12
