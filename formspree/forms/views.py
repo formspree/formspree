@@ -157,21 +157,21 @@ def send(email_or_string):
 
         # or create it if it doesn't exist
         if not form:
-            if not url_domain(settings.SERVICE_URL) in host:
-                form = Form(email, host)
-            else:
+            if request_wants_json():
+                # Can't create a new ajax form unless from the dashboard
+                return jsonerror(400, {'error': "Only Gold accounts may create AJAX forms."})
+            elif url_domain(settings.SERVICE_URL) in host:
                 # Bad user is trying to submit a form spoofing formspree.io
-                # Error out silently
-                if request_wants_json():
-                    return jsonerror(400, {'error': "Unable to submit form"})
-                else:
-                    return render_template(
-                        'error.html',
-                        title='Unable to submit form',
-                        text='Sorry'), 400
+                g.log.info('User attempting to create new form spoofing SERVICE_URL. Ignoring.')
+                return render_template(
+                    'error.html',
+                    title='Unable to submit form',
+                    text='Sorry'), 400
+            else:
+                # all good, create form
+                form = Form(email, host)
 
-
-        # Check if it has been assigned about using AJAX or not
+        # Check if it has been assigned using AJAX or not
         assign_ajax(form, request_wants_json())
 
         if form.disabled:
