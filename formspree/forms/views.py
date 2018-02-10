@@ -13,7 +13,8 @@ from urlparse import urljoin
 
 from formspree import settings
 from formspree.app import DB
-from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
+from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
+                            url_domain
 from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
@@ -57,6 +58,8 @@ def send(email_or_string):
 
     sorted_keys = [k for k in sorted_keys if k not in EXCLUDE_KEYS]
 
+    # NOTE: host in this function generally refers to the referrer hostname.
+
     try:
         # Get stored hostname from redis (from captcha)
         host, referrer = get_temp_hostname(received_data['_host_nonce'])
@@ -72,7 +75,7 @@ def send(email_or_string):
             )
         ), 500
 
-    if not host or host == 'www.google.com':
+    if not host:
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
         else:
@@ -150,8 +153,23 @@ def send(email_or_string):
         email = email_or_string.lower()
 
         # get the form for this request
-        form = Form.query.filter_by(hash=HASH(email, host)).first() \
-               or Form(email, host) # or create it if it doesn't exists
+        form = Form.query.filter_by(hash=HASH(email, host)).first()
+
+        # or create it if it doesn't exist
+        if not form:
+            if not url_domain(settings.SERVICE_URL) in host:
+                form = Form(email, host)
+            else:
+                # Bad user is trying to submit a form spoofing formspree.io
+                # Error out silently
+                if request_wants_json():
+                    return jsonerror(400, {'error': "Unable to submit form"})
+                else:
+                    return render_template(
+                        'error.html',
+                        title='Unable to submit form',
+                        text='Sorry'), 400
+
 
         # Check if it has been assigned about using AJAX or not
         assign_ajax(form, request_wants_json())

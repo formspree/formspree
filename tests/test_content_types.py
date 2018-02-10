@@ -12,8 +12,8 @@ class ContentTypeTestCase(FormspreeTestCase):
     @httpretty.activate
     def test_various_content_types(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = self.client.post('/bob@example.com',
-            headers = {'Referer': 'http://example.com'},
+        r = self.client.post('/bob@testwebsite.com',
+            headers = {'Referer': 'http://testwebsite.com'},
             data={'name': 'bob'}
         )
         f = Form.query.first()
@@ -63,7 +63,7 @@ class ContentTypeTestCase(FormspreeTestCase):
         settings.MONTHLY_SUBMISSIONS_LIMIT = len(types)
 
         for ct, acc, check in types:
-            headers = {'Referer': 'http://example.com'}
+            headers = {'Referer': 'http://testwebsite.com'}
             if ct:
                 headers['Content-Type'] = ct
             if acc:
@@ -72,7 +72,7 @@ class ContentTypeTestCase(FormspreeTestCase):
             data = {'name': 'bob'}
             data = json.dumps(data) if ct and 'json' in ct else data
 
-            res = self.client.post('/bob@example.com',
+            res = self.client.post('/bob@testwebsite.com',
                 headers=headers,
                 data=data
             )
@@ -82,7 +82,7 @@ class ContentTypeTestCase(FormspreeTestCase):
             # and expect json in all of them
             headers['X-Requested-With'] = 'XMLHttpRequest'
 
-            res = self.client.post('/bob@example.com',
+            res = self.client.post('/bob@testwebsite.com',
                 headers=headers,
                 data=data
             )

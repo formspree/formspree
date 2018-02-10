@@ -1,15 +1,10 @@
 import os
-import dotenv
-
-# Must come first, even before some imports. It reads the .env file and put the content as environment variables.
-dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
-
 import datetime
 
 from flask.ext.script import Manager, prompt_bool
 from flask.ext.migrate import Migrate, MigrateCommand
 
-from formspree import create_app, app
+from formspree import create_app, app, settings
 from formspree.app import redis_store
 from formspree.forms.helpers import REDIS_COUNTER_KEY
 from formspree.forms.models import Form
@@ -86,12 +81,15 @@ def monthly_counters(email=None, host=None, id=None, month=datetime.date.today()
         print '%s submissions for %s' % (nsubmissions, form)
 
 
-@manager.command
-def test():
+@manager.option('-t', '--testname', dest='testname', default=None, help='name of test')
+def test(testname=None):
     import unittest
 
     test_loader = unittest.defaultTestLoader
-    test_suite = test_loader.discover('.')
+    if testname:
+        test_suite = test_loader.loadTestsFromName(testname)
+    else:
+        test_suite = test_loader.discover('.')
 
     test_runner = unittest.TextTestRunner()
     test_runner.run(test_suite)

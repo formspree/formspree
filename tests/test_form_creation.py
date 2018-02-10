@@ -57,7 +57,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
 
         # post to form
         r = self.client.post('/' + form_endpoint,
-            headers={'Referer': 'http://formspree.io'},
+            headers={'Referer': 'http://testsite.com'},
             data={'name': 'bruce'}
         )
         self.assertIn("sent an email confirmation", r.data)
@@ -86,7 +86,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
         for i in range(5):
             r = self.client.post('/' + form_endpoint,
-                headers={'Referer': 'formspree.io'},
+                headers={'Referer': 'testsite.com'},
                 data={'name': 'ana',
                       'submission': '__%s__' % i}
             )
@@ -112,11 +112,11 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
 
         # register user
         r = self.client.post('/register',
-            data={'email': 'user@formspree.io',
+            data={'email': 'user@testsite.com',
                   'password': 'banana'}
         )
         # upgrade user manually
-        user = User.query.filter_by(email='user@formspree.io').first()
+        user = User.query.filter_by(email='user@testsite.com').first()
         user.upgraded = True
         DB.session.add(user)
         DB.session.commit()
@@ -127,14 +127,14 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         # create form without providing an url should not send verification email
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'email@formspree.io'})
+            data=json.dumps({'email': 'email@testsite.com'})
         )
         self.assertEqual(httpretty.has_request(), False)
 
         # create form without a confirmed email should send a verification email
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'email@formspree.io',
+            data=json.dumps({'email': 'email@testsite.com',
                              'url': 'https://www.testsite.com/contact.html'})
         )
         resp = json.loads(r.data)
@@ -145,7 +145,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
 
         # manually verify an email
         email = Email()
-        email.address = 'owned-by@formspree.io'
+        email.address = 'owned-by@testsite.com'
         email.owner_id = user.id
         DB.session.add(email)
         DB.session.commit()
@@ -153,7 +153,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         # create a form with the verified email address
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'owned-by@formspree.io',
+            data=json.dumps({'email': 'owned-by@testsite.com',
                              'url': 'https://www.testsite.com/about.html'})
         )
         resp = json.loads(r.data)
@@ -176,11 +176,11 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
 
         # register user
         r = self.client.post('/register',
-            data={'email': 'user@formspree.io',
+            data={'email': 'user@testsite.com',
                   'password': 'banana'}
         )
         # upgrade user manually
-        user = User.query.filter_by(email='user@formspree.io').first()
+        user = User.query.filter_by(email='user@testsite.com').first()
         user.upgraded = True
         DB.session.add(user)
         DB.session.commit()
