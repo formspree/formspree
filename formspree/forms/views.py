@@ -75,9 +75,7 @@ def send(email_or_string):
             )
         ), 500
 
-    # fail if the host (referrer) is empty, or it's google
-    # (IE form was hosted on google, via AMP or something?)
-    if not host or host == 'www.google.com':
+    if not host:
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
         else:
