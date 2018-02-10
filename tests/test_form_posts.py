@@ -8,7 +8,7 @@ from formspree.users.models import User, Email
 from formspree_test_case import FormspreeTestCase
 
 http_headers = {
-    'Referer': 'example.com'
+    'Referer': 'testwebsite.com'
 }
 
 class FormPostsTestCase(FormspreeTestCase):
@@ -91,7 +91,7 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(302, r.status_code)
         self.assertEqual(0, Form.query.first().counter)
 
-    @httpretty.activate    
+    @httpretty.activate
     def test_fail_with_invalid_reply_to(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
 
@@ -126,6 +126,7 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(400, r.status_code)
         self.assertEqual(0, Form.query.first().counter)
 
+    @httpretty.activate    
     def test_fail_ajax_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         httpretty.reset()
