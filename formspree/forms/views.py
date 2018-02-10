@@ -25,7 +25,7 @@ from jinja2.exceptions import TemplateNotFound
 
 
 def thanks():
-    return render_template('forms/thanks.html')
+    return render_template('forms/thanks.html', next=request.args.get('next'))
 
 
 @cross_origin(allow_headers=['Accept', 'Content-Type',
