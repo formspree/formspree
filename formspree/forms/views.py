@@ -159,7 +159,10 @@ def send(email_or_string):
         if not form:
             if request_wants_json():
                 # Can't create a new ajax form unless from the dashboard
-                return jsonerror(400, {'error': "Only Gold accounts may create AJAX forms."})
+                ajax_error_str = "To prevent spam, only " + \
+                                 settings.UPGRADED_PLAN_NAME + \
+                                 " accounts may create AJAX forms."
+                return jsonerror(400, {'error': ajax_error_str})
             elif url_domain(settings.SERVICE_URL) in host:
                 # Bad user is trying to submit a form spoofing formspree.io
                 g.log.info('User attempting to create new form spoofing SERVICE_URL. Ignoring.')
