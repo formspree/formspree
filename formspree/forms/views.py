@@ -27,7 +27,7 @@ from jinja2.exceptions import TemplateNotFound
 def thanks():
     if request.args.get('next') and not valid_url(request.args.get('next')):
         return render_template('error.html',
-            title='Invalid URL', text='An invalid URL was supplied'), 500
+            title='Invalid URL', text='An invalid URL was supplied'), 400
     return render_template('forms/thanks.html', next=request.args.get('next'))
 
 
