@@ -2,16 +2,19 @@
 
 {% block base %}
   <div class="container narrow card">
-    <div class="container" id="header">
-      <div class="col-1-1 header success">
-        <i class="ion ion-thumbsup"></i>
-      </div>
-    </div>
+	<div class="container" id="header">
+	  <div class="col-1-1 header success">
+		<i class="ion ion-thumbsup"></i>
+	  </div>
+	</div>
 
-    <div class="container">
-      <div class="col-1-1">
-        <h1>Form submitted successfully</h1>
-      </div>
-    </div>
+	<div class="container">
+	  <div class="col-1-1">
+		<h1>Form submitted successfully</h1>
+		{% if next %}
+		  <a href="{{ ''.join(['http://', next]) }}" class="button" style="margin-top: 1em;">Return to original site</a>
+		{% endif %}
+	  </div>
+	</div>
   </div>
 {% endblock base %}

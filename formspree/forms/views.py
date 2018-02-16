@@ -14,7 +14,7 @@ from urlparse import urljoin
 from formspree import settings
 from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
-                            url_domain
+                            url_domain, valid_url
 from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
@@ -25,7 +25,10 @@ from jinja2.exceptions import TemplateNotFound
 
 
 def thanks():
-    return render_template('forms/thanks.html')
+    if request.args.get('next') and not valid_url(request.args.get('next')):
+        return render_template('error.html',
+            title='Invalid URL', text='An invalid URL was supplied'), 400
+    return render_template('forms/thanks.html', next=request.args.get('next'))
 
 
 @cross_origin(allow_headers=['Accept', 'Content-Type',

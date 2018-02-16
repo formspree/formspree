@@ -17,6 +17,14 @@ class FormPostsTestCase(FormspreeTestCase):
         r = self.client.get('/')
         self.assertEqual(200, r.status_code)
 
+    def test_thanks_page(self):
+        r = self.client.get('/thanks')
+        self.assertEqual(200, r.status_code)
+
+        # test XSS
+        r = self.client.get('/thanks?next=javascript:alert(document.domain)')
+        self.assert400(r)
+
     @httpretty.activate
     def test_submit_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
