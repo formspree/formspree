@@ -50,10 +50,12 @@ class FormPostsTestCase(FormspreeTestCase):
 
     @httpretty.activate
     def test_unequal_but_equivalent_hosts(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
         headers = http_headers.copy()
+        headers['Referer'] += '/test'
 
         # first submission
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         self.client.post('/bob@testwebsite.com',
             headers=headers,
             data={'name': 'bob'}
@@ -113,7 +115,6 @@ class FormPostsTestCase(FormspreeTestCase):
     @httpretty.activate
     def test_fail_form_without_header(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        httpretty.reset()
 
         no_referer = http_headers.copy()
         del no_referer['Referer']
@@ -187,7 +188,6 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(0, Form.query.first().counter)
 
         # fail with an invalid 'email'
-        httpretty.reset()
         r = self.client.post('/carlitos@testwebsite.com',
             headers = {'Referer': 'http://carlitos.net/'},
             data={'name': 'Real Stock', 'email': 'The best offers.'}
@@ -199,12 +199,11 @@ class FormPostsTestCase(FormspreeTestCase):
     @httpretty.activate    
     def test_fail_ajax_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        httpretty.reset()
 
-        http_headers = http_headers.copy()
-        http_headers['X_REQUESTED_WITH'] = 'xmlhttprequest'
+        ajax_headers = http_headers.copy()
+        ajax_headers['X_REQUESTED_WITH'] = 'xmlhttprequest'
         r = self.client.post('/bob@testwebsite.com',
-            headers = http_headers,
+            headers = ajax_headers,
             data={'name': 'bob'}
         )
         self.assertEqual(False, httpretty.has_request())
