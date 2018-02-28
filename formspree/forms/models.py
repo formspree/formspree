@@ -12,7 +12,8 @@ from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
                     http_form_to_dict, referrer_to_path, \
-                    store_first_submission, fetch_first_submission
+                    store_first_submission, fetch_first_submission, \
+                    host_cleanup
 
 
 class Form(DB.Model):
@@ -107,6 +108,13 @@ class Form(DB.Model):
             return cls.query.get(id)
         except IndexError:
             return None
+
+    @classmethod
+    def get_with_email_and_host(cls, email, host):
+        return cls.query.filter(
+            (cls.hash == HASH(email, host)) |
+            (cls.hash == HASH(email, host_cleanup(host)))
+        ).first()
 
     def send(self, data, keys, referrer):
         '''

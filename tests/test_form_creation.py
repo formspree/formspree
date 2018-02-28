@@ -121,9 +121,6 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         DB.session.add(user)
         DB.session.commit()
 
-        httpretty.reset()
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-
         # create form without providing an url should not send verification email
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
@@ -141,7 +138,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         self.assertEqual(resp['confirmed'], False)
         self.assertEqual(httpretty.has_request(), True)
         self.assertIn('Confirm+email', httpretty.last_request().body)
-        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body)
+        self.assertIn('testsite.com%2Fcontact', httpretty.last_request().body)
 
         # manually verify an email
         email = Email()
@@ -158,7 +155,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         )
         resp = json.loads(r.data)
         self.assertEqual(resp['confirmed'], True)
-        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body) # same as the last, means no new request was made
+        self.assertIn('testsite.com%2Fcontact', httpretty.last_request().body) # same as the last, means no new request was made
 
         # should have three created forms in the end
         self.assertEqual(Form.query.count(), 3)
@@ -173,6 +170,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
                                'http://www.naive.com/formspree-verify.txt',
                                body=u'myüñìćõð€email@email.com',
                                status=200)
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
 
         # register user
         r = self.client.post('/register',
@@ -211,25 +209,25 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         self.assertEqual(form.host, 'mysite.com')
 
         # submit form
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-
         r = self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://www.mysite.com/hipopotamo', 'content-type': 'application/json'},
-            data=json.dumps({'name': 'alice'})
+            headers={'Referer': 'http://www.mysite.com/hipopotamo', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'alice', '_format': 'plain'})
         )
+        self.assert200(r)
         self.assertIn('alice', httpretty.last_request().body)
 
         self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://mysite.com/baleia/urso?w=2', 'content-type': 'application/json'},
-            data=json.dumps({'name': 'maria'})
+            headers={'Referer': 'https://mysite.com/', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'laura', '_format': 'plain'})
         )
-        self.assertIn('maria', httpretty.last_request().body)
+        self.assert200(r)
+        self.assertIn('laura', httpretty.last_request().body)
 
         self.client.post('/' + form.hashid,
-            headers = {'Referer': 'http://mysite.com/', 'content-type': 'application/json'},
-            data=json.dumps({'name': 'laura'})
+            headers={'Referer': 'http://mysite.com/baleia/urso.html?w=2', 'content-type': 'application/json'},
+            data=json.dumps({'name': 'maria', '_format': 'plain'})
         )
-        self.assertIn('laura', httpretty.last_request().body)
+        self.assertIn('maria', httpretty.last_request().body)
 
         # another form, now with a www prefix that will be stripped
         r = self.client.post('/forms',
@@ -250,8 +248,6 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         self.assertEqual(form.host, 'naive.com')
 
         # submit form
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-
         r = self.client.post('/' + form.hashid,
             headers={'Referer': 'http://naive.com/hipopotamo', 'content-type': 'application/json'},
             data=json.dumps({'name': 'alice'})

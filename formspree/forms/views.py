@@ -16,9 +16,10 @@ from formspree.app import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
                             url_domain, valid_url
 from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
-                    remove_www, referrer_to_baseurl, sitewide_file_check, \
+                    host_cleanup, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
                     HASH, EXCLUDE_KEYS, assign_ajax, valid_domain_request
+
 from models import Form, Submission
 
 from jinja2.exceptions import TemplateNotFound
@@ -112,24 +113,20 @@ def send(email_or_string):
                     return render_template('error.html',
                                            title='Form not active',
                                            text='The owner of this form has disabled this form and it is no longer accepting submissions. Your submissions was not accepted'), 403
-            email = form.email
-
             if not form.host:
                 # add the host to the form
-                form.host = host
+                form.host = host_cleanup(host)
                 DB.session.add(form)
                 DB.session.commit()
+            else:
+                # cleanup the host to facilitate checking in the next step (this will not be saved -- although it could)
+                form.host = host_cleanup(form.host)
 
-                # it is an error when
-                #   form is not sitewide, and submission came from a different host
-                #   form is sitewide, but submission came from a host rooted somewhere else, or
-            elif (not form.sitewide and
-                  # ending slashes can be safely ignored here:
-                  form.host.rstrip('/') != host.rstrip('/')) or \
-                 (form.sitewide and \
-                  # removing www from both sides makes this a neutral operation:
-                  not remove_www(host).startswith(remove_www(form.host))
-                 ):
+            # it is an error when
+            #   form is not sitewide, and submission came from a different host
+            #   form is sitewide, but submission came from a host rooted somewhere else, or
+            if (not form.sitewide and form.host != host) or \
+                    (form.sitewide and host.startswith(form.host)):
                 g.log.info('Submission rejected. From a different host than confirmed.')
                 if request_wants_json():
                     return jsonerror(403, {
@@ -156,7 +153,7 @@ def send(email_or_string):
         email = email_or_string.lower()
 
         # get the form for this request
-        form = Form.query.filter_by(hash=HASH(email, host)).first()
+        form = Form.get_with_email_and_host(email, host)
 
         # or create it if it doesn't exist
         if not form:
@@ -175,7 +172,7 @@ def send(email_or_string):
                     text='Sorry'), 400
             else:
                 # all good, create form
-                form = Form(email, host)
+                form = Form(email, host_cleanup(host))
 
         # Check if it has been assigned using AJAX or not
         assign_ajax(form, request_wants_json())
@@ -250,7 +247,7 @@ def send(email_or_string):
             return jsonify({'success': "confirmation email sent"})
         else:
             return render_template('forms/confirmation_sent.html',
-                email=email,
+                email=form.email,
                 host=host,
                 resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
             )
@@ -309,7 +306,7 @@ def resend_confirmation(email):
         # ~~~
         # if there's no bounce, we proceed to resend the confirmation.
 
-        form = Form.query.filter_by(hash=HASH(email, request.form['host'])).first()
+        form = Form.get_with_email_and_host(email, request.form['host'])
         if not form:
             if request_wants_json():
                 return jsonerror(400, {'error': "This form does not exist."})
@@ -463,12 +460,12 @@ def create_form():
     form = Form(email, owner=current_user)
     if url:
         url = 'http://' + url if not url.startswith('http') else url
-        form.host = referrer_to_path(url)
+        form.host = host_cleanup(referrer_to_path(url))
 
         # sitewide forms, verified with a file at the root of the target domain
         if sitewide:
             if sitewide_file_check(url, email):
-                form.host = remove_www(referrer_to_path(urljoin(url, '/'))[:-1])
+                form.host = host_cleanup(referrer_to_path(urljoin(url, '/'))[:-1])
                 form.sitewide = True
             else:
                 return jsonerror(403, {
