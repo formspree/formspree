@@ -12,7 +12,8 @@ from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
                     http_form_to_dict, referrer_to_path, \
-                    store_first_submission, fetch_first_submission
+                    store_first_submission, fetch_first_submission, \
+                    KEYS_NOT_STORED
 
 
 class Form(DB.Model):
@@ -158,7 +159,7 @@ class Form(DB.Model):
 
         # archive the form contents
         sub = Submission(self.id)
-        sub.data = data
+        sub.data = {key: data[key] for key in data if key not in KEYS_NOT_STORED}
         DB.session.add(sub)
 
         # commit changes
