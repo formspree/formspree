@@ -5,6 +5,21 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>Confirm Form</title>
     <link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
+    <script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "EmailMessage",
+  "potentialAction": {
+    "@type": "ConfirmAction",
+    "name": "Approve Expense",
+    "handler": {
+      "@type": "HttpActionHandler",
+      "url": "{{ nonce_link }}"
+    }
+  },
+  "description": "Confirm form on {{ host }}"
+}
+    </script>
 </head>
 <body itemscope itemtype="http://schema.org/EmailMessage">
     <table class="body-wrap">
