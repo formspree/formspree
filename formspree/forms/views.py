@@ -6,7 +6,8 @@ import pyaml
 import io
 
 from flask import request, url_for, render_template, redirect, \
-                  jsonify, flash, make_response, Response, g
+                  jsonify, flash, make_response, Response, g, \
+                  abort
 from flask.ext.login import current_user, login_required
 from flask.ext.cors import cross_origin
 from urlparse import urljoin
@@ -371,6 +372,18 @@ def unblock_email(email):
 
     elif request.method == 'GET':
         return render_template('forms/unblock_email.html', email=email), 200
+
+
+def unconfirm_form(form_id, digest):
+    '''
+    We send a digest as the List-Unsubscribe header on every submission.
+    Here we get that digest and handle the unconfirmation request.
+    '''
+    form = Form.query.get(form_id)
+    if form.unconfirm_with_digest(digest):
+        return '', 200
+    else:
+        return abort(401)
 
 
 def confirm_email(nonce):

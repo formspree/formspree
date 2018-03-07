@@ -1,4 +1,6 @@
+import hmac
 import random
+import hashlib
 import datetime
 
 from formspree.app import DB, redis_store
@@ -222,7 +224,16 @@ class Form(DB.Model):
             html=html,
             sender=settings.DEFAULT_SENDER,
             reply_to=reply_to,
-            cc=cc
+            cc=cc,
+            headers={
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                'List-Unsubscribe': '<' + url_for(
+                    'unconfirm_form',
+                    form_id=self.id,
+                    digest=self.unconfirm_digest(),
+                    _external=True
+                ) + '>'
+            }
         )
 
         if not result[0]:
@@ -348,6 +359,27 @@ class Form(DB.Model):
                 raise Exception("this form doesn't have an id yet, commit it first.")
             self._hashid = HASHIDS_CODEC.encode(self.id)
         return self._hashid
+
+    def unconfirm_digest(self):
+        return hmac.new(
+            settings.NONCE_SECRET,
+            'id={}'.format(self.id),
+            hashlib.sha256
+        ).hexdigest()
+
+    def unconfirm_with_digest(self, digest):
+        if hmac.new(
+            settings.NONCE_SECRET,
+            'id={}'.format(self.id),
+            hashlib.sha256
+        ).hexdigest() != digest:
+            return False
+
+        self.confirmed = False
+        DB.session.add(self)
+        DB.session.commit()
+        return True
+
 
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.ext.mutable import MutableDict
