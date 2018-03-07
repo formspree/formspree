@@ -11,7 +11,7 @@ from formspree import settings
 IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
 def valid_url(url):
-    parsed = urlparse.urlparse(url)
+    parsed = urlparse.urlparse('http://' + url)
     return len(parsed.scheme) > 0 and len(parsed.netloc) > 0
 
 def request_wants_json():
