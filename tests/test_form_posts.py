@@ -19,11 +19,14 @@ class FormPostsTestCase(FormspreeTestCase):
 
     def test_thanks_page(self):
         r = self.client.get('/thanks')
-        self.assertEqual(200, r.status_code)
+        self.assert200(r)
 
         # test XSS
         r = self.client.get('/thanks?next=javascript:alert(document.domain)')
         self.assert400(r)
+
+        r = self.client.get('/thanks?next=https%3A%2F%2Fformspree.io')
+        self.assert200(r)
 
     @httpretty.activate
     def test_submit_form(self):
