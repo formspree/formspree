@@ -3,6 +3,7 @@ import datetime
 import calendar
 import urlparse
 import uuid
+import json
 import re
 from flask import request, url_for, jsonify, g
 
@@ -117,7 +118,7 @@ def next_url(referrer=None, next=None):
 
 
 def send_email(to=None, subject=None, text=None, html=None,
-               sender=None, cc=None, reply_to=None):
+               sender=None, cc=None, reply_to=None, headers=None):
     g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
@@ -140,6 +141,9 @@ def send_email(to=None, subject=None, text=None, html=None,
         })
     except ValueError:
         data.update({'from': sender})
+
+    if headers:
+        data.update({'headers': json.dumps(headers)})
 
     if reply_to:
         data.update({'replyto': reply_to})
