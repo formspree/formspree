@@ -305,11 +305,25 @@ class Form(DB.Model):
                                    nonce_link=link,
                                    keys=keys)
 
-        result = send_email(to=self.email,
-                            subject='Confirm email for %s' % settings.SERVICE_NAME,
-                            text=render_content('txt'),
-                            html=render_content('html'),
-                            sender=settings.DEFAULT_SENDER)
+        DB.session.add(self)
+        DB.session.flush()
+
+        result = send_email(
+            to=self.email,
+            subject='Confirm email for %s' % settings.SERVICE_NAME,
+            text=render_content('txt'),
+            html=render_content('html'),
+            sender=settings.DEFAULT_SENDER,
+            headers={
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                'List-Unsubscribe': '<' + url_for(
+                    'unconfirm_form',
+                    form_id=self.id,
+                    digest=self.unconfirm_digest(),
+                    _external=True
+                ) + '>'
+            }
+        )
         g.log.debug('Confirmation email queued.')
 
         if not result[0]:

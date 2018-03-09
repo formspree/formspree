@@ -10,7 +10,6 @@ from formspree.app import DB
 from formspree_test_case import FormspreeTestCase
 
 class ListUnsubscribeTestCase(FormspreeTestCase):
-
     @httpretty.activate
     def test_list_unsubscribe(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
@@ -20,7 +19,13 @@ class ListUnsubscribeTestCase(FormspreeTestCase):
             data={'name': 'bob'}
         )
         f = Form.query.first()
-        f.confirm_sent = True
+
+        # List-Unsubscribe is present on confirmation email
+        body = urllib2.unquote(httpretty.last_request().body)
+        res = re.search('"List-Unsubscribe":[^"]*"<([^>]+)>"', body)
+        self.assertTrue(res is not None)
+        list_unsubscribe_url = res.group(1)
+
         f.confirmed = True
         DB.session.add(f)
         DB.session.commit()
@@ -31,12 +36,14 @@ class ListUnsubscribeTestCase(FormspreeTestCase):
         )
 
         self.assertEqual(r.status_code, 302)
+
+        # List-Unsubscribe is present on normal submission
         body = urllib2.unquote(httpretty.last_request().body)
-        print(body)
         res = re.search('"List-Unsubscribe":[^"]*"<([^>]+)>"', body)
         self.assertTrue(res is not None)
-
         url = res.group(1)
+        self.assertEqual(url, list_unsubscribe_url)
+
         r = self.client.post(url)
         self.assert200(r)
 
