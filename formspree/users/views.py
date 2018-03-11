@@ -124,12 +124,8 @@ def login():
     email = request.form['email'].lower().strip()
     password = request.form['password']
     user = User.query.filter_by(email=email).first()
-    if user is None:
-        flash(u"We couldn't find an account related with this email. "
-              "Please verify the email entered.", "warning")
-        return redirect(url_for('login'))
-    elif not check_password(user.password, password):
-        flash(u"Invalid Password. Please verify the password entered.",
+    if user is None or not check_password(user.password, password):
+        flash(u"Invalid username or password.",
               'warning')
         return redirect(url_for('login'))
     login_user(user, remember=True)
