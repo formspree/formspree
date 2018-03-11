@@ -3,6 +3,7 @@ import datetime
 import calendar
 import urlparse
 import uuid
+import json
 import re
 from flask import request, url_for, jsonify, g
 
@@ -10,6 +11,9 @@ from formspree import settings
 
 IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
+def valid_url(url):
+    parsed = urlparse.urlparse(url)
+    return len(parsed.scheme) > 0 and len(parsed.netloc) > 0 and not 'javascript:' in url
 
 def request_wants_json():
     if request.headers.get('X_REQUESTED_WITH', '').lower() == 'xmlhttprequest' or \
@@ -70,6 +74,11 @@ def get_url(endpoint, secure=False, **values):
     return path
 
 
+def url_domain(url):
+    parsed = urlparse.urlparse(url)
+    return '.'.join(parsed.netloc.split('.')[-2:])
+
+
 def unix_time_for_12_months_from_now(now=None):
     now = now or datetime.date.today()
     month = now.month - 1 + 12
@@ -109,7 +118,7 @@ def next_url(referrer=None, next=None):
 
 
 def send_email(to=None, subject=None, text=None, html=None,
-               sender=None, cc=None, reply_to=None):
+               sender=None, cc=None, reply_to=None, headers=None):
     g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
@@ -132,6 +141,9 @@ def send_email(to=None, subject=None, text=None, html=None,
         })
     except ValueError:
         data.update({'from': sender})
+
+    if headers:
+        data.update({'headers': json.dumps(headers)})
 
     if reply_to:
         data.update({'replyto': reply_to})

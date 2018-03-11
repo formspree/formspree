@@ -2,28 +2,35 @@ import unicodecsv as csv
 import json
 import requests
 import datetime
+import pyaml
 import io
 
 from flask import request, url_for, render_template, redirect, \
-                  jsonify, flash, make_response, Response, g
+                  jsonify, flash, make_response, Response, g, \
+                  abort
 from flask_login import current_user, login_required
 from flask_cors import cross_origin
 from urlparse import urljoin
 
 from formspree import settings
 from formspree.app import DB
-from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
+from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
+                            url_domain, valid_url
 from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
-                    HASH, EXCLUDE_KEYS, assign_ajax, valid_domain_request
+                    HASH, assign_ajax, valid_domain_request, \
+                    KEYS_NOT_STORED, KEYS_EXCLUDED_FROM_EMAIL
 from models import Form, Submission
 
 from jinja2.exceptions import TemplateNotFound
 
 
 def thanks():
-    return render_template('forms/thanks.html')
+    if request.args.get('next') and not valid_url(request.args.get('next')):
+        return render_template('error.html',
+            title='Invalid URL', text='An invalid URL was supplied'), 400
+    return render_template('forms/thanks.html', next=request.args.get('next'))
 
 
 @cross_origin(allow_headers=['Accept', 'Content-Type',
@@ -54,6 +61,10 @@ def send(email_or_string):
         received_data = request.get_json() or {}
         sorted_keys = received_data.keys()
 
+    sorted_keys = [k for k in sorted_keys if k not in KEYS_EXCLUDED_FROM_EMAIL]
+
+    # NOTE: host in this function generally refers to the referrer hostname.
+
     try:
         # Get stored hostname from redis (from captcha)
         host, referrer = get_temp_hostname(received_data['_host_nonce'])
@@ -69,7 +80,7 @@ def send(email_or_string):
             )
         ), 500
 
-    if not host or host == 'www.google.com':
+    if not host:
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
         else:
@@ -147,10 +158,28 @@ def send(email_or_string):
         email = email_or_string.lower()
 
         # get the form for this request
-        form = Form.query.filter_by(hash=HASH(email, host)).first() \
-               or Form(email, host) # or create it if it doesn't exists
+        form = Form.query.filter_by(hash=HASH(email, host)).first()
 
-        # Check if it has been assigned about using AJAX or not
+        # or create it if it doesn't exist
+        if not form:
+            if request_wants_json():
+                # Can't create a new ajax form unless from the dashboard
+                ajax_error_str = "To prevent spam, only " + \
+                                 settings.UPGRADED_PLAN_NAME + \
+                                 " accounts may create AJAX forms."
+                return jsonerror(400, {'error': ajax_error_str})
+            elif url_domain(settings.SERVICE_URL) in host:
+                # Bad user is trying to submit a form spoofing formspree.io
+                g.log.info('User attempting to create new form spoofing SERVICE_URL. Ignoring.')
+                return render_template(
+                    'error.html',
+                    title='Unable to submit form',
+                    text='Sorry'), 400
+            else:
+                # all good, create form
+                form = Form(email, host)
+
+        # Check if it has been assigned using AJAX or not
         assign_ajax(form, request_wants_json())
 
         if form.disabled:
@@ -345,6 +374,18 @@ def unblock_email(email):
         return render_template('forms/unblock_email.html', email=email), 200
 
 
+def unconfirm_form(form_id, digest):
+    '''
+    We send a digest as the List-Unsubscribe header on every submission.
+    Here we get that digest and handle the unconfirmation request.
+    '''
+    form = Form.query.get(form_id)
+    if form.unconfirm_with_digest(digest):
+        return '', 200
+    else:
+        return abort(401)
+
+
 def confirm_email(nonce):
     '''
     Confirmation emails point to this endpoint
@@ -504,21 +545,28 @@ def form_submissions(hashid, format=None):
         else:
             return redirect(url_for('dashboard'))
 
-    submissions = form.submissions
-
     if not format:
         # normal request.
         if request_wants_json():
             return jsonify({
                 'host': form.host,
                 'email': form.email,
-                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in form.submissions]
             })
         else:
             fields = set()
-            for s in submissions:
+            for s in form.submissions:
                 fields.update(s.data.keys())
-            fields -= EXCLUDE_KEYS
+            fields -= KEYS_NOT_STORED
+
+            submissions = []
+            for sub in form.submissions:
+                for f in fields:
+                    value = sub.data.get(f, '')
+                    typ = type(value)
+                    sub.data[f] = value if typ is unicode or typ is str \
+                                  else pyaml.dump(value, safe=True)
+                submissions.append(sub)
 
             return render_template('forms/submissions.html',
                 form=form,
@@ -532,7 +580,7 @@ def form_submissions(hashid, format=None):
                 json.dumps({
                     'host': form.host,
                     'email': form.email,
-                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in form.submissions]
                 }, sort_keys=True, indent=2),
                 mimetype='application/json',
                 headers={
@@ -542,12 +590,12 @@ def form_submissions(hashid, format=None):
             )
         elif format == 'csv':
             out = io.BytesIO()
-            fieldnames = set(field for sub in submissions for field in sub.data.keys())
+            fieldnames = set(field for sub in form.submissions for field in sub.data.keys())
             fieldnames = ['date'] + sorted(fieldnames)
             
             w = csv.DictWriter(out, fieldnames=fieldnames, encoding='utf-8')
             w.writeheader()
-            for sub in submissions:
+            for sub in form.submissions:
                 w.writerow(dict(sub.data, date=sub.submitted_at.isoformat()))
 
             return Response(

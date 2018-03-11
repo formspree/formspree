@@ -58,11 +58,11 @@ Add this "honeypot" field to avoid spam by fooling scrapers. If a value is provi
 
 ### Using AJAX
 
-You can use Formspree via AJAX. This even works cross-origin. The trick is to set the Accept header to application/json. If you're using jQuery this can be done like so:
+Formspree Gold users can submit forms via AJAX. This even works cross-origin. The trick is to set the Accept header to application/json. If you're using jQuery this can be done like so:
 
 ```javascript
 $.ajax({
-    url: "https://formspree.io/you@email.com",
+    url: "https://formspree.io/FORM_ID",
     method: "POST",
     data: {message: "hello!"},
     dataType: "json"

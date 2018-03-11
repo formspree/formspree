@@ -15,7 +15,10 @@ CAPTCHA_URL = 'https://www.google.com/recaptcha/api/siteverify'
 CAPTCHA_VAL = 'g-recaptcha-response'
 
 HASH = lambda x, y: hashlib.md5(x.encode('utf-8')+y.encode('utf-8')+settings.NONCE_SECRET).hexdigest()
-EXCLUDE_KEYS = {'_gotcha', '_next', '_subject', '_cc', '_format', CAPTCHA_VAL, '_host_nonce', '_language'}
+
+KEYS_NOT_STORED = {'_gotcha', '_format', '_language', CAPTCHA_VAL, '_host_nonce'}
+KEYS_EXCLUDED_FROM_EMAIL = KEYS_NOT_STORED.union({'_subject', '_cc', '_next'})
+
 REDIS_COUNTER_KEY = 'monthly_{form_id}_{month}'.format
 REDIS_HOSTNAME_KEY = 'hostname_{nonce}'.format
 REDIS_FIRSTSUBMISSION_KEY = 'first_{nonce}'.format
@@ -64,9 +67,7 @@ def http_form_to_dict(data):
     for elem in data.iteritems(multi=True):
         if not elem[0] in ret.keys():
             ret[elem[0]] = []
-
-            if not elem[0] in EXCLUDE_KEYS:
-                ordered_keys.append(elem[0])
+            ordered_keys.append(elem[0])
 
         ret[elem[0]].append(elem[1])
 

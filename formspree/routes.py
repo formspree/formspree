@@ -12,6 +12,7 @@ def configure_routes(app):
     app.add_url_rule('/unblock/<email>', 'unblock_email', view_func=forms.views.unblock_email, methods=['GET', 'POST'])
     app.add_url_rule('/resend/<email>', 'resend_confirmation', view_func=forms.views.resend_confirmation, methods=['POST'])
     app.add_url_rule('/confirm/<nonce>', 'confirm_email', view_func=forms.views.confirm_email, methods=['GET'])
+    app.add_url_rule('/unconfirm/<digest>/<form_id>', 'unconfirm_form', view_func=forms.views.unconfirm_form, methods=['POST'])
     app.add_url_rule('/thanks', 'thanks', view_func=forms.views.thanks, methods=['GET'])
 
     # Users
@@ -22,6 +23,9 @@ def configure_routes(app):
     app.add_url_rule('/card/add', 'add-card', view_func=users.views.add_card, methods=['POST'])
     app.add_url_rule('/card/<cardid>/default', 'change-default-card', view_func=users.views.change_default_card, methods=['POST'])
     app.add_url_rule('/card/<cardid>/delete', 'delete-card', view_func=users.views.delete_card, methods=['POST'])
+    app.add_url_rule('/account/billing', 'billing-dashboard', view_func=users.views.billing, methods=['GET'])
+    app.add_url_rule('/account/billing/invoice/update-invoice-address', 'update-invoice-address', view_func=users.views.update_invoice_address, methods=['POST'])
+    app.add_url_rule('/account/billing/invoice/<invoice_id>', view_func=users.views.invoice, methods=['GET'])
     app.add_url_rule('/account/add-email', 'add-account-email', view_func=users.views.add_email, methods=['POST'])
     app.add_url_rule('/account/confirm/<digest>', 'confirm-account-email', view_func=users.views.confirm_email, methods=['GET'])
     app.add_url_rule('/register', 'register', view_func=users.views.register, methods=['GET', 'POST'])

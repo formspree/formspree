@@ -1,0 +1,153 @@
+{% extends 'users/dashboard.html' %}
+
+{% block sectiontitle %}
+  <h1>Billing</h1>
+{% endblock %}
+
+{% block section %}
+
+  <div class="row">
+	<div class="col-1-2">
+	  <div class="card">
+		<h3>Plan</h3>
+
+		{% if current_user.upgraded %}
+		  <p>You are a {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} user.</p>
+		  {% if sub.cancel_at_period_end %}
+			<p>You've cancelled your subscription and it is ending on {{ sub.current_period_end }}.</p>
+			<form action="/account/resubscribe" method="POST">
+			  <button type="submit">Resubscribe</button>
+			</form>
+		  {% else %}
+			<p>Your subscription will automatically renew on {{ sub.current_period_end }}.</p>
+			<form action="/account/downgrade" method="POST">
+			  <button type="submit">Cancel subscription</button>
+			</form>
+		  {% endif %}
+
+		{% else %}
+		  When you upgrade to <strong>{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}</strong> you will get
+		  <ol style="text-align: left">
+			<li>Unlimited submissions</li>
+			<li>Access to submission archives</li>
+			<li>Ability to hide your email from your page's HTML and replace it with a random-like URL</li>
+			<li>Ability to create forms linked to other email accounts</li>
+		  </ol>
+
+		  <h6 class="light">You are using a free account and should upgrade.</h6>
+
+		  <form method="post" action="/account/upgrade">
+			<button id="stripe-upgrade"
+					data-key="{{ config.STRIPE_PUBLISHABLE_KEY }}"
+					data-image="/static/img/logo.png"
+					data-name="{{ config.SERVICE_NAME }}"
+					data-description="{{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} monthly subscription"
+					data-amount="999"
+					data-email="{{ current_user.email }}"
+					data-allowRememberMe=false
+					data-zip-code=true
+					data-locale=true
+					data-panel-label="Subscribe"
+			>Upgrade for 9.99 / month
+			</button>
+		  </form>
+		{% endif %}
+	  </div>
+	</div>
+	<div class="col-1-2">
+	  <h3>Wallet</h3>
+	  {% if cards %}
+		<table id="card-list">
+		  {% for card in cards %}
+			<tr>
+			  <td>
+				<div class="arrow"><i class="fa fa-chevron-right" aria-hidden="true"></i></div>
+			  </td>
+			  <td><i class="fa fa-{{ card.css_name }}" aria-hidden="true"></i></td>
+			  <td>••••{{ card.last4 }}</td>
+			  <td>{{ card.exp_month }}/{{ card.exp_year }}</td>
+			</tr>
+			<tr>
+			  <td colspan="4">
+				<div class="actions" style="float:right;width:50%;padding-left:20%;">
+				  {% if card.default %}
+					<p>
+					  <button style="color:white;background:#359173;border:none;" class="disabled" disabled>Default
+					  </button>
+					</p>
+				  {% else %}
+					<form action="{{ url_for('change-default-card', cardid=card.id) }}" method="POST">
+					  <button type="submit" style="margin-bottom: 18px;">Make Default</button>
+					</form>
+				  {% endif %}
+				  <form action="{{ url_for('delete-card', cardid=card.id) }}" method="POST">
+					<button type="submit">Delete</button>
+				  </form>
+				</div>
+				<div class="row">
+				  <p>Number: ••••{{ card.last4 }}</p>
+				  <p>Type: {{ card.brand }} {{ card.funding }} card</p>
+				  <p>Origin: {{ card.country }} <img
+						  src="{{ url_for('static', filename='img/countries/%s.png' % card.country.lower()) }}"
+						  width="25"></p>
+				  <p>CVC Check: {% if card.cvc_check == "pass" %}Passed
+					<i class="fa fa-check-circle-o" aria-hidden="true"></i>{% elif card.cvc_check == "fail" %}Failed
+					<i class="fa fa-times-circle-o" aria-hidden="true"></i>{% else %}Unknown
+					<i class="fa fa-question-circle" aria-hidden="true"></i>{% endif %}</p>
+				</div>
+			  </td>
+			</tr>
+		  {% endfor %}
+		</table>
+	  {% else %}
+		<p>We couldn't find any active cards in your wallet. Please make sure to add a card
+		  by {{ sub.current_period_end }} or your subscription won't renew.</p>
+	  {% endif %}
+	  {% include "users/card.html" %}
+	</div>
+  </div>
+  <div class="row">
+	<div class="col-1-1">
+	  <h3>Invoices</h3>
+	  <div class="card">
+		<table id="invoices">
+		  <col width="20%">
+		  <col width="35%">
+		  <col width="10%">
+		  <col width="10%">
+		  <col width="25%">
+		  {% for invoice in invoices %}
+			{% if invoice.attempted %}
+			  <tr>
+				<td>{{ invoice.date|epoch_to_date }}</td>
+				<td>{{ invoice.id }}</td>
+				<td>${{ invoice.total/100 }}</td>
+				<td>{% if invoice.paid %}Paid{% else %}Unpaid{% endif %}</td>
+				<td><a href="{{ url_for('invoice', invoice_id=invoice.id[3:]) }}" class="button" target="_blank">View
+				  Details</a></td>
+			  </tr>
+			{% endif %}
+		  {% endfor %}
+		</table>
+		<div class="create-form">
+		  <a href="#edit-billing" class="button">
+			Edit Invoice Address
+		  </a>
+		  <div class="modal narrow" id="edit-billing" aria-hidden="true">
+			<div class="container">
+			  <div class="x">
+				<h4>Edit Invoice Address</h4><a href="#">&times;</a></div>
+			  <form method="POST" action="{{ url_for('update-invoice-address') }}">
+				<textarea rows="4" name="invoice-address">{% if current_user.invoice_address %}{{ current_user.invoice_address }}{% endif %}</textarea>
+				<div class="col-1-1">
+				  <input type="submit" class="submit card" value="Update Invoice Address">
+				</div>
+			  </form>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+{% endblock %}

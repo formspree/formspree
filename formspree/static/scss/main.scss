@@ -219,6 +219,45 @@ form input, form textarea {
     margin-bottom: 0.5em;
 }
 
+table {
+    &#invoices{
+        line-height: 3em;
+            overflow-x: auto;
+      @media screen and (max-width: 736px) {
+        border: 0;
+
+        thead { display: none; }
+
+        tr {
+          margin-bottom: 10px;
+          display: block;
+          border-bottom: 5px solid #ddd;
+
+          td {
+            display: block;
+            font-size: 13px;
+            border-bottom: 1px dotted #ccc;
+            margin: 10px auto;
+            max-width: 100%;
+          }
+
+          td:last-child {
+            border-bottom: 0;
+          }
+
+          td:before {
+            content: attr(data-label);
+            display: block;
+            text-transform: uppercase;
+            font-weight: bold;
+          }
+        }
+      }
+
+    }
+
+}
+
 button, a.button {
     &.no-uppercase {
         text-transform: none !important;
