@@ -9,7 +9,7 @@ Just send your form to our URL and we'll forward it to your email. No PHP, Javas
 Example:
 
 ```html
-<form action="https://formspree.io/you@email.com">
+<form action="https://formspree.io/you@email.com" method="POST">
     <input type="text" name="name">
     <input type="email" name="_replyto">
     <input type="submit" value="Send">
