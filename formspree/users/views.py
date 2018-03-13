@@ -124,12 +124,8 @@ def login():
     email = request.form['email'].lower().strip()
     password = request.form['password']
     user = User.query.filter_by(email=email).first()
-    if user is None:
-        flash(u"We couldn't find an account related with this email. "
-              "Please verify the email entered.", "warning")
-        return redirect(url_for('login'))
-    elif not check_password(user.password, password):
-        flash(u"Invalid Password. Please verify the password entered.",
+    if user is None or not check_password(user.password, password):
+        flash(u"Invalid username or password.",
               'warning')
         return redirect(url_for('login'))
     login_user(user, remember=True)
@@ -149,15 +145,11 @@ def forgot_password():
     elif request.method == 'POST':
         email = request.form['email'].lower().strip()
         user = User.query.filter_by(email=email).first()
-        if not user:
-            return render_template('error.html', title='Not registered', text="We couldn't find an account associated with this email address.</p><p>Remember that you must use the primary email address you used to register the account, it can't be any other address you have confirmed later.")
-
-        if user.send_password_reset():
+        if not user or user.send_password_reset():
             return render_template(
                 'info.html',
                 title='Reset email sent',
-                text=u"We've sent a link to {addr}. Click on the link to be "
-                     "prompted to a new password.".format(addr=user.email)
+                text=u"We've sent you a password reset link. Please check your email."
             )
         else:
             flash(u"Something is wrong, please report this to us.", 'error')

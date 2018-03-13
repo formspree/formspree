@@ -1,4 +1,6 @@
+import hmac
 import random
+import hashlib
 import datetime
 
 from formspree.app import DB, redis_store
@@ -12,7 +14,8 @@ from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
                     http_form_to_dict, referrer_to_path, \
-                    store_first_submission, fetch_first_submission
+                    store_first_submission, fetch_first_submission, \
+                    KEYS_NOT_STORED
 
 
 class Form(DB.Model):
@@ -158,7 +161,7 @@ class Form(DB.Model):
 
         # archive the form contents
         sub = Submission(self.id)
-        sub.data = data
+        sub.data = {key: data[key] for key in data if key not in KEYS_NOT_STORED}
         DB.session.add(sub)
 
         # commit changes
@@ -221,7 +224,16 @@ class Form(DB.Model):
             html=html,
             sender=settings.DEFAULT_SENDER,
             reply_to=reply_to,
-            cc=cc
+            cc=cc,
+            headers={
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                'List-Unsubscribe': '<' + url_for(
+                    'unconfirm_form',
+                    form_id=self.id,
+                    digest=self.unconfirm_digest(),
+                    _external=True
+                ) + '>'
+            }
         )
 
         if not result[0]:
@@ -293,11 +305,25 @@ class Form(DB.Model):
                                    nonce_link=link,
                                    keys=keys)
 
-        result = send_email(to=self.email,
-                            subject='Confirm email for %s' % settings.SERVICE_NAME,
-                            text=render_content('txt'),
-                            html=render_content('html'),
-                            sender=settings.DEFAULT_SENDER)
+        DB.session.add(self)
+        DB.session.flush()
+
+        result = send_email(
+            to=self.email,
+            subject='Confirm email for %s' % settings.SERVICE_NAME,
+            text=render_content('txt'),
+            html=render_content('html'),
+            sender=settings.DEFAULT_SENDER,
+            headers={
+                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                'List-Unsubscribe': '<' + url_for(
+                    'unconfirm_form',
+                    form_id=self.id,
+                    digest=self.unconfirm_digest(),
+                    _external=True
+                ) + '>'
+            }
+        )
         g.log.debug('Confirmation email queued.')
 
         if not result[0]:
@@ -347,6 +373,27 @@ class Form(DB.Model):
                 raise Exception("this form doesn't have an id yet, commit it first.")
             self._hashid = HASHIDS_CODEC.encode(self.id)
         return self._hashid
+
+    def unconfirm_digest(self):
+        return hmac.new(
+            settings.NONCE_SECRET,
+            'id={}'.format(self.id),
+            hashlib.sha256
+        ).hexdigest()
+
+    def unconfirm_with_digest(self, digest):
+        if hmac.new(
+            settings.NONCE_SECRET,
+            'id={}'.format(self.id),
+            hashlib.sha256
+        ).hexdigest() != digest:
+            return False
+
+        self.confirmed = False
+        DB.session.add(self)
+        DB.session.commit()
+        return True
+
 
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.ext.mutable import MutableDict
