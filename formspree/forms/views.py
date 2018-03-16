@@ -236,6 +236,11 @@ def send(email_or_string):
             return jsonify({'success': "email sent", 'next': status['next']})
         else:
             return redirect(status['next'], code=302)
+    elif status['code'] == Form.STATUS_NO_EMAIL:
+        if request_wants_json():
+            return jsonify({'success': "no email sent, access submission archive on {} dashboard".format(settings.SERVICE_NAME), 'next': status['next']})
+        else:
+            return redirect(status['next'], code=302)
     elif status['code'] == Form.STATUS_EMAIL_EMPTY:
         if request_wants_json():
             return jsonerror(400, {'error': "Can't send an empty form"})
