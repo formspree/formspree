@@ -8,8 +8,8 @@ import io
 from flask import request, url_for, render_template, redirect, \
                   jsonify, flash, make_response, Response, g, \
                   abort
-from flask.ext.login import current_user, login_required
-from flask.ext.cors import cross_origin
+from flask_login import current_user, login_required
+from flask_cors import cross_origin
 from urlparse import urljoin
 
 from formspree import settings

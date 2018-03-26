@@ -1,8 +1,8 @@
 import os
 import datetime
 
-from flask.ext.script import Manager, prompt_bool
-from flask.ext.migrate import Migrate, MigrateCommand
+from flask_script import Manager, prompt_bool
+from flask_migrate import Migrate, MigrateCommand
 
 from formspree import create_app, app, settings
 from formspree.app import redis_store

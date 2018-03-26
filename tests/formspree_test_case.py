@@ -3,7 +3,7 @@ import os
 import redis
 import fakeredis
 
-from flask.ext.testing import TestCase
+from flask_testing import TestCase
 import mock
 from formspree import create_app
 from formspree import settings
