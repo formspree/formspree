@@ -310,7 +310,8 @@ class Form(DB.Model):
 
         result = send_email(
             to=self.email,
-            subject='Confirm email for %s' % settings.SERVICE_NAME,
+            subject='Confirm email for {} on {}' \
+                .format(settings.SERVICE_NAME, self.host),
             text=render_content('txt'),
             html=render_content('html'),
             sender=settings.DEFAULT_SENDER,
