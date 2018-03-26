@@ -211,11 +211,13 @@ def send(email_or_string):
             action = urljoin(settings.API_ROOT, email_or_string)
             try:
                 if '_language' in received_data:
-                    return render_template('forms/captcha_lang/{}.html'.format(received_data['_language']),
-                                data=data_copy,
-                                sorted_keys=sorted_keys,
-                                action=action,
-                                lang=received_data['_language'])
+                    return render_template(
+                        'forms/captcha_lang/{}.html'.format(received_data['_language']),
+                        data=data_copy,
+                        sorted_keys=sorted_keys,
+                        action=action,
+                        lang=received_data['_language']
+                    )
             except TemplateNotFound:
                 g.log.error('Requested language not found for reCAPTCHA page, defaulting to English', referrer=request.referrer, lang=received_data['_language'])
                 pass
