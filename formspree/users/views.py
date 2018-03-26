@@ -22,17 +22,17 @@ def register():
         user = User(request.form['email'], request.form['password'])
         DB.session.add(user)
         DB.session.commit()
-        g.log.info('User account created.')
+        g.log.info('User account created.', ip=request.headers.get('X-Forwarded-For'))
     except ValueError:
         DB.session.rollback()
         flash(u"{} is not a valid email address.".format(
             request.form['email']), "error")
-        g.log.info('Account creation failed. Invalid address.')
+        g.log.info('Account creation failed. Invalid address.', ip=request.headers.get('X-Forwarded-For'))
         return render_template('users/register.html')
     except IntegrityError:
         DB.session.rollback()
         flash(u"An account with this email already exists.", "error")
-        g.log.info('Account creation failed. Address is already registered.')
+        g.log.info('Account creation failed. Address is already registered.', ip=request.headers.get('X-Forwarded-For'))
         return render_template('users/register.html')
 
     login_user(user, remember=True)
@@ -129,6 +129,7 @@ def login():
               'warning')
         return redirect(url_for('login'))
     login_user(user, remember=True)
+    g.log.info('Logged user in', user=user.email, ip=request.headers.get('X-Forwarded-For'))
     flash(u'Logged in successfully!', 'success')
     return redirect(request.args.get('next') or url_for('dashboard'))
 
