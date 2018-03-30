@@ -20,7 +20,7 @@ from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
                     HASH, assign_ajax, valid_domain_request, \
-                    KEYS_NOT_STORED, KEYS_EXCLUDED_FROM_EMAIL
+                    KEYS_NOT_STORED, KEYS_EXCLUDED_FROM_EMAIL, check_valid_form_settings_request
 from models import Form, Submission
 
 from jinja2.exceptions import TemplateNotFound
@@ -616,24 +616,53 @@ def form_submissions(hashid, format=None):
 @login_required
 def form_recaptcha_toggle(hashid):
     form = Form.get_with_hashid(hashid)
+    valid_check = check_valid_form_settings_request(form)
+    if valid_check != True:
+        return valid_check
 
-    if not valid_domain_request(request):
-        return jsonify(error='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
+    checked_status = request.json['checked']
+    form.captcha_disabled = not checked_status
+    DB.session.add(form)
+    DB.session.commit()
 
-    if form.owner_id != current_user.id and form not in current_user.forms:
-        return jsonify(error='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
-
-    if not form:
-        return jsonify(error='That form does not exist. Please check the link and try again.'), 400
+    if form.captcha_disabled:
+        return jsonify(disabled=True, message='CAPTCHA successfully disabled')
     else:
-        form.captcha_disabled = not form.captcha_disabled
-        DB.session.add(form)
-        DB.session.commit()
+        return jsonify(disabled=False, message='CAPTCHA successfully enabled')
 
-        if form.captcha_disabled:
-            return jsonify(disabled=True, message='CAPTCHA successfully disabled')
-        else:
-            return jsonify(disabled=False, message='CAPTCHA successfully enabled')
+@login_required
+def form_email_notification_toggle(hashid):
+    form = Form.get_with_hashid(hashid)
+    valid_check = check_valid_form_settings_request(form)
+    if valid_check != True:
+        return valid_check
+
+    checked_status = request.json['checked']
+    form.disable_email = not checked_status
+    DB.session.add(form)
+    DB.session.commit()
+
+    if form.disable_email:
+        return jsonify(disabled=True, message='Email notifications successfully disabled')
+    else:
+        return jsonify(disabled=False, message='Email notifications successfully enabled')
+
+@login_required
+def form_archive_toggle(hashid):
+    form = Form.get_with_hashid(hashid)
+    valid_check = check_valid_form_settings_request(form)
+    if valid_check != True:
+        return valid_check
+
+    checked_status = request.json['checked']
+    form.disable_storage = not checked_status
+    DB.session.add(form)
+    DB.session.commit()
+
+    if form.disable_storage:
+        return jsonify(disabled=True, message='Submission archive successfully disabled')
+    else:
+        return jsonify(disabled=False, message='Submission archive successfully enabled')
 
 @login_required
 def form_toggle(hashid):

@@ -1424,6 +1424,8 @@ button.toast-close-button {
   color: #1b3544;
   font-size: 0.7em;
   margin-right: 2%; }
+  .modal p#status.error {
+    color: #D9534F; }
 .modal h4.large {
   font-size: 1.2em; }
 .modal p.description {
