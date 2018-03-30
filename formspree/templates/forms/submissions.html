@@ -58,9 +58,73 @@
   </div>
 </div>
 <div class="container block">
-  <div class="col-1-1 right">
-    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='csv') }}" target="_blank" class="button export">Export&nbsp;as&nbsp;CSV</a>
-    <a href="{{ url_for('form-submissions', hashid=form.hashid, format='json') }}" target="_blank" class="button export">Export&nbsp;as&nbsp;JSON</a>
+  <div class="col-1-2 left">
+      <a href="#create-form" class="button">
+      <i class="fas fa-cogs"></i> Settings
+    </a>
   </div>
+  <div class="col-1-2 right">
+  <div class="dropdown">
+  	<a id="settings-button" class="button">Export <i class="fas fa-arrow-circle-down" id="settings-gears"></i></a>
+	<div id="settings-dropdown-content" class="dropdown-content">
+	  <a href="{{ url_for('form-submissions', hashid=form.hashid, format='csv') }}" target="_blank">Export&nbsp;as&nbsp;CSV</a>
+	  <a href="{{ url_for('form-submissions', hashid=form.hashid, format='json') }}" target="_blank">Export&nbsp;as&nbsp;JSON</a>
+
+	</div>
+  </div>
+  </div>
+
+      <div class="modal" id="create-form" aria-hidden="true">
+      <div class="container">
+        <div class="x"><h4 class="large">Form Settings</h4><a href="#">&times;</a></div>
+		  <div class="row">
+		  <div class="col-5-6">
+			<div><h4>reCAPTCHA</h4></div>
+
+		  <p class="description">reCAPTCHA provides vital spam protection. You can turn off reCAPTCHA to remove the intermediate screen.</p>
+
+		  </div>
+		  <div class="col-1-6 switch-row" >
+						<div><label class="switch">
+  <input type="checkbox">
+  <span class="slider"></span>
+			</label>
+		  </div>
+		</div>
+		  </div>
+<div class="row">
+  <div class="col-5-6">
+		  <h4>Email Notifications</h4>
+		  <p class="description">You can disable email notifications if you want to download all submissions from the Formspree dashboard.</p>
+  </div>
+  <div class="col-1-6 switch-row">
+			  <label class="switch">
+  <input type="checkbox">
+  <span class="slider"></span>
+			</label>
+  </div>
+</div>
+		<div class="row">
+		  <div class="col-5-6">
+		  <h4>Submission Archive</h4>
+		  <p class="description">You can disable the submission archive if you don't want Formspree to store your submissions.</p>
+		  </div>
+		  <div class="col-1-6 switch-row">
+					  <label class="switch">
+  <input type="checkbox">
+  <span class="slider"></span>
+			</label>
+		  </div>
+		</div>
+
+
+		  <p id="status">Saved <i class="fas fa-check-circle"></i></p>
+      </div>
+    </div>
+	  </div>
+
+
+
+  <script src="{{ url_for('static', filename='js/submissions.js') }}"></script>
 
 {% endblock %}

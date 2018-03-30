@@ -308,6 +308,24 @@ table {
       width: 100% !important;
       margin-bottom: 20px !important; } }
 
+.col-5-6 {
+  float: left;
+  padding: 0 20px;
+  width: 83.33%; }
+  @media (max-width: 760px) {
+    .col-5-6 {
+      width: 100% !important;
+      margin-bottom: 20px !important; } }
+
+.col-1-6 {
+  float: left;
+  padding: 0 20px;
+  width: 16.67%; }
+  @media (max-width: 760px) {
+    .col-1-6 {
+      width: 100% !important;
+      margin-bottom: 20px !important; } }
+
 @media print {
   .col-1-1 {
     width: 100% !important; }
@@ -1373,6 +1391,95 @@ button.toast-close-button {
   #toast-container > div {
     padding: 15px 15px 15px 50px;
     width: 25em; } }
+.dropdown {
+  position: relative;
+  display: inline-block;
+  cursor: pointer; }
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  overflow: auto;
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+  z-index: 1; }
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block; }
+
+.show {
+  display: block; }
+
+#settings-button {
+  display: block; }
+
+.modal .float-left {
+  float: left; }
+.modal p#status {
+  float: right;
+  color: #1b3544;
+  font-size: 0.7em;
+  margin-right: 2%; }
+.modal h4.large {
+  font-size: 1.2em; }
+.modal p.description {
+  line-height: 1.0em;
+  display: inline-block;
+  font-size: 0.8em;
+  margin: 0;
+  margin-top: 0.2em;
+  color: #999999; }
+.modal .col-1-6.switch-row {
+  margin: auto; }
+.modal .switch {
+  position: absolute;
+  display: inline-block;
+  width: 60px;
+  height: 26px;
+  right: 5%; }
+.modal .switch input {
+  display: none; }
+.modal .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s; }
+.modal .slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s; }
+.modal input:checked + .slider {
+  background-color: #2A735B; }
+.modal input:focus + .slider {
+  box-shadow: 0 0 1px #2A735B; }
+.modal input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px); }
+.modal .row {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px; }
+
 html {
   height: 100%; }
 
