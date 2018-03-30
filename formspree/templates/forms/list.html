@@ -33,16 +33,6 @@
     {% endif %}
   </div>
 
-  <script src="{{ url_for('static', filename='js/captcha-toggle.js') }}"></script>
-  <script>
-      $(function () {
-          $('.recaptcha-toggle').on('click', function (event) {
-              event.preventDefault();
-              toggleCaptcha(event.target.id);
-          });
-      });
-  </script>
-
   {% include "forms/create.html" %}
 
   {# modals for each form #}
@@ -76,13 +66,6 @@
           <span class="attrkey">type</span><span class="equal">=</span><span class="attrvalue">"submit"</span><span class="bracket">></span>Send<span class="bracket">&lt;/</span><span class="tagname">button</span><span class="bracket">></span>
           <br>
           <span class="bracket">&lt;/</span><span class="tagname">form</span><span class="bracket">></span>
-        </div>
-        <div class="captcha-container">
-          {% if form.captcha_disabled %}
-            <span class="tooltip hint--top no-uppercase" data-hint="Turn on reCAPTCHA to help protect your form against spam" id="recaptcha-tooltip-{{ form.hashid }}"><a href="#" class="button no-uppercase recaptcha-toggle" id="{{ form.hashid }}">Turn on reCAPTCHA</a></span>
-          {% else %}
-            <span class="tooltip hint--top no-uppercase" data-hint="Turn off reCAPTCHA to remove the intermediate screen, but make your form suceptible to spam" id="recaptcha-tooltip-{{ form.hashid }}"><a href="#" class="button destructive no-uppercase recaptcha-toggle" id="{{ form.hashid }}">Turn off reCAPTCHA</a></span>
-          {% endif %}
         </div>
       </div>
     </div>

@@ -918,8 +918,6 @@ a.alert-box.success:hover {
     -o-transition: -o-transform 0.3s ease-out;
     transition: transform 0.3s ease-out;
     padding: 0.3em 1.3em 1.3em 1.3em; }
-    .dashboard .modal > * .captcha-container {
-      margin-top: 20px; }
     .dashboard .modal > * .x a {
       float: right;
       padding: 10px;
