@@ -33,7 +33,6 @@ $(document).ready(function() {
         $.ajax({
             url: target,
             method: 'POST',
-            data: {'checked': checkedStatus},
             contentType: 'application/json',
             data: JSON.stringify({
                 checked: checkedStatus

@@ -74,11 +74,16 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
 
         # check captcha disabling
         self.assertFalse(Form.query.first().captcha_disabled)
-        r = self.client.get('/forms/' + form_endpoint + '/toggle-recaptcha',
-            headers={'Referer': settings.SERVICE_URL})
+        print json.dumps({'checked': False})
+        self.client.post('/forms/' + form_endpoint + '/toggle-recaptcha',
+                         headers={'Referer': settings.SERVICE_URL},
+                         content_type='application/json',
+                         data=json.dumps({'checked': False}))
         self.assertTrue(Form.query.first().captcha_disabled)
-        r = self.client.get('/forms/' + form_endpoint + '/toggle-recaptcha',
-            headers={'Referer': settings.SERVICE_URL})
+        self.client.post('/forms/' + form_endpoint + '/toggle-recaptcha',
+                         headers={'Referer': settings.SERVICE_URL},
+                         content_type='application/json',
+                         data=json.dumps({'checked': True}))
         self.assertFalse(Form.query.first().captcha_disabled)
 
 
