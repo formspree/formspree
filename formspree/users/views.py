@@ -289,7 +289,7 @@ def stripe_webhook():
     payload = request.data
     g.log.info('Received webhook from Stripe')
 
-    sig_header = request.headers['STRIPE_SIGNATURE']
+    sig_header = request.headers.get('STRIPE_SIGNATURE')
     event = None
 
     try:
