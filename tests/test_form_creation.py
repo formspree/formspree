@@ -72,21 +72,6 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         # Make sure that it marks the first form as AJAX
         self.assertTrue(Form.query.first().uses_ajax)
 
-        # check captcha disabling
-        self.assertFalse(Form.query.first().captcha_disabled)
-        print json.dumps({'checked': False})
-        self.client.post('/forms/' + form_endpoint + '/toggle-recaptcha',
-                         headers={'Referer': settings.SERVICE_URL},
-                         content_type='application/json',
-                         data=json.dumps({'checked': False}))
-        self.assertTrue(Form.query.first().captcha_disabled)
-        self.client.post('/forms/' + form_endpoint + '/toggle-recaptcha',
-                         headers={'Referer': settings.SERVICE_URL},
-                         content_type='application/json',
-                         data=json.dumps({'checked': True}))
-        self.assertFalse(Form.query.first().captcha_disabled)
-
-
         # send 5 forms (monthly limits should not apply to the upgraded user)
         self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
         for i in range(5):
@@ -283,3 +268,101 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
                              'sitewide': 'true'})
         )
         resp = json.loads(r.data)
+
+    @httpretty.activate
+    def test_form_settings(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # register and upgrade user
+        self.client.post('/register',
+                         data={'email': 'texas@springs.com',
+                               'password': 'water'}
+                         )
+        user = User.query.filter_by(email='texas@springs.com').first()
+        user.upgraded = True
+        DB.session.add(user)
+        DB.session.commit()
+
+        # create and confirm form
+        r = self.client.post('/forms',
+                             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
+                             data=json.dumps({'email': 'texas@springs.com'})
+                             )
+        resp = json.loads(r.data)
+        form = Form.query.first()
+        form.confirmed = True
+        DB.session.add(form)
+        DB.session.commit()
+        form_endpoint = resp['hashid']
+
+        # disable email notifications on this form
+        self.client.post('/forms/' + form_endpoint + '/toggle-emails',
+                         headers={'Referer': settings.SERVICE_URL},
+                         content_type='application/json',
+                         data=json.dumps({'checked': False}))
+        self.assertTrue(Form.query.first().disable_email)
+
+        # post to form
+        self.client.post('/' + form_endpoint,
+                         headers={'Referer': 'http://testsite.com'},
+                         data={'name': 'bruce'}
+                         )
+        # make sure it doesn't send the email
+        self.assertNotIn('Someone+just+submitted+your+form', httpretty.last_request().body)
+
+        # disable archive storage on this form
+        self.client.post('/forms/' + form_endpoint + '/toggle-storage',
+                         headers={'Referer': settings.SERVICE_URL},
+                         content_type='application/json',
+                         data=json.dumps({'checked': False}))
+        self.assertTrue(Form.query.first().disable_storage)
+
+        # make sure that we know there's one submission in database from first submission
+        self.assertEqual(1, Submission.query.count())
+
+        # make sure that the submission wasn't stored in the database
+        # post to form
+        self.client.post('/' + form_endpoint,
+                         headers={'Referer': 'http://testsite.com'},
+                         data={'name': 'wayne'}
+                         )
+        self.assertEqual(1, Submission.query.count())
+
+        # enable email notifications on this form
+        self.client.post('/forms/' + form_endpoint + '/toggle-emails',
+                         headers={'Referer': settings.SERVICE_URL},
+                         content_type='application/json',
+                         data=json.dumps({'checked': True}))
+        self.assertFalse(Form.query.first().disable_email)
+
+        # make sure that our form still isn't storing submissions
+        self.assertEqual(1, Submission.query.count())
+
+        # enable archive storage again
+        self.client.post('/forms/' + form_endpoint + '/toggle-storage',
+                         headers={'Referer': settings.SERVICE_URL},
+                         content_type='application/json',
+                         data=json.dumps({'checked': True}))
+        self.assertFalse(Form.query.first().disable_storage)
+
+        # post to form again this time it should store the submission
+        self.client.post('/' + form_endpoint,
+                         headers={'Referer': 'http://testsite.com'},
+                         data={'name': 'luke'}
+                         )
+        self.assertEqual(2, Submission.query.filter_by(form_id=form.id).count())
+
+        # check captcha disabling
+        self.assertFalse(Form.query.first().captcha_disabled)
+
+        self.client.post('/forms/' + form_endpoint + '/toggle-recaptcha',
+                         headers={'Referer': settings.SERVICE_URL},
+                         content_type='application/json',
+                         data=json.dumps({'checked': False}))
+        self.assertTrue(Form.query.first().captcha_disabled)
+
+        self.client.post('/forms/' + form_endpoint + '/toggle-recaptcha',
+                         headers={'Referer': settings.SERVICE_URL},
+                         content_type='application/json',
+                         data=json.dumps({'checked': True}))
+        self.assertFalse(Form.query.first().captcha_disabled)
