@@ -293,8 +293,11 @@ def stripe_webhook():
     event = None
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
+        if settings.TESTING:
+            event = request.get_json()
+        else:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
         if event['type'] == 'customer.subscription.deleted':  # User subscription has expired
             customer_id = event['data']['object']['customer']
             customer = stripe.Customer.retrieve(customer_id)
