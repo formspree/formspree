@@ -286,11 +286,16 @@ def downgrade():
 
 
 def stripe_webhook():
-    event = request.get_json()
-    g.log.info('Webhook from Stripe', type=event['type'])
+    payload = request.data
+    g.log.info('Received webhook from Stripe')
+
+    sig_header = request.headers['STRIPE_SIGNATURE']
+    event = None
 
     try:
-        if event['type'] == 'customer.subscription.deleted': # User subscription has expired
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
+        if event['type'] == 'customer.subscription.deleted':  # User subscription has expired
             customer_id = event['data']['object']['customer']
             customer = stripe.Customer.retrieve(customer_id)
             if len(customer.subscriptions.data) == 0:
@@ -300,24 +305,32 @@ def stripe_webhook():
                 DB.session.commit()
                 g.log.info('Downgraded user from webhook.', account=user.email)
                 send_email(to=customer.email,
-                           subject='Successfully Downgraded from {} {}'.format(settings.SERVICE_NAME, settings.UPGRADED_PLAN_NAME),
+                           subject='Successfully Downgraded from {} {}'.format(settings.SERVICE_NAME,
+                                                                               settings.UPGRADED_PLAN_NAME),
                            text=render_template('email/downgraded.txt'),
                            html=render_template('email/downgraded.html'),
                            sender=settings.DEFAULT_SENDER)
-        elif event['type'] == 'invoice.payment_failed': # User payment failed
+        elif event['type'] == 'invoice.payment_failed':  # User payment failed
             customer_id = event['data']['object']['customer']
             customer = stripe.Customer.retrieve(customer_id)
             g.log.info('User payment failed', account=customer.email)
             send_email(to=customer.email,
                        subject='[ACTION REQUIRED] Failed Payment for {} {}'.format(settings.SERVICE_NAME,
-                                                                           settings.UPGRADED_PLAN_NAME),
+                                                                                   settings.UPGRADED_PLAN_NAME),
                        text=render_template('email/payment-failed.txt'),
                        html=render_template('email/payment-failed.html'),
                        sender=settings.DEFAULT_SENDER)
-    except Exception as e:
+        return 'ok'
+    except ValueError as e:
         g.log.error('Webhook failed for customer', json=event, error=e)
         return 'Failure, developer please check logs', 500
-    return 'ok'
+    except stripe.error.SignatureVerificationError as e:
+        g.log.error('Webhook failed Stripe signature verification', json=event, error=e)
+        return '', 400
+    except Exception as e:
+        g.log.error('Webhook failed for unknown reason', json=event, error=e)
+        return '', 500
+
 
 
 @login_required
