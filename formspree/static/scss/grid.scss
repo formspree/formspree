@@ -90,6 +90,16 @@
   width: 41.67%;
 }
 
+.col-5-6 {
+  @include col;
+  width: 83.33%;
+}
+
+.col-1-6 {
+  @include col;
+  width: 16.67%;
+}
+
 @media print {
 
   .col-1-1 {
@@ -115,4 +125,5 @@
   .col-5-12 {
     width: 41.67% !important;
   }
+
 }

@@ -10,6 +10,8 @@ from flask import request, g
 
 from formspree import settings
 from formspree.app import redis_store, DB
+from flask import jsonify
+from flask_login import current_user
 
 CAPTCHA_URL = 'https://www.google.com/recaptcha/api/siteverify'
 CAPTCHA_VAL = 'g-recaptcha-response'
@@ -167,3 +169,16 @@ def fetch_first_submission(nonce):
         return json.loads(jsondata)
     except:
         return None
+
+def check_valid_form_settings_request(form):
+    if not valid_domain_request(request):
+        return jsonify(error='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
+
+    if form.owner_id != current_user.id and form not in current_user.forms:
+        return jsonify(
+            error='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
+
+    if not form:
+        return jsonify(error='That form does not exist. Please check the link and try again.'), 400
+
+    return True
