@@ -359,7 +359,7 @@ def add_card():
               'later. If this problem persists, please contact us.', 'error')
         g.log.warning("Couldn't add card to Stripe account. Unknown error.")
 
-    return redirect(url_for('account'))
+    return redirect(url_for('billing-dashboard'))
 
 @login_required
 def change_default_card(cardid):
@@ -372,7 +372,7 @@ def change_default_card(cardid):
     except Exception as e:
         flash(u"Sorry something went wrong. If this error persists, please contact support", 'error')
         g.log.warning("Failed to change default card", account=current_user.email, card=cardid)
-    return redirect(url_for('account'))
+    return redirect(url_for('billing-dashboard'))
 
 @login_required
 def delete_card(cardid):
@@ -383,7 +383,7 @@ def delete_card(cardid):
         g.log.info('Deleted card from account.', account=current_user.email)
     else:
         flash(u"That's an invalid operation", 'error')
-    return redirect(url_for('account'))
+    return redirect(url_for('billing-dashboard'))
 
 
 @login_required
