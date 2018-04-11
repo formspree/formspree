@@ -33,6 +33,8 @@ class Form(DB.Model):
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
     captcha_disabled = DB.Column(DB.Boolean)
     uses_ajax = DB.Column(DB.Boolean)
+    disable_email = DB.Column(DB.Boolean)
+    disable_storage = DB.Column(DB.Boolean)
 
     owner = DB.relationship('User') # direct owner, defined by 'owner_id'
                                     # this property is basically useless. use .controllers
@@ -62,6 +64,7 @@ class Form(DB.Model):
     STATUS_EMAIL_FAILED            = 2
     STATUS_OVERLIMIT               = 3
     STATUS_REPLYTO_ERROR           = 4
+    STATUS_NO_EMAIL                = 5
 
     STATUS_CONFIRMATION_SENT       = 10
     STATUS_CONFIRMATION_DUPLICATED = 11
@@ -157,15 +160,20 @@ class Form(DB.Model):
 
         # increment the forms counter
         self.counter = Form.counter + 1
-        DB.session.add(self)
 
-        # archive the form contents
-        sub = Submission(self.id)
-        sub.data = {key: data[key] for key in data if key not in KEYS_NOT_STORED}
-        DB.session.add(sub)
+        # if submission storage is disabled and form is upgraded, don't store submission
+        if self.disable_storage and self.upgraded:
+            pass
+        else:
+            DB.session.add(self)
 
-        # commit changes
-        DB.session.commit()
+            # archive the form contents
+            sub = Submission(self.id)
+            sub.data = {key: data[key] for key in data if key not in KEYS_NOT_STORED}
+            DB.session.add(sub)
+
+            # commit changes
+            DB.session.commit()
 
         # sometimes we'll delete all archived submissions over the limit
         if random.random() < settings.EXPENSIVELY_WIPE_SUBMISSIONS_FREQUENCY:
@@ -217,42 +225,46 @@ class Form(DB.Model):
             text = render_template('email/overlimit-notification.txt', host=self.host)
             html = render_template('email/overlimit-notification.html', host=self.host)
 
-        result = send_email(
-            to=self.email,
-            subject=subject,
-            text=text,
-            html=html,
-            sender=settings.DEFAULT_SENDER,
-            reply_to=reply_to,
-            cc=cc,
-            headers={
-                'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-                'List-Unsubscribe': '<' + url_for(
-                    'unconfirm_form',
-                    form_id=self.id,
-                    digest=self.unconfirm_digest(),
-                    _external=True
-                ) + '>'
-            }
-        )
+        # if emails are disabled and form is upgraded, don't send email notification
+        if self.disable_email and self.upgraded:
+            return {'code': Form.STATUS_NO_EMAIL, 'next': next}
+        else:
+            result = send_email(
+                to=self.email,
+                subject=subject,
+                text=text,
+                html=html,
+                sender=settings.DEFAULT_SENDER,
+                reply_to=reply_to,
+                cc=cc,
+                headers={
+                    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+                    'List-Unsubscribe': '<' + url_for(
+                        'unconfirm_form',
+                        form_id=self.id,
+                        digest=self.unconfirm_digest(),
+                        _external=True
+                    ) + '>'
+                }
+            )
 
-        if not result[0]:
-            g.log.warning('Failed to send email.',
-                          reason=result[1], code=result[2])
-            if result[1].startswith('Invalid replyto email address'):
+            if not result[0]:
+                g.log.warning('Failed to send email.',
+                              reason=result[1], code=result[2])
+                if result[1].startswith('Invalid replyto email address'):
+                    return {
+                        'code': Form.STATUS_REPLYTO_ERROR,
+                        'address': reply_to,
+                        'referrer': referrer
+                    }
+
                 return {
-                    'code': Form.STATUS_REPLYTO_ERROR,
-                    'address': reply_to,
-                    'referrer': referrer
+                    'code': Form.STATUS_EMAIL_FAILED,
+                    'mailer-code': result[2],
+                    'error-message': result[1]
                 }
 
-            return {
-                'code': Form.STATUS_EMAIL_FAILED,
-                'mailer-code': result[2],
-                'error-message': result[1]
-            }
-
-        return {'code': Form.STATUS_EMAIL_SENT, 'next': next}
+            return {'code': Form.STATUS_EMAIL_SENT, 'next': next}
 
     def get_monthly_counter(self, basedate=None):
         basedate = basedate or datetime.datetime.now()
@@ -310,7 +322,8 @@ class Form(DB.Model):
 
         result = send_email(
             to=self.email,
-            subject='Confirm email for %s' % settings.SERVICE_NAME,
+            subject='Confirm email for {} on {}' \
+                .format(settings.SERVICE_NAME, self.host),
             text=render_content('txt'),
             html=render_content('html'),
             sender=settings.DEFAULT_SENDER,

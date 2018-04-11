@@ -22,17 +22,17 @@ def register():
         user = User(request.form['email'], request.form['password'])
         DB.session.add(user)
         DB.session.commit()
-        g.log.info('User account created.')
+        g.log.info('User account created.', ip=request.headers.get('X-Forwarded-For'))
     except ValueError:
         DB.session.rollback()
         flash(u"{} is not a valid email address.".format(
             request.form['email']), "error")
-        g.log.info('Account creation failed. Invalid address.')
+        g.log.info('Account creation failed. Invalid address.', ip=request.headers.get('X-Forwarded-For'))
         return render_template('users/register.html')
     except IntegrityError:
         DB.session.rollback()
         flash(u"An account with this email already exists.", "error")
-        g.log.info('Account creation failed. Address is already registered.')
+        g.log.info('Account creation failed. Address is already registered.', ip=request.headers.get('X-Forwarded-For'))
         return render_template('users/register.html')
 
     login_user(user, remember=True)
@@ -124,15 +124,12 @@ def login():
     email = request.form['email'].lower().strip()
     password = request.form['password']
     user = User.query.filter_by(email=email).first()
-    if user is None:
-        flash(u"We couldn't find an account related with this email. "
-              "Please verify the email entered.", "warning")
-        return redirect(url_for('login'))
-    elif not check_password(user.password, password):
-        flash(u"Invalid Password. Please verify the password entered.",
+    if user is None or not check_password(user.password, password):
+        flash(u"Invalid username or password.",
               'warning')
         return redirect(url_for('login'))
     login_user(user, remember=True)
+    g.log.info('Logged user in', user=user.email, ip=request.headers.get('X-Forwarded-For'))
     flash(u'Logged in successfully!', 'success')
     return redirect(request.args.get('next') or url_for('dashboard'))
 
@@ -148,15 +145,11 @@ def forgot_password():
     elif request.method == 'POST':
         email = request.form['email'].lower().strip()
         user = User.query.filter_by(email=email).first()
-        if not user:
-            return render_template('error.html', title='Not registered', text="We couldn't find an account associated with this email address.</p><p>Remember that you must use the primary email address you used to register the account, it can't be any other address you have confirmed later.")
-
-        if user.send_password_reset():
+        if not user or user.send_password_reset():
             return render_template(
                 'info.html',
                 title='Reset email sent',
-                text=u"We've sent a link to {addr}. Click on the link to be "
-                     "prompted to a new password.".format(addr=user.email)
+                text=u"We've sent you a password reset link. Please check your email."
             )
         else:
             flash(u"Something is wrong, please report this to us.", 'error')
@@ -366,7 +359,7 @@ def add_card():
               'later. If this problem persists, please contact us.', 'error')
         g.log.warning("Couldn't add card to Stripe account. Unknown error.")
 
-    return redirect(url_for('account'))
+    return redirect(url_for('billing-dashboard'))
 
 @login_required
 def change_default_card(cardid):
@@ -379,7 +372,7 @@ def change_default_card(cardid):
     except Exception as e:
         flash(u"Sorry something went wrong. If this error persists, please contact support", 'error')
         g.log.warning("Failed to change default card", account=current_user.email, card=cardid)
-    return redirect(url_for('account'))
+    return redirect(url_for('billing-dashboard'))
 
 @login_required
 def delete_card(cardid):
@@ -390,7 +383,7 @@ def delete_card(cardid):
         g.log.info('Deleted card from account.', account=current_user.email)
     else:
         flash(u"That's an invalid operation", 'error')
-    return redirect(url_for('account'))
+    return redirect(url_for('billing-dashboard'))
 
 
 @login_required

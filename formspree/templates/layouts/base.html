@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang or 'en' }}">
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}{{config.SERVICE_NAME}}{% endblock %}</title>
@@ -25,7 +25,12 @@
   <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
   <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/static/img/favicon.ico">
   <meta name="viewport" content="initial-scale=1">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js"></script>
+  <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/v4-shims.js"></script>
+{#  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">#}
+{#<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.9/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" crossorigin="anonymous">#}
+
+
   <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
   <script type="text/javascript" src="https://js.stripe.com/v3/"></script>
   {% block head_scripts %}{% endblock %}
