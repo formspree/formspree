@@ -1,8 +1,9 @@
 import os
 import datetime
+import click
 
-from flask_script import Manager, prompt_bool
-from flask_migrate import Migrate, MigrateCommand
+from flask_script import prompt_bool
+from flask_migrate import Migrate
 
 from formspree import create_app, app, settings
 from formspree.app import redis_store
@@ -10,21 +11,18 @@ from formspree.forms.helpers import REDIS_COUNTER_KEY
 from formspree.forms.models import Form
 
 forms_app = create_app()
-manager = Manager(forms_app)
 
 # add flask-migrate commands
-Migrate(forms_app, app.DB)
-manager.add_command('db', MigrateCommand)
+migrate = Migrate(forms_app, app.DB)
 
-
-@manager.command
+@forms_app.cli.command()
 def run_debug(port=os.getenv('PORT', 5000)):
     '''runs the app with debug flag set to true'''
     forms_app.run(host='0.0.0.0', debug=True, port=int(port))
 
-
-@manager.option('-H', '--host', dest='host', default=None, help='referer hostname')
-@manager.option('-e', '--email', dest='email', default=None, help='form email')
+@forms_app.cli.command()
+@click.option('-H', '--host', default=None, help='referer hostname')
+@click.option('-e', '--email', default=None, help='form email')
 def unsubscribe(email, host):
     ''' Unsubscribes an email by resetting the form to unconfirmed. User may get
     one more confirmation email, but if she doesn't confirm that will be it.'''
@@ -59,10 +57,10 @@ def unsubscribe(email, host):
             app.DB.session.commit()
             print 'success.'
 
-
-@manager.option('-i', '--id', dest='id', default=None, help='form id')
-@manager.option('-H', '--host', dest='host', default=None, help='referer hostname')
-@manager.option('-e', '--email', dest='email', default=None, help='form email')
+@forms_app.cli.command()
+@click.option('-i', '--id', default=None, help='form id')
+@click.option('-H', '--host', default=None, help='referer hostname')
+@click.option('-e', '--email', default=None, help='form email')
 def monthly_counters(email=None, host=None, id=None, month=datetime.date.today().month):
     if id:
         query = [Form.query.get(id)]
@@ -81,7 +79,8 @@ def monthly_counters(email=None, host=None, id=None, month=datetime.date.today()
         print '%s submissions for %s' % (nsubmissions, form)
 
 
-@manager.option('-t', '--testname', dest='testname', default=None, help='name of test')
+@forms_app.cli.command()
+@click.option('-t', '--testname', dest='testname', default=None, help='name of test')
 def test(testname=None):
     import unittest
 
@@ -95,4 +94,4 @@ def test(testname=None):
     test_runner.run(test_suite)
 
 if __name__ == "__main__":
-    manager.run()
+    forms_app.run()

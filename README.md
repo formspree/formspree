@@ -104,13 +104,15 @@ then create a `.env` file with your configuration like the following:
     SERVICE_URL='http://127.0.0.1:5000'
     TEST_DATABASE_URL='postgresql://<username>@127.0.0.1:5432/formspree-test'
 
+Tell the Flask CLI about the application by typing `export FLASK_APP=manage.py` or if using a virtualenv you can [add it to the `activate` script](http://flask.pocoo.org/docs/0.12/cli/#virtualenv-integration)
+
 Make sure you have a postgresql database called `formspree` and create the necessary tables by running:
 
-    python manage.py db upgrade
+    flask db upgrade
 
 And you are ready to run the server:
 
-    python manage.py runserver
+    flask run
 
 ### Running tests
 
