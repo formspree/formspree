@@ -80,7 +80,7 @@ def monthly_counters(email=None, host=None, id=None, month=datetime.date.today()
 
 
 @forms_app.cli.command()
-@click.option('-t', '--testname', dest='testname', default=None, help='name of test')
+@click.option('-t', '--testname', 'testname', default=None, help='name of test')
 def test(testname=None):
     import unittest
 
