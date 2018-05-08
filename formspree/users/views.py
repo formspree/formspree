@@ -461,6 +461,10 @@ def billing():
 
         invoices = stripe.Invoice.list(customer=customer, limit=12)
         return render_template('users/billing.html', cards=cards, sub=sub, invoices=invoices)
+    else:
+        flash('You have not added your billing information to your Formspree account. '
+              'Please contact us if you believe this is an error', 'error')
+        return redirect(url_for('account'))
 
 @login_required
 def update_invoice_address():
