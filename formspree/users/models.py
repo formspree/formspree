@@ -1,4 +1,6 @@
 import hmac
+import random
+import string
 import hashlib
 from datetime import datetime
 from flask import url_for, render_template, g
@@ -14,10 +16,12 @@ class User(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)
     email = DB.Column(DB.Text, unique=True, index=True)
     password = DB.Column(DB.String(100))
+    session_token = DB.Column(DB.String(64))
     upgraded = DB.Column(DB.Boolean)
     stripe_id = DB.Column(DB.String(50))
     registered_on = DB.Column(DB.DateTime)
     invoice_address = DB.Column(DB.Text)
+    disabled = DB.Column(DB.Boolean)
 
     emails = DB.relationship('Email', backref='owner', lazy='dynamic')
 
@@ -42,6 +46,8 @@ class User(DB.Model):
         self.password = hash_pwd(password)
         self.upgraded = False
         self.registered_on = datetime.utcnow()
+        self.session_token = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(64))
+        self.disabled = False
 
     @property
     def is_authenticated(self):
