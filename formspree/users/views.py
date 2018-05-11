@@ -6,7 +6,7 @@ from flask_login import login_user, logout_user, \
                             current_user, login_required
 from sqlalchemy.exc import IntegrityError
 from helpers import check_password, hash_pwd
-from formspree.app import DB
+from formspree.app import DB, celery
 from formspree import settings
 from models import User, Email
 from formspree.utils import send_email
@@ -284,6 +284,15 @@ def downgrade():
     g.log.info('Subscription canceled from dashboard.', account=current_user.email)
     return redirect(url_for('account'))
 
+@celery.task()
+def send_downgrade_email(customer, user):
+    g.log.info('Downgraded user from webhook.', account=user.email)
+    send_email(to=customer.email,
+               subject='Successfully Downgraded from {} {}'.format(settings.SERVICE_NAME,
+                                                                   settings.UPGRADED_PLAN_NAME),
+               text=render_template('email/downgraded.txt'),
+               html=render_template('email/downgraded.html'),
+               sender=settings.DEFAULT_SENDER)
 
 def stripe_webhook():
     payload = request.data
@@ -306,13 +315,7 @@ def stripe_webhook():
                 user.upgraded = False
                 DB.session.add(user)
                 DB.session.commit()
-                g.log.info('Downgraded user from webhook.', account=user.email)
-                send_email(to=customer.email,
-                           subject='Successfully Downgraded from {} {}'.format(settings.SERVICE_NAME,
-                                                                               settings.UPGRADED_PLAN_NAME),
-                           text=render_template('email/downgraded.txt'),
-                           html=render_template('email/downgraded.html'),
-                           sender=settings.DEFAULT_SENDER)
+                send_downgrade_email.delay(customer, user)
         elif event['type'] == 'invoice.payment_failed':  # User payment failed
             customer_id = event['data']['object']['customer']
             customer = stripe.Customer.retrieve(customer_id)
@@ -333,7 +336,6 @@ def stripe_webhook():
     except Exception as e:
         g.log.error('Webhook failed for unknown reason', json=event, error=e)
         return '', 500
-
 
 
 @login_required
