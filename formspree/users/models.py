@@ -4,9 +4,9 @@ from datetime import datetime
 from flask import url_for, render_template, g
 
 from formspree import settings
+from formspree.stuff import DB
 from formspree.utils import send_email, IS_VALID_EMAIL
-from formspree.app import DB
-from helpers import hash_pwd
+from .helpers import hash_pwd
 
 class User(DB.Model):
     __tablename__ = 'users'
@@ -56,12 +56,12 @@ class User(DB.Model):
         return False
 
     def get_id(self):
-        return unicode(self.id)
+        return self.id
 
     def reset_password_digest(self):
         return hmac.new(
             settings.NONCE_SECRET,
-            'id={0}&password={1}'.format(self.id, self.password),
+            'id={0}&password={1}'.format(self.id, self.password).encode('utf-8'),
             hashlib.sha256
         ).hexdigest()
 
@@ -121,7 +121,9 @@ class Email(DB.Model):
             email=addr,
             user_id=user_id)
         digest = hmac.new(
-            settings.NONCE_SECRET, message.encode('utf-8'), hashlib.sha256
+            settings.NONCE_SECRET,
+            message.encode('utf-8'),
+            hashlib.sha256
         ).hexdigest()
         link = url_for('confirm-account-email',
                        digest=digest, email=addr, _external=True)
@@ -145,7 +147,9 @@ class Email(DB.Model):
             email=addr,
             user_id=user_id)
         what_should_be = hmac.new(
-            settings.NONCE_SECRET, message.encode('utf-8'), hashlib.sha256
+            settings.NONCE_SECRET,
+            message.encode('utf-8'),
+            hashlib.sha256
         ).hexdigest()
         if digest == what_should_be:
             return cls(address=addr, owner_id=user_id)

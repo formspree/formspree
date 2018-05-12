@@ -5,11 +5,12 @@ from flask import request, flash, url_for, render_template, redirect, g
 from flask_login import login_user, logout_user, \
                             current_user, login_required
 from sqlalchemy.exc import IntegrityError
-from helpers import check_password, hash_pwd
-from formspree.app import DB, celery
+
 from formspree import settings
-from models import User, Email
+from formspree.stuff import DB, celery
 from formspree.utils import send_email
+from .models import User, Email
+from .helpers import check_password, hash_pwd
 
 
 def register():

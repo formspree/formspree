@@ -2,12 +2,12 @@ import httpretty
 import json
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.forms.helpers import HASH
 from formspree.users.models import User
 from formspree.forms.models import Form, Submission
 
-from formspree_test_case import FormspreeTestCase
+from .formspree_test_case import FormspreeTestCase
 
 class ArchiveSubmissionsTestCase(FormspreeTestCase):
     @httpretty.activate
@@ -176,7 +176,7 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
                      'Content-type': 'application/json'},
             data=json.dumps({'email': 'hope@springs.com'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
         form_endpoint = resp['hashid']
 
         # manually confirm the form
@@ -195,20 +195,20 @@ class ArchiveSubmissionsTestCase(FormspreeTestCase):
         r = self.client.get('/forms/' + form_endpoint + '/',
             headers={'Accept': 'application/json'}
         )
-        submissions = json.loads(r.data)['submissions']
+        submissions = json.loads(r.data.decode('utf-8'))['submissions']
         self.assertEqual(len(submissions), 1)
         self.assertEqual(submissions[0]['name'], 'bruce')
         self.assertEqual(submissions[0]['message'], 'hi, my name is bruce!')
 
         # test exporting feature (both json and csv file downloads)
         r = self.client.get('/forms/' + form_endpoint + '.json')
-        submissions = json.loads(r.data)['submissions']
+        submissions = json.loads(r.data.decode('utf-8'))['submissions']
         self.assertEqual(len(submissions), 1)
         self.assertEqual(submissions[0]['name'], 'bruce')
         self.assertEqual(submissions[0]['message'], 'hi, my name is bruce!')
 
         r = self.client.get('/forms/' + form_endpoint + '.csv')
-        lines = r.data.splitlines()
+        lines = r.data.decode('utf-8').splitlines()
         self.assertEqual(len(lines), 2)
         self.assertEqual(lines[0], 'date,message,name')
         self.assertIn('"hi, my name is bruce!"', lines[1])

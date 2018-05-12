@@ -3,13 +3,13 @@ import json
 import stripe
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.forms.helpers import HASH
 from formspree.users.models import User, Email
 from formspree.forms.models import Form, Submission
 
-from formspree_test_case import FormspreeTestCase
-from utils import parse_confirmation_link_sent
+from .formspree_test_case import FormspreeTestCase
+from .utils import parse_confirmation_link_sent
 
 class UserAccountsTestCase(FormspreeTestCase):
 
@@ -128,7 +128,7 @@ class UserAccountsTestCase(FormspreeTestCase):
             data={'email': 'hope@springs.com'}
         )
         self.assertEqual(r.status_code, 402)
-        self.assertIn('error', json.loads(r.data))
+        self.assertIn('error', json.loads(r.data.decode('utf-8')))
         self.assertEqual(0, Form.query.count())
 
         # upgrade user manually
@@ -142,7 +142,7 @@ class UserAccountsTestCase(FormspreeTestCase):
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'hope@springs.com'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
         self.assertEqual(r.status_code, 200)
         self.assertIn('submission_url', resp)
         self.assertIn('hashid', resp)
@@ -156,7 +156,7 @@ class UserAccountsTestCase(FormspreeTestCase):
             headers={'Referer': 'formspree.io'},
             data={'name': 'bruce'}
         )
-        self.assertIn("We've sent a link to your email", r.data)
+        self.assertIn("We've sent a link to your email", r.data.decode('utf-8'))
         self.assertIn('confirm+your+email', httpretty.last_request().body)
         self.assertEqual(1, Form.query.count())
 
@@ -209,7 +209,7 @@ class UserAccountsTestCase(FormspreeTestCase):
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'hope@springs.com'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
         self.assertEqual(r.status_code, 200)
         self.assertIn('submission_url', resp)
         self.assertIn('hashid', resp)
@@ -292,7 +292,7 @@ class UserAccountsTestCase(FormspreeTestCase):
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'hope@springs.com'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
         self.assertEqual(r.status_code, 200)
         self.assertIn('submission_url', resp)
         self.assertIn('hashid', resp)
@@ -409,7 +409,10 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # redirect back to /account, the HTML shows that the user is not yet
         # in the free plan, since it will be valid for the next 30 days
-        self.assertIn("You've cancelled your subscription and it is ending on", r.data)
+        self.assertIn(
+            "You've cancelled your subscription and it is ending on",
+            r.data.decode('utf-8')
+        )
 
         user = User.query.filter_by(email='maria@example.com').first()
         self.assertEqual(user.upgraded, True)
@@ -492,7 +495,10 @@ class UserAccountsTestCase(FormspreeTestCase):
         r = self.client.post('/card/add', data={
             'stripeToken': token
         }, follow_redirects=True)
-        self.assertIn('That card already exists in your wallet', r.data)
+        self.assertIn(
+            'That card already exists in your wallet',
+            r.data.decode('utf-8')
+        )
         
         # delete a card
         r = self.client.post('/card/%s/delete' % cards[1].id)

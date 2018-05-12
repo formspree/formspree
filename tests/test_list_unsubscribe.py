@@ -1,13 +1,13 @@
 import httpretty
-import urllib2
 import json
 import re
+from urllib.parse import unquote
 
 from formspree.forms.models import Form
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 
-from formspree_test_case import FormspreeTestCase
+from .formspree_test_case import FormspreeTestCase
 
 class ListUnsubscribeTestCase(FormspreeTestCase):
     @httpretty.activate
@@ -21,7 +21,7 @@ class ListUnsubscribeTestCase(FormspreeTestCase):
         f = Form.query.first()
 
         # List-Unsubscribe is present on confirmation email
-        body = urllib2.unquote(httpretty.last_request().body)
+        body = unquote(httpretty.last_request().body)
         res = re.search('"List-Unsubscribe":[^"]*"<([^>]+)>"', body)
         self.assertTrue(res is not None)
         list_unsubscribe_url = res.group(1)
@@ -38,7 +38,7 @@ class ListUnsubscribeTestCase(FormspreeTestCase):
         self.assertEqual(r.status_code, 302)
 
         # List-Unsubscribe is present on normal submission
-        body = urllib2.unquote(httpretty.last_request().body)
+        body = unquote(httpretty.last_request().body)
         res = re.search('"List-Unsubscribe":[^"]*"<([^>]+)>"', body)
         self.assertTrue(res is not None)
         url = res.group(1)

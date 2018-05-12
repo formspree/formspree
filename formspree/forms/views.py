@@ -10,20 +10,20 @@ from flask import request, url_for, render_template, redirect, \
                   abort
 from flask_login import current_user, login_required
 from flask_cors import cross_origin
-from urlparse import urljoin
+from jinja2.exceptions import TemplateNotFound
+from urllib.parse import urljoin
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
                             url_domain, valid_url
-from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
+from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
                     HASH, assign_ajax, valid_domain_request, \
-                    KEYS_NOT_STORED, KEYS_EXCLUDED_FROM_EMAIL, check_valid_form_settings_request
-from models import Form, Submission
-
-from jinja2.exceptions import TemplateNotFound
+                    KEYS_NOT_STORED, KEYS_EXCLUDED_FROM_EMAIL, \
+                    check_valid_form_settings_request
+from .models import Form, Submission
 
 
 def thanks():

@@ -3,16 +3,17 @@ import random
 import hashlib
 import datetime
 
-from formspree.app import DB, redis_store
-from formspree import settings
-from formspree.utils import send_email, unix_time_for_12_months_from_now, \
-                            next_url, IS_VALID_EMAIL, request_wants_json
 from flask import url_for, render_template, g
 from sqlalchemy.sql.expression import delete
 from sqlalchemy import func
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
-from helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
+
+from formspree import settings
+from formspree.stuff import DB, redis_store
+from formspree.utils import send_email, unix_time_for_12_months_from_now, \
+                            next_url, IS_VALID_EMAIL, request_wants_json
+from .helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
                     http_form_to_dict, referrer_to_path, \
                     store_first_submission, fetch_first_submission, \
                     KEYS_NOT_STORED
@@ -390,14 +391,14 @@ class Form(DB.Model):
     def unconfirm_digest(self):
         return hmac.new(
             settings.NONCE_SECRET,
-            'id={}'.format(self.id),
+            'id={}'.format(self.id).encode('utf-8'),
             hashlib.sha256
         ).hexdigest()
 
     def unconfirm_with_digest(self, digest):
         if hmac.new(
             settings.NONCE_SECRET,
-            'id={}'.format(self.id),
+            'id={}'.format(self.id).encode('utf-8'),
             hashlib.sha256
         ).hexdigest() != digest:
             return False

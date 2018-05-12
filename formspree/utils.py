@@ -1,7 +1,7 @@
 import requests
 import datetime
 import calendar
-import urlparse
+from urllib.parse import urlparse, urlunparse
 import uuid
 import json
 import re
@@ -12,7 +12,7 @@ from formspree import settings
 IS_VALID_EMAIL = lambda x: re.match(r"[^@]+@[^@]+\.[^@]+", x)
 
 def valid_url(url):
-    parsed = urlparse.urlparse(url)
+    parsed = urlparse(url)
     return len(parsed.scheme) > 0 and len(parsed.netloc) > 0 and not 'javascript:' in url
 
 def request_wants_json():
@@ -75,14 +75,14 @@ def get_url(endpoint, secure=False, **values):
 
 
 def url_domain(url):
-    parsed = urlparse.urlparse(url)
+    parsed = urlparse(url)
     return '.'.join(parsed.netloc.split('.')[-2:])
 
 
 def unix_time_for_12_months_from_now(now=None):
     now = now or datetime.date.today()
     month = now.month - 1 + 12
-    next_year = now.year + month / 12
+    next_year = now.year + int(month / 12)
     next_month = month % 12 + 1
     start_of_next_month = datetime.datetime(next_year, next_month, 1, 0, 0)
     return calendar.timegm(start_of_next_month.utctimetuple())
@@ -102,10 +102,10 @@ def next_url(referrer=None, next=None):
         # parts from _next. so, if _next is only a path it will just use
         # that path. if it is a netloc without a scheme, will use that
         # netloc, but reuse the scheme from base and so on.
-        parsed_next = urlparse.urlparse(next)
-        base = urlparse.urlparse(referrer)
+        parsed_next = urlparse(next)
+        base = urlparse(referrer)
 
-        return urlparse.urlunparse([
+        return urlunparse([
             parsed_next.scheme or base.scheme,
             parsed_next.netloc or base.netloc,
             parsed_next.path or base.path,

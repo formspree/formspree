@@ -1,4 +1,4 @@
-from formspree_test_case import FormspreeTestCase
+from .formspree_test_case import FormspreeTestCase
 
 from formspree.utils import next_url
 

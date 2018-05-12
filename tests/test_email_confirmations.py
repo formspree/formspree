@@ -1,15 +1,13 @@
-# encoding: utf-8
-
 import httpretty
 import json
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.users.models import User, Email
 from formspree.forms.models import Form
 
-from formspree_test_case import FormspreeTestCase
-from utils import parse_confirmation_link_sent
+from .formspree_test_case import FormspreeTestCase
+from .utils import parse_confirmation_link_sent
 
 class EmailConfirmationsTestCase(FormspreeTestCase):
 
@@ -32,7 +30,7 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         for i, addr in enumerate(emails):
             self.client.post('/account/add-email', data={'address': addr})
 
-            link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
+            link, qs = parse_confirmation_link_sent(httpretty.last_request().body.decode('utf-8'))
             self.client.get(link, query_string=qs)
 
             email = Email.query.get([addr, user.id])
@@ -65,18 +63,18 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         r = self.client.get('/forms',
             headers={'Accept': 'application/json'},
         )
-        forms = json.loads(r.data)['forms']
+        forms = json.loads(r.data.decode('utf-8'))['forms']
         self.assertEqual(0, len(forms))
 
         # verify user email
-        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
+        link, qs = parse_confirmation_link_sent(httpretty.last_request().body.decode('utf-8'))
         self.client.get(link, query_string=qs)
 
         # confirm that the user has no access to the form since he is not upgraded
         r = self.client.get('/forms',
             headers={'Accept': 'application/json'},
         )
-        forms = json.loads(r.data)['forms']
+        forms = json.loads(r.data.decode('utf-8'))['forms']
         self.assertEqual(0, len(forms))
 
         # upgrade user
@@ -89,7 +87,7 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         r = self.client.get('/forms',
             headers={'Accept': 'application/json'},
         )
-        forms = json.loads(r.data)['forms']
+        forms = json.loads(r.data.decode('utf-8'))['forms']
         self.assertEqual(1, len(forms))
         self.assertEqual(forms[0]['email'], u'márkö@example.com')
         self.assertEqual(forms[0]['host'], 'tomatoes.com')
@@ -109,20 +107,20 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         r = self.client.get('/forms',
             headers={'Accept': 'application/json'},
         )
-        forms = json.loads(r.data)['forms']
+        forms = json.loads(r.data.decode('utf-8'))['forms']
         self.assertEqual(1, len(forms))
 
         # add this other email address to user account
         self.client.post('/account/add-email', data={'address': 'contact@mark.com'})
 
-        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
+        link, qs = parse_confirmation_link_sent(httpretty.last_request().body.decode('utf-8'))
         self.client.get(link, query_string=qs)
 
         # confirm that the user account now has access to the form
         r = self.client.get('/forms',
             headers={'Accept': 'application/json'},
         )
-        forms = json.loads(r.data)['forms']
+        forms = json.loads(r.data.decode('utf-8'))['forms']
         self.assertEqual(2, len(forms))
         self.assertEqual(forms[0]['email'], 'contact@mark.com') # forms are sorted by -id, so the newer comes first
         self.assertEqual(forms[0]['host'], 'mark.com')
@@ -142,7 +140,7 @@ class EmailConfirmationsTestCase(FormspreeTestCase):
         r = self.client.get('/forms',
             headers={'Accept': 'application/json'},
         )
-        forms = json.loads(r.data)['forms']
+        forms = json.loads(r.data.decode('utf-8'))['forms']
         self.assertEqual(3, len(forms))
         self.assertEqual(forms[0]['email'], u'márkö@example.com')
         self.assertEqual(forms[0]['host'], 'elsewhere.com')

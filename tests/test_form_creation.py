@@ -1,16 +1,14 @@
-# encoding: utf-8
-
 import httpretty
 import json
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.forms.helpers import HASH
 from formspree.users.models import User, Email
 from formspree.forms.models import Form, Submission
 
-from formspree_test_case import FormspreeTestCase
-from utils import parse_confirmation_link_sent
+from .formspree_test_case import FormspreeTestCase
+from .utils import parse_confirmation_link_sent
 
 class TestFormCreationFromDashboard(FormspreeTestCase):
 
@@ -32,7 +30,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             data={'email': 'hope@springs.com'}
         )
         self.assertEqual(r.status_code, 402)
-        self.assertIn('error', json.loads(r.data))
+        self.assertIn('error', json.loads(r.data.decode('utf-8')))
         self.assertEqual(0, Form.query.count())
 
         # upgrade user manually
@@ -46,7 +44,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'hope@springs.com'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
         self.assertEqual(r.status_code, 200)
         self.assertIn('submission_url', resp)
         self.assertIn('hashid', resp)
@@ -60,8 +58,8 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             headers={'Referer': 'http://testsite.com'},
             data={'name': 'bruce'}
         )
-        self.assertIn("sent an email confirmation", r.data)
-        self.assertIn('confirm+your+email', httpretty.last_request().body)
+        self.assertIn("sent an email confirmation", r.data.decode('utf-8'))
+        self.assertIn('confirm+your+email', httpretty.last_request().body.decode('utf-8'))
         self.assertEqual(1, Form.query.count())
 
         # confirm form
@@ -83,9 +81,9 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         form = Form.query.first()
         self.assertEqual(form.counter, 5)
         self.assertEqual(form.get_monthly_counter(), 5)
-        self.assertIn('ana', httpretty.last_request().body)
-        self.assertIn('__4__', httpretty.last_request().body)
-        self.assertNotIn('You+are+past+our+limit', httpretty.last_request().body)
+        self.assertIn('ana', httpretty.last_request().body.decode('utf-8'))
+        self.assertIn('__4__', httpretty.last_request().body.decode('utf-8'))
+        self.assertNotIn('You+are+past+our+limit', httpretty.last_request().body.decode('utf-8'))
 
         # try (and fail) to submit from a different host
         r = self.client.post('/' + form_endpoint,
@@ -93,8 +91,8 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             data={'name': 'usurper'}
         )
         self.assertEqual(r.status_code, 403)
-        self.assertIn('ana', httpretty.last_request().body) # no more data is sent to sendgrid
-        self.assertIn('__4__', httpretty.last_request().body)
+        self.assertIn('ana', httpretty.last_request().body.decode('utf-8')) # no more data is sent to sendgrid
+        self.assertIn('__4__', httpretty.last_request().body.decode('utf-8'))
 
     @httpretty.activate
     def test_form_creation_with_a_registered_email(self):
@@ -127,11 +125,11 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             data=json.dumps({'email': 'email@testsite.com',
                              'url': 'https://www.testsite.com/contact.html'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
         self.assertEqual(resp['confirmed'], False)
         self.assertEqual(httpretty.has_request(), True)
-        self.assertIn('Confirm+email', httpretty.last_request().body)
-        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body)
+        self.assertIn('Confirm+email', httpretty.last_request().body.decode('utf-8'))
+        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body.decode('utf-8'))
 
         # manually verify an email
         email = Email()
@@ -146,15 +144,16 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             data=json.dumps({'email': 'owned-by@testsite.com',
                              'url': 'https://www.testsite.com/about.html'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
         self.assertEqual(resp['confirmed'], True)
-        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body) # same as the last, means no new request was made
+        self.assertIn('www.testsite.com%2Fcontact.html', httpretty.last_request().body.decode('utf-8')) # same as the last, means no new request was made
 
         # should have three created forms in the end
         self.assertEqual(Form.query.count(), 3)
 
     @httpretty.activate
     def test_sitewide_forms(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
         httpretty.register_uri(httpretty.GET,
                                'http://mysite.com/formspree-verify.txt',
                                body=u'other_email@forms.com\nmyüñìćõð€email@email.com',
@@ -189,7 +188,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
                              'url': 'http://mysite.com',
                              'sitewide': 'true'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
 
         self.assertEqual(httpretty.has_request(), True)
         self.assertEqual(resp['confirmed'], True)
@@ -207,19 +206,19 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             headers = {'Referer': 'http://www.mysite.com/hipopotamo', 'content-type': 'application/json'},
             data=json.dumps({'name': 'alice'})
         )
-        self.assertIn('alice', httpretty.last_request().body)
+        self.assertIn('alice', httpretty.last_request().body.decode('utf-8'))
 
         self.client.post('/' + form.hashid,
             headers = {'Referer': 'http://mysite.com/baleia/urso?w=2', 'content-type': 'application/json'},
             data=json.dumps({'name': 'maria'})
         )
-        self.assertIn('maria', httpretty.last_request().body)
+        self.assertIn('maria', httpretty.last_request().body.decode('utf-8'))
 
         self.client.post('/' + form.hashid,
             headers = {'Referer': 'http://mysite.com/', 'content-type': 'application/json'},
             data=json.dumps({'name': 'laura'})
         )
-        self.assertIn('laura', httpretty.last_request().body)
+        self.assertIn('laura', httpretty.last_request().body.decode('utf-8'))
 
         # another form, now with a www prefix that will be stripped
         r = self.client.post('/forms',
@@ -228,7 +227,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
                              'url': 'http://www.naive.com',
                              'sitewide': 'true'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
 
         self.assertEqual(httpretty.has_request(), True)
         self.assertEqual(resp['confirmed'], True)
@@ -246,19 +245,19 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
             headers={'Referer': 'http://naive.com/hipopotamo', 'content-type': 'application/json'},
             data=json.dumps({'name': 'alice'})
         )
-        self.assertIn('alice', httpretty.last_request().body)
+        self.assertIn('alice', httpretty.last_request().body.decode('utf-8'))
 
         self.client.post('/' + form.hashid,
             headers={'Referer': 'http://www.naive.com/baleia/urso?w=2', 'content-type': 'application/json'},
             data=json.dumps({'name': 'maria'})
         )
-        self.assertIn('maria', httpretty.last_request().body)
+        self.assertIn('maria', httpretty.last_request().body.decode('utf-8'))
 
         self.client.post('/' + form.hashid,
             headers={'Referer': 'http://www.naive.com/', 'content-type': 'application/json'},
             data=json.dumps({'name': 'laura'})
         )
-        self.assertIn('laura', httpretty.last_request().body)
+        self.assertIn('laura', httpretty.last_request().body.decode('utf-8'))
 
         # create a different form with the same email address, now using unprefixed url
         r = self.client.post('/forms',
@@ -267,7 +266,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
                              'url': 'mysite.com',
                              'sitewide': 'true'})
         )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
 
     @httpretty.activate
     def test_form_settings(self):
@@ -288,7 +287,7 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
                              headers={'Accept': 'application/json', 'Content-type': 'application/json'},
                              data=json.dumps({'email': 'texas@springs.com'})
                              )
-        resp = json.loads(r.data)
+        resp = json.loads(r.data.decode('utf-8'))
         form = Form.query.first()
         form.confirmed = True
         DB.session.add(form)
@@ -308,7 +307,10 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
                          data={'name': 'bruce'}
                          )
         # make sure it doesn't send the email
-        self.assertNotIn('Someone+just+submitted+your+form', httpretty.last_request().body)
+        self.assertNotIn(
+            'Someone+just+submitted+your+form',
+            httpretty.last_request().body.decode('utf-8')
+        )
 
         # disable archive storage on this form
         self.client.post('/forms/' + form_endpoint + '/toggle-storage',
