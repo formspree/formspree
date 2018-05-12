@@ -285,9 +285,8 @@ def downgrade():
     return redirect(url_for('account'))
 
 @celery.task()
-def send_downgrade_email(customer, user):
-    g.log.info('Downgraded user from webhook.', account=user.email)
-    send_email(to=customer.email,
+def send_downgrade_email(customer_email):
+    send_email(to=customer_email,
                subject='Successfully Downgraded from {} {}'.format(settings.SERVICE_NAME,
                                                                    settings.UPGRADED_PLAN_NAME),
                text=render_template('email/downgraded.txt'),
@@ -315,7 +314,8 @@ def stripe_webhook():
                 user.upgraded = False
                 DB.session.add(user)
                 DB.session.commit()
-                send_downgrade_email.delay(customer, user)
+                g.log.info('Downgraded user from webhook.', account=user.email)
+                send_downgrade_email.delay(customer.email)
         elif event['type'] == 'invoice.payment_failed':  # User payment failed
             customer_id = event['data']['object']['customer']
             customer = stripe.Customer.retrieve(customer_id)
