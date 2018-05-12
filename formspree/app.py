@@ -121,6 +121,14 @@ def create_app():
     cdn.init_app(app)
 
     celery.conf.update(app.config)
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                with app.test_request_context(base_url=app.config['SERVICE_URL']):
+                    g.log = structlog.get_logger().new()
+                    return self.run(*args, **kwargs)
+
+    celery.Task = ContextTask
 
     if not app.debug and not app.testing:
         configure_ssl_redirect(app)

@@ -315,7 +315,7 @@ def stripe_webhook():
                 DB.session.add(user)
                 DB.session.commit()
                 g.log.info('Downgraded user from webhook.', account=user.email)
-                send_downgrade_email.delay(customer.email)
+                send_downgrade_email.delay(user.email)
         elif event['type'] == 'invoice.payment_failed':  # User payment failed
             customer_id = event['data']['object']['customer']
             customer = stripe.Customer.retrieve(customer_id)
