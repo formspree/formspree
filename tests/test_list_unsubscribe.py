@@ -21,7 +21,7 @@ class ListUnsubscribeTestCase(FormspreeTestCase):
         f = Form.query.first()
 
         # List-Unsubscribe is present on confirmation email
-        body = unquote(httpretty.last_request().body)
+        body = unquote(httpretty.last_request().body.decode('utf-8'))
         res = re.search('"List-Unsubscribe":[^"]*"<([^>]+)>"', body)
         self.assertTrue(res is not None)
         list_unsubscribe_url = res.group(1)
@@ -38,7 +38,7 @@ class ListUnsubscribeTestCase(FormspreeTestCase):
         self.assertEqual(r.status_code, 302)
 
         # List-Unsubscribe is present on normal submission
-        body = unquote(httpretty.last_request().body)
+        body = unquote(httpretty.last_request().body.decode('utf-8'))
         res = re.search('"List-Unsubscribe":[^"]*"<([^>]+)>"', body)
         self.assertTrue(res is not None)
         url = res.group(1)

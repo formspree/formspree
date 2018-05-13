@@ -42,7 +42,7 @@ class UserAccountsTestCase(FormspreeTestCase):
         user = User.query.filter_by(email='alice@springs.com').first()
         self.assertIsNone(Email.query.get(['alice@springs.com', user.id]))
 
-        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
+        link, qs = parse_confirmation_link_sent(httpretty.last_request().body.decode('utf-8'))
         self.client.get(
             link,
             query_string=qs,
@@ -89,7 +89,7 @@ class UserAccountsTestCase(FormspreeTestCase):
         self.assertEqual(r.status_code, 200)
 
         # click on the email link
-        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
+        link, qs = parse_confirmation_link_sent(httpretty.last_request().body.decode('utf-8'))
         r = self.client.get(
             link,
             query_string=qs,
@@ -157,7 +157,7 @@ class UserAccountsTestCase(FormspreeTestCase):
             data={'name': 'bruce'}
         )
         self.assertIn("We've sent a link to your email", r.data.decode('utf-8'))
-        self.assertIn('confirm+your+email', httpretty.last_request().body)
+        self.assertIn('confirm+your+email', httpretty.last_request().body.decode('utf-8'))
         self.assertEqual(1, Form.query.count())
 
         # confirm form
@@ -176,9 +176,9 @@ class UserAccountsTestCase(FormspreeTestCase):
         form = Form.query.first()
         self.assertEqual(form.counter, 5)
         self.assertEqual(form.get_monthly_counter(), 5)
-        self.assertIn('ana', httpretty.last_request().body)
-        self.assertIn('__4__', httpretty.last_request().body)
-        self.assertNotIn('You+are+past+our+limit', httpretty.last_request().body)
+        self.assertIn('ana', httpretty.last_request().body.decode('utf-8'))
+        self.assertIn('__4__', httpretty.last_request().body.decode('utf-8'))
+        self.assertNotIn('You+are+past+our+limit', httpretty.last_request().body.decode('utf-8'))
 
         # try (and fail) to submit from a different host
         r = self.client.post('/' + form_endpoint,
@@ -186,8 +186,8 @@ class UserAccountsTestCase(FormspreeTestCase):
             data={'name': 'usurper'}
         )
         self.assertEqual(r.status_code, 403)
-        self.assertIn('ana', httpretty.last_request().body) # no more data is sent to sendgrid
-        self.assertIn('__4__', httpretty.last_request().body)
+        self.assertIn('ana', httpretty.last_request().body.decode('utf-8')) # no more data is sent to sendgrid
+        self.assertIn('__4__', httpretty.last_request().body.decode('utf-8'))
 
     def test_form_toggle(self):
                 # create and login a user
@@ -328,7 +328,7 @@ class UserAccountsTestCase(FormspreeTestCase):
 
         # delete a submission in form
         first_submission = Submission.query.first()
-        r = self.client.post('/forms/' + form_endpoint + '/delete/' + unicode(first_submission.id),
+        r = self.client.post('/forms/' + form_endpoint + '/delete/' + str(first_submission.id),
             headers={'Referer': settings.SERVICE_URL},
             follow_redirects=True)
         self.assertEqual(200, r.status_code)
