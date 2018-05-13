@@ -45,7 +45,8 @@ def monthly_counters(email=None, host=None, id=None, month=datetime.date.today()
 
 @app.cli.command()
 @click.option('-t', '--testname', 'testname', default=None, help='name of test')
-def test(testname=None):
+@click.option('-f', '--failfast', is_flag=True, default=False, help='stop on error')
+def test(testname=None, failfast=False):
     import unittest
 
     test_loader = unittest.defaultTestLoader
@@ -54,7 +55,7 @@ def test(testname=None):
     else:
         test_suite = test_loader.discover('.')
 
-    test_runner = unittest.TextTestRunner()
+    test_runner = unittest.TextTestRunner(failfast=failfast)
     test_runner.run(test_suite)
 
 @app.cli.command()
