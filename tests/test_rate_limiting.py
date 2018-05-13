@@ -1,9 +1,10 @@
 import httpretty
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.forms.models import Form
-from formspree_test_case import FormspreeTestCase
+
+from .formspree_test_case import FormspreeTestCase
 
 
 class RateLimitingTestCase(FormspreeTestCase):

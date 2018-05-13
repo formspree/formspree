@@ -1,11 +1,11 @@
 import httpretty
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.forms.models import Form
 from formspree.users.models import User, Email
 
-from formspree_test_case import FormspreeTestCase
+from .formspree_test_case import FormspreeTestCase
 
 http_headers = {
     'Referer': 'testwebsite.com'
@@ -46,10 +46,10 @@ class FormPostsTestCase(FormspreeTestCase):
                   '_subject': 'my-nice-subject',
                   '_format': 'plain'}
         )
-        self.assertIn('my-nice-subject', httpretty.last_request().body)
-        self.assertNotIn('_subject', httpretty.last_request().body)
-        self.assertNotIn('_format', httpretty.last_request().body)
-        self.assertNotIn('plain', httpretty.last_request().body)
+        self.assertIn('my-nice-subject', httpretty.last_request().body.decode('utf-8'))
+        self.assertNotIn('_subject', httpretty.last_request().body.decode('utf-8'))
+        self.assertNotIn('_format', httpretty.last_request().body.decode('utf-8'))
+        self.assertNotIn('plain', httpretty.last_request().body.decode('utf-8'))
 
     @httpretty.activate
     def test_fail_form_without_header(self):
@@ -73,7 +73,7 @@ class FormPostsTestCase(FormspreeTestCase):
             headers={'Referer': settings.SERVICE_URL},
             data={'name': 'alice', '_subject': 'my-nice-subject'}
         )
-        self.assertIn("Unable to submit form", r.data)
+        self.assertIn("Unable to submit form", r.data.decode('utf-8'))
         self.assertNotEqual(200, r.status_code)
         self.assertFalse(httpretty.has_request())
         self.assertEqual(0, Form.query.count())
@@ -231,7 +231,7 @@ class FormPostsTestCase(FormspreeTestCase):
             data={'name': 'peter'}
         )
         self.assertEqual(r.status_code, 302)
-        self.assertIn('peter', httpretty.last_request().body)
+        self.assertIn('peter', httpretty.last_request().body.decode('utf-8'))
 
         # second submission
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
@@ -240,7 +240,7 @@ class FormPostsTestCase(FormspreeTestCase):
             data={'name': 'ana'}
         )
         self.assertEqual(r.status_code, 302)
-        self.assertIn('ana', httpretty.last_request().body)
+        self.assertIn('ana', httpretty.last_request().body.decode('utf-8'))
 
         # third submission, now we're over the limit
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
@@ -252,8 +252,8 @@ class FormPostsTestCase(FormspreeTestCase):
                                              # being the form over the limits or not
 
         # but the mocked sendgrid should never receive this last form
-        self.assertNotIn('maria', httpretty.last_request().body)
-        self.assertIn('You+are+past+our+limit', httpretty.last_request().body)
+        self.assertNotIn('maria', httpretty.last_request().body.decode('utf-8'))
+        self.assertIn('You+are+past+our+limit', httpretty.last_request().body.decode('utf-8'))
 
         # all the other variables are ok:
         self.assertEqual(1, Form.query.count())
@@ -279,7 +279,7 @@ class FormPostsTestCase(FormspreeTestCase):
             data={'name': 'noah'}
         )
         self.assertEqual(r.status_code, 302)
-        self.assertIn('noah', httpretty.last_request().body)
+        self.assertIn('noah', httpretty.last_request().body.decode('utf-8'))
 
     @httpretty.activate
     def test_first_submission_is_stored(self):
@@ -295,7 +295,7 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(f.get_monthly_counter(), 0) # monthly submissions also 0
 
         # got a confirmation email
-        self.assertIn('one+step+away', httpretty.last_request().body)
+        self.assertIn('one+step+away', httpretty.last_request().body.decode('utf-8'))
 
         # clicking of activation link
         self.client.get('/confirm/%s' % (f.hash,))
@@ -306,4 +306,4 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(f.get_monthly_counter(), 1) # monthly submissions also
 
         # got the first (missed) submission
-        self.assertIn('this+was+important', httpretty.last_request().body)
+        self.assertIn('this+was+important', httpretty.last_request().body.decode('utf-8'))

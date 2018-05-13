@@ -1,26 +1,14 @@
 import json
-import stripe
 import structlog
 
 from flask import Flask, g, request, redirect
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
-from flask_cdn import CDN
-from flask_redis import Redis
 from flask_limiter import Limiter
 from flask_limiter.util import get_ipaddr
-from celery import Celery
-import settings
 
-DB = SQLAlchemy()
-redis_store = Redis()
-stripe.api_key = settings.STRIPE_SECRET_KEY
-cdn = CDN()
-celery = Celery(__name__, broker=settings.CELERY_BROKER_URL)
-
-import routes
-from users.models import User
-
+from . import routes, settings
+from .stuff import DB, redis_store, cdn, celery
+from .users.models import User
 
 def configure_login(app):
     login_manager = LoginManager()
@@ -62,7 +50,7 @@ def configure_logger(app):
 
         rest = []
         for k, v in event.items():
-            if type(v) is unicode:
+            if type(v) is str:
                 v = v.encode('utf-8', 'ignore')
             rest.append('\x1b[{}m{}\x1b[0m={}'.format(
                 levelcolor,

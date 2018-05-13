@@ -3,9 +3,9 @@ import json
 
 from formspree.forms.models import Form
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 
-from formspree_test_case import FormspreeTestCase
+from .formspree_test_case import FormspreeTestCase
 
 class ContentTypeTestCase(FormspreeTestCase):
 
@@ -24,16 +24,16 @@ class ContentTypeTestCase(FormspreeTestCase):
 
         def isjson(res):
             try:
-                d = json.loads(res.get_data())
+                d = json.loads(res.data.decode('utf-8'))
                 self.assertIsInstance(d, dict)
                 self.assertIn('success', d)
                 self.assertEqual(res.mimetype, 'application/json')
-            except ValueError, e:
+            except ValueError as e:
                 self.assertFalse(e)
 
         def ishtml(res):
             try:
-                d = json.loads(res.get_data())
+                d = json.loads(res.data.decode('utf-8'))
                 self.assertNotIsInstance(d, dict)
             except ValueError:
                 self.assertEqual(res.mimetype, 'text/html')
