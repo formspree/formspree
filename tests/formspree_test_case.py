@@ -2,7 +2,7 @@
 import os
 import redis
 import fakeredis
-import mock
+from unittest.mock import patch
 from flask_testing import TestCase
 
 from formspree import create_app
@@ -16,7 +16,7 @@ rlredis = redis.StrictRedis.from_url(settings.REDIS_RATE_LIMIT)
 
 class FormspreeTestCase(TestCase):
     def create_app(self):
-        self.redis_patcher = mock.patch('flask_redis.RedisClass', new_callable=fakeredis.FakeStrictRedis)
+        self.redis_patcher = patch('flask_redis.RedisClass', new_callable=fakeredis.FakeStrictRedis)
         self.redis_patcher.start()
 
         settings.MONTHLY_SUBMISSIONS_LIMIT = 2
