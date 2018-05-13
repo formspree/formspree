@@ -2,11 +2,12 @@
 import os
 import redis
 import fakeredis
-from flask_testing import TestCase
 import mock
+from flask_testing import TestCase
 
-from formspree import create_app, settings
-from formspree.stuff import DB, redis_store
+from formspree import create_app
+from formspree import settings
+from formspree.app import DB, redis_store
 
 
 # the different redis database only accessed by flask-limiter
@@ -27,6 +28,7 @@ class FormspreeTestCase(TestCase):
         settings.STRIPE_SECRET_KEY = settings.STRIPE_TEST_SECRET_KEY
         settings.PRESERVE_CONTEXT_ON_EXCEPTION = False
         settings.TESTING = True
+
         return create_app()
 
     def setUp(self):

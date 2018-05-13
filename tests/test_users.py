@@ -189,8 +189,11 @@ class UserAccountsTestCase(FormspreeTestCase):
         self.assertIn('ana', httpretty.last_request().body.decode('utf-8')) # no more data is sent to sendgrid
         self.assertIn('__4__', httpretty.last_request().body.decode('utf-8'))
 
+    @httpretty.activate
     def test_form_toggle(self):
-                # create and login a user
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
+        # create and login a user
         r = self.client.post('/register',
             data={'email': 'hello@world.com',
                   'password': 'friend'}
@@ -272,7 +275,10 @@ class UserAccountsTestCase(FormspreeTestCase):
         )
         self.assertEqual(1, Form.query.first().counter)
 
+    @httpretty.activate
     def test_form_and_submission_deletion(self):
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
         # create and login a user
         r = self.client.post('/register',
             data={'email': 'hello@world.com',
@@ -397,6 +403,7 @@ class UserAccountsTestCase(FormspreeTestCase):
             'exp_year':'2026',
             'cvc': '123',
         })['id']
+
         r = self.client.post('/account/upgrade', data={
             'stripeToken': token
         })

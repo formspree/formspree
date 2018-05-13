@@ -109,10 +109,9 @@ class TestFormCreationFromDashboard(FormspreeTestCase):
         DB.session.add(user)
         DB.session.commit()
 
+        # creating a form without providing an url should not send verification email
         httpretty.reset()
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-
-        # create form without providing an url should not send verification email
         r = self.client.post('/forms',
             headers={'Accept': 'application/json', 'Content-type': 'application/json'},
             data=json.dumps({'email': 'email@testsite.com'})

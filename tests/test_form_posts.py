@@ -54,7 +54,6 @@ class FormPostsTestCase(FormspreeTestCase):
     @httpretty.activate
     def test_fail_form_without_header(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        httpretty.reset()
 
         no_referer = http_headers.copy()
         del no_referer['Referer']
@@ -94,6 +93,8 @@ class FormPostsTestCase(FormspreeTestCase):
         DB.session.commit()
 
         httpretty.reset()
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
         r = self.client.post('/carlitos@testwebsite.com',
             headers = {'Referer': 'http://carlitos.net/'},
             data={'name': 'Real Stock', '_gotcha': 'The best offers.'}
@@ -119,6 +120,8 @@ class FormPostsTestCase(FormspreeTestCase):
 
         # fail with an invalid '_replyto'
         httpretty.reset()
+        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+
         r = self.client.post('/carlitos@testwebsite.com',
             headers = {'Referer': 'http://carlitos.net/'},
             data={'name': 'Real Stock', '_replyto': 'The best offers.'}
@@ -128,7 +131,6 @@ class FormPostsTestCase(FormspreeTestCase):
         self.assertEqual(0, Form.query.first().counter)
 
         # fail with an invalid 'email'
-        httpretty.reset()
         r = self.client.post('/carlitos@testwebsite.com',
             headers = {'Referer': 'http://carlitos.net/'},
             data={'name': 'Real Stock', 'email': 'The best offers.'}
@@ -140,7 +142,6 @@ class FormPostsTestCase(FormspreeTestCase):
     @httpretty.activate    
     def test_fail_ajax_form(self):
         httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        httpretty.reset()
 
         ajax_headers = http_headers.copy()
         ajax_headers['X_REQUESTED_WITH'] = 'xmlhttprequest'
