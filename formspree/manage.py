@@ -58,10 +58,5 @@ def test(testname=None, failfast=False):
     test_runner = unittest.TextTestRunner(failfast=failfast)
     test_runner.run(test_suite)
 
-@app.cli.command()
-def celery():
-    celery_args = ['celery', 'worker', '-B', '-s', '/tmp/celery.db', '--concurrency=5']
-    return celery_main(celery_args)
-
 if __name__ == "__main__":
     app.run()

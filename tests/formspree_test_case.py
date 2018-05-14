@@ -7,7 +7,7 @@ from flask_testing import TestCase
 
 from formspree import create_app
 from formspree import settings
-from formspree.app import DB, redis_store
+from formspree.stuff import DB, redis_store
 
 
 # the different redis database only accessed by flask-limiter
