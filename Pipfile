@@ -33,6 +33,7 @@ Flask-Script = "==2.0.5"
 Flask-SQLAlchemy = "==2.1"
 Flask-Testing = "==0.6.1"
 unicodecsv = "==0.14.1"
+pytest = "*"
 
 [pipenv]
 allow_prereleases = true

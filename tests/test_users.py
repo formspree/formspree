@@ -1,6 +1,7 @@
 import httpretty
 import json
 import stripe
+from unittest.mock import patch
 
 from formspree import settings
 from formspree.stuff import DB
@@ -380,7 +381,8 @@ class UserAccountsTestCase(FormspreeTestCase):
         # reset submission limit
         settings.ARCHIVED_SUBMISSIONS_LIMIT = old_submission_limit
 
-    def test_user_upgrade_and_downgrade(self):
+    @patch('formspree.users.models.send_email')
+    def test_user_upgrade_and_downgrade(self, msendemail):
         # check correct usage of stripe test keys during test
         self.assertIn('_test_', settings.STRIPE_PUBLISHABLE_KEY)
         self.assertIn('_test_', settings.STRIPE_SECRET_KEY)
@@ -392,6 +394,7 @@ class UserAccountsTestCase(FormspreeTestCase):
                   'password': 'uva'}
         )
         self.assertEqual(r.status_code, 302)
+        assert msendemail.called
 
         user = User.query.filter_by(email='maria@example.com').first()
         self.assertEqual(user.upgraded, False)

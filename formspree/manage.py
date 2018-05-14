@@ -1,4 +1,5 @@
 import os
+import sys
 import datetime
 import click
 
@@ -43,20 +44,21 @@ def monthly_counters(email=None, host=None, id=None, month=datetime.date.today()
         print('%s submissions for %s' % (nsubmissions, form))
 
 
-@app.cli.command()
-@click.option('-t', '--testname', 'testname', default=None, help='name of test')
-@click.option('-f', '--failfast', is_flag=True, default=False, help='stop on error')
-def test(testname=None, failfast=False):
-    import unittest
+@app.cli.command(context_settings={'ignore_unknown_options': True})
+@click.argument('args', nargs=-1)
+def test(args):
+    argv = list(args)
 
-    test_loader = unittest.defaultTestLoader
-    if testname:
-        test_suite = test_loader.loadTestsFromName(testname)
+    for arg in argv:
+        if not arg.startswith('-'):
+            break
     else:
-        test_suite = test_loader.discover('.')
+        argv.insert(0, 'tests/')
 
-    test_runner = unittest.TextTestRunner(failfast=failfast)
-    test_runner.run(test_suite)
+    import pytest
+    errno = pytest.main(argv)
+    sys.exit(errno)
+
 
 if __name__ == "__main__":
     app.run()
