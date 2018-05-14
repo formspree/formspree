@@ -3,7 +3,6 @@ import sys
 import datetime
 import click
 
-from flask_script import prompt_bool
 from flask_migrate import Migrate
 
 from formspree import app, settings

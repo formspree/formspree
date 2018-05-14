@@ -288,7 +288,7 @@ def downgrade():
 @celery.task()
 def send_downgrade_email(customer_email):
     send_email(to=customer_email,
-               subject='Successfully Downgraded from {} {}'.format(settings.SERVICE_NAME,
+               subject='Successfully downgraded from {} {}'.format(settings.SERVICE_NAME,
                                                                    settings.UPGRADED_PLAN_NAME),
                text=render_template('email/downgraded.txt'),
                html=render_template('email/downgraded.html'),

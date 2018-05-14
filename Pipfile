@@ -4,9 +4,10 @@ name = "pypi"
 url = "https://pypi.org/simple"
 
 [dev-packages]
-fakeredis = { version = "*" }
 httpretty = { version = "*" }
 python-dotenv = { version = "*" }
+pytest = { version = "*" }
+celerytest = {git = "https://github.com/copperleaftech/celerytest", ref = "f0ec85a591c5e0757987f043416dfa95c3dd0b96"}
 
 [requires]
 python_version = "3.6"
@@ -27,13 +28,11 @@ Flask-CDN = "==1.5.3"
 Flask-Cors = "==3.0.2"
 Flask-Limiter = "==0.9.3"
 Flask-Login = "==0.3.0"
-Flask-Migrate = "==2.0.3"
 Flask-Redis = "==0.0.6"
-Flask-Script = "==2.0.5"
 Flask-SQLAlchemy = "==2.1"
 Flask-Testing = "==0.6.1"
 unicodecsv = "==0.14.1"
-pytest = "*"
+flask-migrate = "*"
 
 [pipenv]
 allow_prereleases = true
