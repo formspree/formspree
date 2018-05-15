@@ -5,7 +5,7 @@ import stripe
 from formspree import settings
 from formspree.users.models import User
 
-def test_user_upgrade_and_downgrade(client, msend, worker):
+def test_user_upgrade_and_downgrade(client, msend, mocker):
     # check correct usage of stripe test keys during test
     assert '_test_' in settings.STRIPE_PUBLISHABLE_KEY
     assert '_test_' in settings.STRIPE_SECRET_KEY
@@ -54,6 +54,7 @@ def test_user_upgrade_and_downgrade(client, msend, worker):
     assert customer.subscriptions.data[0].cancel_at_period_end == True
 
     # simulate stripe webhook reporting that the plan has been canceled just now
+    m_senddowngraded = mocker.patch('formspree.users.views.send_downgrade_email.delay')
     customer.subscriptions.data[0].delete()
     # this will send webhooks automatically only for 
     # endpoints registered on the stripe dashboard
@@ -69,11 +70,7 @@ def test_user_upgrade_and_downgrade(client, msend, worker):
 
     user = User.query.filter_by(email='maria@example.com').first()
     assert user.upgraded == False
-
-    worker.idle.wait(10)
-    assert msend.called
-    assert msend.call_args[1]['to'] == 'maria@example.com'
-    assert 'Successfully downgraded' in msend.call_args[1]['subject']
+    assert m_senddowngraded.called
 
     # delete the stripe customer
     customer.delete()

@@ -7,7 +7,7 @@ url = "https://pypi.org/simple"
 httpretty = { version = "*" }
 python-dotenv = { version = "*" }
 pytest = { version = "*" }
-celerytest = {git = "https://github.com/copperleaftech/celerytest", ref = "f0ec85a591c5e0757987f043416dfa95c3dd0b96"}
+pytest-mock = "*"
 
 [requires]
 python_version = "3.6"

@@ -1,23 +1,18 @@
 import os
 import re
+import time
 import pytest
 import redis
 from urllib.parse import unquote
 from unittest.mock import patch, DEFAULT
-from celerytest.worker import CeleryWorkerThread
 
 from formspree import settings
 from formspree.create_app import create_app
 from formspree.stuff import DB, redis_store, celery
 
-w = CeleryWorkerThread(celery)
-w.daemon = True
-w.start()
-w.ready.wait()
-
 @pytest.fixture
 def worker():
-    return w
+    return BurstWorker()
 
 @pytest.fixture
 def msend():
@@ -55,7 +50,7 @@ def client(app):
         DB.session.remove()
         DB.drop_all()
 
-    # redis_store.flushdb()
+    redis_store.flushdb()
 
 def parse_confirmation_link_sent(request_body):
     if type(request_body) != str:

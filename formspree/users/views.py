@@ -7,10 +7,10 @@ from flask_login import login_user, logout_user, \
 from sqlalchemy.exc import IntegrityError
 
 from formspree import settings
-from formspree.stuff import DB, celery
+from formspree.stuff import DB
 from formspree.utils import send_email
 from .models import User, Email
-from .helpers import check_password, hash_pwd
+from .helpers import check_password, hash_pwd, send_downgrade_email
 
 
 def register():
@@ -285,14 +285,6 @@ def downgrade():
     g.log.info('Subscription canceled from dashboard.', account=current_user.email)
     return redirect(url_for('account'))
 
-@celery.task()
-def send_downgrade_email(customer_email):
-    send_email(to=customer_email,
-               subject='Successfully downgraded from {} {}'.format(settings.SERVICE_NAME,
-                                                                   settings.UPGRADED_PLAN_NAME),
-               text=render_template('email/downgraded.txt'),
-               html=render_template('email/downgraded.html'),
-               sender=settings.DEFAULT_SENDER)
 
 def stripe_webhook():
     payload = request.data

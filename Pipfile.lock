@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d0a5a3a82a8fef62cf80b9b8d0711b5fb362236f5c88a9e08bb749b94ab8d292"
+            "sha256": "95cfcbf0c126943643c31cbabfe6003099eeeda2529e09ff7ec65cd7f8ef8384"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -334,10 +334,6 @@
             ],
             "version": "==18.1.0"
         },
-        "celerytest": {
-            "git": "https://github.com/copperleaftech/celerytest",
-            "ref": "f0ec85a591c5e0757987f043416dfa95c3dd0b96"
-        },
         "httpretty": {
             "hashes": [
                 "sha256:69259e22addf5ab5f25bd00c6568e16fc2e54efdd4da69eb0950718dba3b2dab"
@@ -375,6 +371,14 @@
             ],
             "index": "pypi",
             "version": "==3.5.1"
+        },
+        "pytest-mock": {
+            "hashes": [
+                "sha256:53801e621223d34724926a5c98bd90e8e417ce35264365d39d6c896388dcc928",
+                "sha256:d89a8209d722b8307b5e351496830d5cc5e192336003a485443ae9adeb7dd4c0"
+            ],
+            "index": "pypi",
+            "version": "==1.10.0"
         },
         "python-dotenv": {
             "hashes": [
