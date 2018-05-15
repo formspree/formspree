@@ -52,14 +52,10 @@ def client(app):
 
     redis_store.flushdb()
 
-def parse_confirmation_link_sent(request_body):
-    if type(request_body) != str:
-        request_body = request_body.decode('utf-8')
-
-    request_body = unquote(request_body)
-    matchlink = re.search('Link:\+([^?]+)\?(\S+)', request_body)
+def parse_confirmation_link_sent(email_text):
+    matchlink = re.search('Link: ([^?]+)\?(\S+)', email_text)
     if not matchlink:
-        raise ValueError('No link found in email body:', request_body)
+        raise ValueError('No link found in email body:', email_text)
 
     link = matchlink.group(1)
     qs = matchlink.group(2)

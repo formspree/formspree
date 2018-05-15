@@ -4,6 +4,7 @@ import hashlib
 import datetime
 
 from flask import url_for, render_template, g
+from sqlalchemy.sql import table
 from sqlalchemy.sql.expression import delete
 from sqlalchemy import func
 from werkzeug.datastructures import ImmutableMultiDict, \
@@ -186,7 +187,7 @@ class Form(DB.Model):
             if total_records > records_to_keep:
                 newest = self.submissions.with_entities(Submission.id).limit(records_to_keep)
                 DB.engine.execute(
-                  delete('submissions'). \
+                  delete(table('submissions')). \
                   where(Submission.form_id == self.id). \
                   where(~Submission.id.in_(newest))
                 )
