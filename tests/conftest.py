@@ -24,6 +24,7 @@ def msend():
         with \
               patch('formspree.users.models.send_email', side_effect=side_effect), \
               patch('formspree.users.views.send_email', side_effect=side_effect), \
+              patch('formspree.users.helpers.send_email', side_effect=side_effect), \
               patch('formspree.forms.models.send_email', side_effect=side_effect):
             yield msend
 
