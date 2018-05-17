@@ -108,6 +108,7 @@ def create_app():
     app.config['CDN_HTTPS'] = True
     cdn.init_app(app)
 
+    celery.conf.update(app.config)
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
             with app.app_context():
