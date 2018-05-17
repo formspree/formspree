@@ -4,7 +4,6 @@ name = "pypi"
 url = "https://pypi.org/simple"
 
 [dev-packages]
-httpretty = { version = "*" }
 python-dotenv = { version = "*" }
 pytest = { version = "*" }
 pytest-mock = "*"

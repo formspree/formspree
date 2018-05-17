@@ -46,7 +46,10 @@ def client(app):
 
     with app.app_context():
         DB.create_all()
-        yield app.test_client()
+
+        with app.test_request_context():
+            yield app.test_client()
+
         DB.session.remove()
         DB.drop_all()
 

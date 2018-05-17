@@ -148,7 +148,7 @@ def get_temp_hostname(nonce):
     if value is None:
         raise KeyError("no temp_hostname stored.")
     redis_store.delete(key)
-    values = value.split(',')
+    values = value.decode('utf-8').split(',')
     if len(values) != 2:
         raise ValueError("temp_hostname value is invalid: " + value)
     else:
@@ -165,7 +165,7 @@ def fetch_first_submission(nonce):
     key = REDIS_FIRSTSUBMISSION_KEY(nonce=nonce)
     jsondata = redis_store.get(key)
     try:
-        return json.loads(jsondata)
+        return json.loads(jsondata.decode('utf-8'))
     except:
         return None
 
