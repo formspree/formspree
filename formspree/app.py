@@ -1,7 +1,6 @@
 import json
 import stripe
 import structlog
-
 from flask import Flask, g, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
@@ -9,7 +8,9 @@ from flask_cdn import CDN
 from flask_redis import Redis
 from flask_limiter import Limiter
 from flask_limiter.util import get_ipaddr
+
 import settings
+import static_pages
 
 DB = SQLAlchemy()
 redis_store = Redis()
@@ -119,7 +120,8 @@ def create_app():
     cdn.init_app(app)
 
     if not app.debug and not app.testing:
-        configure_ssl_redirect(app)
+        # configure_ssl_redirect(app)
+        pass
 
     Limiter(
         app,
@@ -127,5 +129,7 @@ def create_app():
         global_limits=[settings.RATE_LIMIT],
         storage_uri=settings.REDIS_RATE_LIMIT
     )
+
+    app.register_error_handler(500, static_pages.views.internal_error)
 
     return app

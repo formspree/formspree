@@ -1,3 +1,5 @@
+import sys
+import traceback
 from flask import request, render_template, g, \
                   redirect, url_for
 from jinja2 import TemplateNotFound
@@ -13,9 +15,11 @@ def default(template='index'):
 
 
 def internal_error(e):
-    import traceback
-    g.log.error(traceback.format_exc())
-    return render_template('static_pages/500.html'), 500
+    g.log.error(e)
+    exc = traceback.format_exception(sys.exc_type, sys.exc_value,
+                                     sys.exc_traceback)
+    return render_template('static_pages/500.html',
+                           exception=''.join(exc)), 500
 
 
 def favicon():
