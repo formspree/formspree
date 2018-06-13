@@ -287,7 +287,7 @@ def downgrade():
 
 
 def stripe_webhook():
-    payload = request.data
+    payload = request.data.decode('utf-8')
     g.log.info('Received webhook from Stripe')
 
     sig_header = request.headers.get('STRIPE_SIGNATURE')
