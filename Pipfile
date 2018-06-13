@@ -12,7 +12,7 @@ pytest-mock = "*"
 python_version = "3.6"
 
 [packages]
-celery = "==4.1.0"
+celery = "==4.2.0"
 gunicorn = "==19.6.0"
 hashids = "==1.2.0"
 psycopg2 = "==2.7.4"
