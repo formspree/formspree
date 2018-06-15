@@ -5,11 +5,12 @@ from flask import request, flash, url_for, render_template, redirect, g
 from flask_login import login_user, logout_user, \
                             current_user, login_required
 from sqlalchemy.exc import IntegrityError
-from helpers import check_password, hash_pwd
-from formspree.app import DB
+
 from formspree import settings
-from models import User, Email
+from formspree.stuff import DB
 from formspree.utils import send_email
+from .models import User, Email
+from .helpers import check_password, hash_pwd, send_downgrade_email
 
 
 def register():
@@ -286,7 +287,7 @@ def downgrade():
 
 
 def stripe_webhook():
-    payload = request.data
+    payload = request.data.decode('utf-8')
     g.log.info('Received webhook from Stripe')
 
     sig_header = request.headers.get('STRIPE_SIGNATURE')
@@ -307,12 +308,7 @@ def stripe_webhook():
                 DB.session.add(user)
                 DB.session.commit()
                 g.log.info('Downgraded user from webhook.', account=user.email)
-                send_email(to=customer.email,
-                           subject='Successfully Downgraded from {} {}'.format(settings.SERVICE_NAME,
-                                                                               settings.UPGRADED_PLAN_NAME),
-                           text=render_template('email/downgraded.txt'),
-                           html=render_template('email/downgraded.html'),
-                           sender=settings.DEFAULT_SENDER)
+                send_downgrade_email.delay(user.email)
         elif event['type'] == 'invoice.payment_failed':  # User payment failed
             customer_id = event['data']['object']['customer']
             customer = stripe.Customer.retrieve(customer_id)
@@ -333,7 +329,6 @@ def stripe_webhook():
     except Exception as e:
         g.log.error('Webhook failed for unknown reason', json=event, error=e)
         return '', 500
-
 
 
 @login_required

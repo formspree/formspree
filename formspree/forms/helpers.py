@@ -1,15 +1,14 @@
 import werkzeug.datastructures
-import urlparse
 import requests
 import hashlib
 import hashids
 import uuid
 import json
-from urlparse import urljoin
+from urllib.parse import urljoin, urlparse
 from flask import request, g
 
 from formspree import settings
-from formspree.app import redis_store, DB
+from formspree.stuff import redis_store, DB
 from flask import jsonify
 from flask_login import current_user
 
@@ -44,7 +43,7 @@ def ordered_storage(f):
 def referrer_to_path(r):
     if not r:
         return ''
-    parsed = urlparse.urlparse(r)
+    parsed = urlparse(r)
     n = parsed.netloc + parsed.path
     return n
 
@@ -52,7 +51,7 @@ def referrer_to_path(r):
 def referrer_to_baseurl(r):
     if not r:
         return ''
-    parsed = urlparse.urlparse(r)
+    parsed = urlparse(r)
     n = parsed.netloc
     return n
 
@@ -66,7 +65,7 @@ def http_form_to_dict(data):
     ret = {}
     ordered_keys = []
 
-    for elem in data.iteritems(multi=True):
+    for elem in data.items(multi=True):
         if not elem[0] in ret.keys():
             ret[elem[0]] = []
             ordered_keys.append(elem[0])
@@ -149,7 +148,7 @@ def get_temp_hostname(nonce):
     if value is None:
         raise KeyError("no temp_hostname stored.")
     redis_store.delete(key)
-    values = value.split(',')
+    values = value.decode('utf-8').split(',')
     if len(values) != 2:
         raise ValueError("temp_hostname value is invalid: " + value)
     else:
@@ -166,7 +165,7 @@ def fetch_first_submission(nonce):
     key = REDIS_FIRSTSUBMISSION_KEY(nonce=nonce)
     jsondata = redis_store.get(key)
     try:
-        return json.loads(jsondata)
+        return json.loads(jsondata.decode('utf-8'))
     except:
         return None
 

@@ -1,24 +1,14 @@
 import json
-import stripe
 import structlog
 
 from flask import Flask, g, request, redirect
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
-from flask_cdn import CDN
-from flask_redis import Redis
 from flask_limiter import Limiter
 from flask_limiter.util import get_ipaddr
-import settings
 
-DB = SQLAlchemy()
-redis_store = Redis()
-stripe.api_key = settings.STRIPE_SECRET_KEY
-cdn = CDN()
-
-import routes
-from users.models import User
-
+from . import routes, settings
+from .stuff import DB, redis_store, cdn, celery
+from .users.models import User
 
 def configure_login(app):
     login_manager = LoginManager()
@@ -60,7 +50,7 @@ def configure_logger(app):
 
         rest = []
         for k, v in event.items():
-            if type(v) is unicode:
+            if type(v) is str:
                 v = v.encode('utf-8', 'ignore')
             rest.append('\x1b[{}m{}\x1b[0m={}'.format(
                 levelcolor,
@@ -117,6 +107,15 @@ def create_app():
     app.config['CDN_DOMAIN'] = settings.CDN_URL
     app.config['CDN_HTTPS'] = True
     cdn.init_app(app)
+
+    celery.conf.update(app.config)
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                with app.test_request_context(base_url=app.config['SERVICE_URL']):
+                    g.log = structlog.get_logger().new()
+                    return self.run(*args, **kwargs)
+    celery.Task = ContextTask
 
     if not app.debug and not app.testing:
         configure_ssl_redirect(app)

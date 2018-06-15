@@ -1,0 +1,37 @@
+[[source]]
+verify_ssl = true
+name = "pypi"
+url = "https://pypi.org/simple"
+
+[dev-packages]
+python-dotenv = { version = "*" }
+pytest = { version = "*" }
+pytest-mock = "*"
+
+[requires]
+python_version = "3.6"
+
+[packages]
+celery = "==4.2.0"
+gunicorn = "==19.6.0"
+hashids = "==1.2.0"
+psycopg2 = "==2.7.4"
+redis = "==2.10.5"
+requests = "==2.1.0"
+stripe = "==1.55.0"
+structlog = "==16.1.0"
+pyaml = "==17.12.1"
+SQLAlchemy = "==1.0.13"
+Flask = "==1"
+Flask-CDN = "==1.5.3"
+Flask-Cors = "==3.0.2"
+Flask-Limiter = "==0.9.3"
+Flask-Login = "==0.3.0"
+Flask-Redis = "==0.0.6"
+Flask-SQLAlchemy = "==2.1"
+Flask-Testing = "==0.6.1"
+unicodecsv = "==0.14.1"
+flask-migrate = "*"
+
+[pipenv]
+allow_prereleases = true

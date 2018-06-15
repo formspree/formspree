@@ -1,52 +1,36 @@
-import httpretty
-import urllib2
-import json
-import re
+from urllib.parse import unquote
 
 from formspree.forms.models import Form
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 
-from formspree_test_case import FormspreeTestCase
+def test_list_unsubscribe(client, msend):
+    r = client.post('/bob@testwebsite.com',
+        headers = {'Referer': 'http://testwebsite.com'},
+        data={'name': 'bob'}
+    )
+    f = Form.query.first()
 
-class ListUnsubscribeTestCase(FormspreeTestCase):
-    @httpretty.activate
-    def test_list_unsubscribe(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    # List-Unsubscribe header is sent (it is surrounded by brackets <>)
+    list_unsubscribe_url = msend.call_args[1]['headers']['List-Unsubscribe'][1:-1]
 
-        r = self.client.post('/bob@testwebsite.com',
-            headers = {'Referer': 'http://testwebsite.com'},
-            data={'name': 'bob'}
-        )
-        f = Form.query.first()
+    f.confirmed = True
+    DB.session.add(f)
+    DB.session.commit()
 
-        # List-Unsubscribe is present on confirmation email
-        body = urllib2.unquote(httpretty.last_request().body)
-        res = re.search('"List-Unsubscribe":[^"]*"<([^>]+)>"', body)
-        self.assertTrue(res is not None)
-        list_unsubscribe_url = res.group(1)
+    r = client.post('/bob@testwebsite.com',
+        headers = {'Referer': 'http://testwebsite.com'},
+        data={'name': 'carol'}
+    )
 
-        f.confirmed = True
-        DB.session.add(f)
-        DB.session.commit()
+    assert r.status_code == 302
 
-        r = self.client.post('/bob@testwebsite.com',
-            headers = {'Referer': 'http://testwebsite.com'},
-            data={'name': 'carol'}
-        )
+    # List-Unsubscribe is present on normal submission
+    assert msend.call_args[1]['headers']['List-Unsubscribe'][1:-1] == list_unsubscribe_url
 
-        self.assertEqual(r.status_code, 302)
+    r = client.post(list_unsubscribe_url)
+    assert r.status_code == 200
 
-        # List-Unsubscribe is present on normal submission
-        body = urllib2.unquote(httpretty.last_request().body)
-        res = re.search('"List-Unsubscribe":[^"]*"<([^>]+)>"', body)
-        self.assertTrue(res is not None)
-        url = res.group(1)
-        self.assertEqual(url, list_unsubscribe_url)
-
-        r = self.client.post(url)
-        self.assert200(r)
-
-        f = Form.query.first()
-        self.assertEqual(f.confirm_sent, True)
-        self.assertEqual(f.confirmed, False)
+    f = Form.query.first()
+    assert f.confirm_sent == True
+    assert f.confirmed == False

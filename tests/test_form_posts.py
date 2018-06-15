@@ -1,309 +1,278 @@
-import httpretty
-
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.forms.models import Form
 from formspree.users.models import User, Email
-
-from formspree_test_case import FormspreeTestCase
 
 http_headers = {
     'Referer': 'testwebsite.com'
 }
 
-class FormPostsTestCase(FormspreeTestCase):
+def test_index_page(client):
+    r = client.get('/')
+    assert 200 == r.status_code
 
-    def test_index_page(self):
-        r = self.client.get('/')
-        self.assertEqual(200, r.status_code)
+def test_thanks_page(client):
+    r = client.get('/thanks')
+    assert r.status_code == 200
 
-    def test_thanks_page(self):
-        r = self.client.get('/thanks')
-        self.assert200(r)
+    # test XSS
+    r = client.get('/thanks?next=javascript:alert(document.domain)')
+    assert r.status_code == 400
 
-        # test XSS
-        r = self.client.get('/thanks?next=javascript:alert(document.domain)')
-        self.assert400(r)
+    r = client.get('/thanks?next=https%3A%2F%2Fformspree.io')
+    assert r.status_code == 200
 
-        r = self.client.get('/thanks?next=https%3A%2F%2Fformspree.io')
-        self.assert200(r)
+def test_submit_form(client, msend):
+    client.post('/alice@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'alice', '_subject': 'my-nice-subject'}
+    )
+    assert 1 == Form.query.count()
+    f = Form.query.first()
+    f.confirmed = True
 
-    @httpretty.activate
-    def test_submit_form(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        self.client.post('/alice@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'alice', '_subject': 'my-nice-subject'}
-        )
-        self.assertEqual(1, Form.query.count())
-        f = Form.query.first()
-        f.confirmed = True
+    client.post('/alice@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'alice',
+              '_subject': 'my-nice-subject',
+              '_format': 'plain'}
+    )
+    assert 'my-nice-subject' in msend.call_args[1]['subject']
+    assert '_subject' not in msend.call_args[1]['text']
+    assert '_format' not in msend.call_args[1]['text']
+    assert 'plain' not in msend.call_args[1]['text']
 
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        self.client.post('/alice@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'alice',
-                  '_subject': 'my-nice-subject',
-                  '_format': 'plain'}
-        )
-        self.assertIn('my-nice-subject', httpretty.last_request().body)
-        self.assertNotIn('_subject', httpretty.last_request().body)
-        self.assertNotIn('_format', httpretty.last_request().body)
-        self.assertNotIn('plain', httpretty.last_request().body)
+def test_fail_form_without_header(client, msend):
+    msend.reset_mock()
+    no_referer = http_headers.copy()
+    del no_referer['Referer']
+    r = client.post('/bob@testwebsite.com',
+        headers = no_referer,
+        data={'name': 'bob'}
+    )
+    assert 200 != r.status_code
+    assert not msend.called
+    assert 0 == Form.query.count()
 
-    @httpretty.activate
-    def test_fail_form_without_header(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        httpretty.reset()
+def test_fail_form_spoof_formspree(client, msend):
+    msend.reset_mock()
+    r = client.post('/alice@testwebsite.com',
+        headers={'Referer': settings.SERVICE_URL},
+        data={'name': 'alice', '_subject': 'my-nice-subject'}
+    )
+    assert "Unable to submit form" in r.data.decode('utf-8')
+    assert 200 != r.status_code
+    assert not msend.called
+    assert 0 == Form.query.count()
 
-        no_referer = http_headers.copy()
-        del no_referer['Referer']
-        r = self.client.post('/bob@testwebsite.com',
-            headers = no_referer,
-            data={'name': 'bob'}
-        )
-        self.assertNotEqual(200, r.status_code)
-        self.assertFalse(httpretty.has_request())
-        self.assertEqual(0, Form.query.count())
+def test_fail_but_appears_to_have_succeeded_with_gotcha(client, msend):
+    # manually confirm
+    r = client.post('/carlitos@testwebsite.com',
+        headers = {'Referer': 'http://carlitos.net/'},
+        data={'name': 'carlitos'}
+    )
+    f = Form.query.first()
+    f.confirm_sent = True
+    f.confirmed = True
+    DB.session.add(f)
+    DB.session.commit()
 
-    @httpretty.activate
-    def test_fail_form_spoof_formspree(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = self.client.post('/alice@testwebsite.com',
-            headers={'Referer': settings.SERVICE_URL},
-            data={'name': 'alice', '_subject': 'my-nice-subject'}
-        )
-        self.assertIn("Unable to submit form", r.data)
-        self.assertNotEqual(200, r.status_code)
-        self.assertFalse(httpretty.has_request())
-        self.assertEqual(0, Form.query.count())
+    msend.reset_mock()
 
-    @httpretty.activate
-    def test_fail_but_appears_to_have_succeeded_with_gotcha(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    r = client.post('/carlitos@testwebsite.com',
+        headers = {'Referer': 'http://carlitos.net/'},
+        data={'name': 'Real Stock', '_gotcha': 'The best offers.'}
+    )
+    assert not msend.called
+    assert 302 == r.status_code
+    assert 0 == Form.query.first().counter
 
-        # manually confirm
-        r = self.client.post('/carlitos@testwebsite.com',
-            headers = {'Referer': 'http://carlitos.net/'},
-            data={'name': 'carlitos'}
-        )
-        f = Form.query.first()
-        f.confirm_sent = True
-        f.confirmed = True
-        DB.session.add(f)
-        DB.session.commit()
+def test_fail_with_invalid_reply_to(client, msend):
+    # manually confirm
+    r = client.post('/carlitos@testwebsite.com',
+        headers = {'Referer': 'http://carlitos.net/'},
+        data={'name': 'carlitos'}
+    )
+    f = Form.query.first()
+    f.confirm_sent = True
+    f.confirmed = True
+    DB.session.add(f)
+    DB.session.commit()
 
-        httpretty.reset()
-        r = self.client.post('/carlitos@testwebsite.com',
-            headers = {'Referer': 'http://carlitos.net/'},
-            data={'name': 'Real Stock', '_gotcha': 'The best offers.'}
-        )
-        self.assertEqual(False, httpretty.has_request())
-        self.assertEqual(302, r.status_code)
-        self.assertEqual(0, Form.query.first().counter)
+    # fail with an invalid '_replyto'
+    msend.reset_mock()
 
-    @httpretty.activate
-    def test_fail_with_invalid_reply_to(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    r = client.post('/carlitos@testwebsite.com',
+        headers = {'Referer': 'http://carlitos.net/'},
+        data={'name': 'Real Stock', '_replyto': 'The best offers.'}
+    )
+    assert not msend.called
+    assert 400 == r.status_code
+    assert 0 == Form.query.first().counter
 
-        # manually confirm
-        r = self.client.post('/carlitos@testwebsite.com',
-            headers = {'Referer': 'http://carlitos.net/'},
-            data={'name': 'carlitos'}
-        )
-        f = Form.query.first()
-        f.confirm_sent = True
-        f.confirmed = True
-        DB.session.add(f)
-        DB.session.commit()
+    # fail with an invalid 'email'
+    r = client.post('/carlitos@testwebsite.com',
+        headers = {'Referer': 'http://carlitos.net/'},
+        data={'name': 'Real Stock', 'email': 'The best offers.'}
+    )
+    assert not msend.called
+    assert 400 == r.status_code
+    assert 0 == Form.query.first().counter
 
-        # fail with an invalid '_replyto'
-        httpretty.reset()
-        r = self.client.post('/carlitos@testwebsite.com',
-            headers = {'Referer': 'http://carlitos.net/'},
-            data={'name': 'Real Stock', '_replyto': 'The best offers.'}
-        )
-        self.assertEqual(False, httpretty.has_request())
-        self.assertEqual(400, r.status_code)
-        self.assertEqual(0, Form.query.first().counter)
+def test_fail_ajax_form(client, msend):
+    msend.reset_mock()
 
-        # fail with an invalid 'email'
-        httpretty.reset()
-        r = self.client.post('/carlitos@testwebsite.com',
-            headers = {'Referer': 'http://carlitos.net/'},
-            data={'name': 'Real Stock', 'email': 'The best offers.'}
-        )
-        self.assertEqual(False, httpretty.has_request())
-        self.assertEqual(400, r.status_code)
-        self.assertEqual(0, Form.query.first().counter)
+    ajax_headers = http_headers.copy()
+    ajax_headers['X_REQUESTED_WITH'] = 'xmlhttprequest'
+    r = client.post('/bob@example.com',
+        headers = ajax_headers,
+        data={'name': 'bob'}
+    )
+    assert not msend.called
+    assert 200 != r.status_code
 
-    @httpretty.activate    
-    def test_fail_ajax_form(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        httpretty.reset()
+def test_activation_workflow(client, msend):
+    r = client.post('/bob@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'bob'}
+    )
+    f = Form.query.first()
+    assert f.email == 'bob@testwebsite.com'
+    assert f.host == 'testwebsite.com'
+    assert f.confirm_sent == True
+    assert f.counter == 0 # the counter shows zero submissions
+    assert f.owner_id == None
+    assert f.get_monthly_counter() == 0 # monthly submissions also 0
 
-        ajax_headers = http_headers.copy()
-        ajax_headers['X_REQUESTED_WITH'] = 'xmlhttprequest'
-        r = self.client.post('/bob@example.com',
-            headers = ajax_headers,
-            data={'name': 'bob'}
-        )
-        self.assertEqual(False, httpretty.has_request())
-        self.assertNotEqual(200, r.status_code)
+    # form has another submission, number of forms in the table should increase?
+    r = client.post('/bob@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'bob'}
+    )
+    number_of_forms = Form.query.count()
+    assert number_of_forms == 1 # still only one form
 
-    @httpretty.activate    
-    def test_activation_workflow(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = self.client.post('/bob@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'bob'}
-        )
-        f = Form.query.first()
-        self.assertEqual(f.email, 'bob@testwebsite.com')
-        self.assertEqual(f.host, 'testwebsite.com')
-        self.assertEqual(f.confirm_sent, True)
-        self.assertEqual(f.counter, 0) # the counter shows zero submissions
-        self.assertEqual(f.owner_id, None)
-        self.assertEqual(f.get_monthly_counter(), 0) # monthly submissions also 0
+    # assert form data is still the same
+    f = Form.query.first()
+    assert f.email == 'bob@testwebsite.com'
+    assert f.host == 'testwebsite.com'
+    assert f.confirm_sent == True
+    assert f.counter == 0 # still zero submissions
+    assert f.owner_id == None
 
-        # form has another submission, number of forms in the table should increase?
-        r = self.client.post('/bob@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'bob'}
-        )
-        number_of_forms = Form.query.count()
-        self.assertEqual(number_of_forms, 1) # still only one form
+    # test clicking of activation link
+    r = client.get('/confirm/%s' % (f.hash,))
 
-        # assert form data is still the same
-        f = Form.query.first()
-        self.assertEqual(f.email, 'bob@testwebsite.com')
-        self.assertEqual(f.host, 'testwebsite.com')
-        self.assertEqual(f.confirm_sent, True)
-        self.assertEqual(f.counter, 0) # still zero submissions
-        self.assertEqual(f.owner_id, None)
+    f = Form.query.first()
+    assert f.confirmed == True
+    assert f.counter == 1 # counter has increased
+    assert f.get_monthly_counter() == 1 # monthly submissions also
 
-        # test clicking of activation link
-        self.client.get('/confirm/%s' % (f.hash,))
+    # a third submission should now increase the counter
+    r = client.post('/bob@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'bob'}
+    )
+    number_of_forms = Form.query.count()
+    assert number_of_forms == 1 # still only one form
 
-        f = Form.query.first()
-        self.assertEqual(f.confirmed, True)
-        self.assertEqual(f.counter, 1) # counter has increased
-        self.assertEqual(f.get_monthly_counter(), 1) # monthly submissions also
+    f = Form.query.first()
+    assert f.email == 'bob@testwebsite.com'
+    assert f.host == 'testwebsite.com'
+    assert f.confirm_sent == True
+    assert f.owner_id == None
+    assert f.counter == 2 # counter has increased
+    assert f.get_monthly_counter() == 2 # monthly submissions also
 
-        # a third submission should now increase the counter
-        r = self.client.post('/bob@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'bob'}
-        )
-        number_of_forms = Form.query.count()
-        self.assertEqual(number_of_forms, 1) # still only one form
+def test_monthly_limits(client, msend):
+    # monthly limit is set to 2 during tests
+    assert settings.MONTHLY_SUBMISSIONS_LIMIT == 2
 
-        f = Form.query.first()
-        self.assertEqual(f.email, 'bob@testwebsite.com')
-        self.assertEqual(f.host, 'testwebsite.com')
-        self.assertEqual(f.confirm_sent, True)
-        self.assertEqual(f.owner_id, None)
-        self.assertEqual(f.counter, 2) # counter has increased
-        self.assertEqual(f.get_monthly_counter(), 2) # monthly submissions also
+    # manually verify luke@example.com
+    r = client.post('/luke@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'luke'}
+    )
+    f = Form.query.first()
+    f.confirm_sent = True
+    f.confirmed = True
+    DB.session.add(f)
+    DB.session.commit()
 
-    @httpretty.activate
-    def test_monthly_limits(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    # first submission
+    r = client.post('/luke@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'peter'}
+    )
+    assert r.status_code == 302
+    assert 'peter' in msend.call_args[1]['text']
 
-        # monthly limit is set to 2 during tests
-        self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
+    # second submission
+    r = client.post('/luke@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'ana'}
+    )
+    assert r.status_code == 302
+    assert 'ana' in msend.call_args[1]['text']
 
-        # manually verify luke@example.com
-        r = self.client.post('/luke@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'luke'}
-        )
-        f = Form.query.first()
-        f.confirm_sent = True
-        f.confirmed = True
-        DB.session.add(f)
-        DB.session.commit()
+    # third submission, now we're over the limit
+    r = client.post('/luke@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'maria'}
+    )
+    assert r.status_code == 302 # the response to the user is the same
+                                         # being the form over the limits or not
 
-        # first submission
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = self.client.post('/luke@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'peter'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('peter', httpretty.last_request().body)
+    # but the mocked sendgrid should never receive this last form
+    assert 'maria' not in msend.call_args[1]['text']
+    assert 'You are past our limit' in msend.call_args[1]['text']
 
-        # second submission
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = self.client.post('/luke@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'ana'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('ana', httpretty.last_request().body)
+    # all the other variables are ok:
+    assert 1 == Form.query.count()
+    f = Form.query.first()
+    assert f.counter == 3
+    assert f.get_monthly_counter() == 3 # the counters mark 4
 
-        # third submission, now we're over the limit
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = self.client.post('/luke@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'maria'}
-        )
-        self.assertEqual(r.status_code, 302) # the response to the user is the same
-                                             # being the form over the limits or not
+    # the user pays and becomes upgraded
+    r = client.post('/register',
+        data={'email': 'luke@testwebsite.com',
+              'password': 'banana'}
+    )
+    user = User.query.filter_by(email='luke@testwebsite.com').first()
+    user.upgraded = True
+    user.emails = [Email(address='luke@testwebsite.com')]
+    DB.session.add(user)
+    DB.session.commit()
 
-        # but the mocked sendgrid should never receive this last form
-        self.assertNotIn('maria', httpretty.last_request().body)
-        self.assertIn('You+are+past+our+limit', httpretty.last_request().body)
+    # the user should receive form posts again
+    r = client.post('/luke@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'noah'}
+    )
+    assert r.status_code == 302
+    assert 'noah' in msend.call_args[1]['text']
 
-        # all the other variables are ok:
-        self.assertEqual(1, Form.query.count())
-        f = Form.query.first()
-        self.assertEqual(f.counter, 3)
-        self.assertEqual(f.get_monthly_counter(), 3) # the counters mark 4
+def test_first_submission_is_stored(client, msend):
+    r = client.post('/what@firstsubmissed.com',
+        headers=http_headers,
+        data={'missed': 'this was important'}
+    )
+    f = Form.query.first()
+    assert f.email == 'what@firstsubmissed.com'
+    assert f.confirm_sent == True
+    assert f.counter == 0 # the counter shows zero submissions
+    assert f.get_monthly_counter() == 0 # monthly submissions also 0
 
-        # the user pays and becomes upgraded
-        r = self.client.post('/register',
-            data={'email': 'luke@testwebsite.com',
-                  'password': 'banana'}
-        )
-        user = User.query.filter_by(email='luke@testwebsite.com').first()
-        user.upgraded = True
-        user.emails = [Email(address='luke@testwebsite.com')]
-        DB.session.add(user)
-        DB.session.commit()
+    # got a confirmation email
+    assert 'one step away' in msend.call_args[1]['text']
 
-        # the user should receive form posts again
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = self.client.post('/luke@testwebsite.com',
-            headers=http_headers,
-            data={'name': 'noah'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('noah', httpretty.last_request().body)
+    # clicking of activation link
+    client.get('/confirm/%s' % (f.hash,))
 
-    @httpretty.activate
-    def test_first_submission_is_stored(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
-        r = self.client.post('/what@firstsubmissed.com',
-            headers=http_headers,
-            data={'missed': 'this was important'}
-        )
-        f = Form.query.first()
-        self.assertEqual(f.email, 'what@firstsubmissed.com')
-        self.assertEqual(f.confirm_sent, True)
-        self.assertEqual(f.counter, 0) # the counter shows zero submissions
-        self.assertEqual(f.get_monthly_counter(), 0) # monthly submissions also 0
+    f = Form.query.first()
+    assert f.confirmed == True
+    assert f.counter == 1 # counter has increased
+    assert f.get_monthly_counter() == 1 # monthly submissions also
 
-        # got a confirmation email
-        self.assertIn('one+step+away', httpretty.last_request().body)
-
-        # clicking of activation link
-        self.client.get('/confirm/%s' % (f.hash,))
-
-        f = Form.query.first()
-        self.assertEqual(f.confirmed, True)
-        self.assertEqual(f.counter, 1) # counter has increased
-        self.assertEqual(f.get_monthly_counter(), 1) # monthly submissions also
-
-        # got the first (missed) submission
-        self.assertIn('this+was+important', httpretty.last_request().body)
+    # got the first (missed) submission
+    assert 'this was important' in msend.call_args[1]['text']

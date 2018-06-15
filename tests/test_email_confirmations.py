@@ -1,148 +1,136 @@
-# encoding: utf-8
-
-import httpretty
 import json
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.users.models import User, Email
 from formspree.forms.models import Form
 
-from formspree_test_case import FormspreeTestCase
-from utils import parse_confirmation_link_sent
+from .conftest import parse_confirmation_link_sent
 
-class EmailConfirmationsTestCase(FormspreeTestCase):
+def test_user_registers_and_adds_emails(client, msend):
+    # register
+    r = client.post('/register',
+        data={'email': 'alice@springs.com',
+              'password': 'canada'}
+    )
+    assert r.status_code == 302
+    assert r.location.endswith('/account')
+    assert 1 == User.query.count()
 
-    @httpretty.activate
-    def test_user_registers_and_adds_emails(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    # add more emails
+    user = User.query.filter_by(email='alice@springs.com').first()
+    emails = ['alice@example.com', 'team@alice.com', 'extra@email.io']
+    for i, addr in enumerate(emails):
+        client.post('/account/add-email', data={'address': addr})
 
-        # register
-        r = self.client.post('/register',
-            data={'email': 'alice@springs.com',
-                  'password': 'canada'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.location.endswith('/account'))
-        self.assertEqual(1, User.query.count())
+        link, qs = parse_confirmation_link_sent(msend.call_args[1]['text'])
+        client.get(link, query_string=qs)
 
-        # add more emails
-        user = User.query.filter_by(email='alice@springs.com').first()
-        emails = ['alice@example.com', 'team@alice.com', 'extra@email.io']
-        for i, addr in enumerate(emails):
-            self.client.post('/account/add-email', data={'address': addr})
+        email = Email.query.get([addr, user.id])
+        assert Email.query.count() == i+1 # do not count alice@springs.com
+        assert email is not None
+        assert email.owner_id == user.id
 
-            link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
-            self.client.get(link, query_string=qs)
+def test_user_gets_previous_forms_assigned_to_him(client, msend):
+    # verify a form for márkö@example.com
+    client.post(u'/márkö@example.com',
+        headers = {'Referer': 'tomatoes.com'},
+        data={'name': 'alice'}
+    )
+    f = Form.query.filter_by(host='tomatoes.com', email=u'márkö@example.com').first()
+    f.confirm_sent = True
+    f.confirmed = True
+    DB.session.add(f)
+    DB.session.commit()
 
-            email = Email.query.get([addr, user.id])
-            self.assertEqual(Email.query.count(), i+1) # do not count alice@springs.com
-            self.assertIsNotNone(email)
-            self.assertEqual(email.owner_id, user.id)
+    # register márkö@example.com
+    r = client.post('/register',
+        data={'email': u'márkö@example.com',
+              'password': 'russia'}
+    )
 
-    @httpretty.activate
-    def test_user_gets_previous_forms_assigned_to_him(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    # confirm that the user account doesn't have access to the form
+    r = client.get('/forms',
+        headers={'Accept': 'application/json'},
+    )
+    forms = json.loads(r.data.decode('utf-8'))['forms']
+    assert 0 == len(forms)
 
-        # verify a form for márkö@example.com
-        self.client.post(u'/márkö@example.com',
-            headers = {'Referer': 'tomatoes.com'},
-            data={'name': 'alice'}
-        )
-        f = Form.query.filter_by(host='tomatoes.com', email=u'márkö@example.com').first()
-        f.confirm_sent = True
-        f.confirmed = True
-        DB.session.add(f)
-        DB.session.commit()
+    # verify user email
+    link, qs = parse_confirmation_link_sent(msend.call_args[1]['text'])
+    client.get(link, query_string=qs)
 
-        # register márkö@example.com
-        r = self.client.post('/register',
-            data={'email': u'márkö@example.com',
-                  'password': 'russia'}
-        )
+    # confirm that the user has no access to the form since he is not upgraded
+    r = client.get('/forms',
+        headers={'Accept': 'application/json'},
+    )
+    forms = json.loads(r.data.decode('utf-8'))['forms']
+    assert 0 == len(forms)
 
-        # confirm that the user account doesn't have access to the form
-        r = self.client.get('/forms',
-            headers={'Accept': 'application/json'},
-        )
-        forms = json.loads(r.data)['forms']
-        self.assertEqual(0, len(forms))
+    # upgrade user
+    user = User.query.filter_by(email=u'márkö@example.com').first()
+    user.upgraded = True
+    DB.session.add(user)
+    DB.session.commit()
 
-        # verify user email
-        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
-        self.client.get(link, query_string=qs)
+    # confirm that the user account has access to the form
+    r = client.get('/forms',
+        headers={'Accept': 'application/json'},
+    )
+    forms = json.loads(r.data.decode('utf-8'))['forms']
+    assert 1 == len(forms)
+    assert forms[0]['email'] == u'márkö@example.com'
+    assert forms[0]['host'] == 'tomatoes.com'
 
-        # confirm that the user has no access to the form since he is not upgraded
-        r = self.client.get('/forms',
-            headers={'Accept': 'application/json'},
-        )
-        forms = json.loads(r.data)['forms']
-        self.assertEqual(0, len(forms))
+    # verify a form for another address
+    r = client.post('/contact@mark.com',
+        headers = {'Referer': 'mark.com'},
+        data={'name': 'luke'}
+    )
+    f = Form.query.filter_by(host='mark.com', email='contact@mark.com').first()
+    f.confirm_sent = True
+    f.confirmed = True
+    DB.session.add(f)
+    DB.session.commit()
 
-        # upgrade user
-        user = User.query.filter_by(email=u'márkö@example.com').first()
-        user.upgraded = True
-        DB.session.add(user)
-        DB.session.commit()
+    # confirm that the user account doesn't have access to the form
+    r = client.get('/forms',
+        headers={'Accept': 'application/json'},
+    )
+    forms = json.loads(r.data.decode('utf-8'))['forms']
+    assert 1 == len(forms)
 
-        # confirm that the user account has access to the form
-        r = self.client.get('/forms',
-            headers={'Accept': 'application/json'},
-        )
-        forms = json.loads(r.data)['forms']
-        self.assertEqual(1, len(forms))
-        self.assertEqual(forms[0]['email'], u'márkö@example.com')
-        self.assertEqual(forms[0]['host'], 'tomatoes.com')
+    # add this other email address to user account
+    client.post('/account/add-email', data={'address': 'contact@mark.com'})
 
-        # verify a form for another address
-        r = self.client.post('/contact@mark.com',
-            headers = {'Referer': 'mark.com'},
-            data={'name': 'luke'}
-        )
-        f = Form.query.filter_by(host='mark.com', email='contact@mark.com').first()
-        f.confirm_sent = True
-        f.confirmed = True
-        DB.session.add(f)
-        DB.session.commit()
+    link, qs = parse_confirmation_link_sent(msend.call_args[1]['text'])
+    client.get(link, query_string=qs)
 
-        # confirm that the user account doesn't have access to the form
-        r = self.client.get('/forms',
-            headers={'Accept': 'application/json'},
-        )
-        forms = json.loads(r.data)['forms']
-        self.assertEqual(1, len(forms))
+    # confirm that the user account now has access to the form
+    r = client.get('/forms',
+        headers={'Accept': 'application/json'},
+    )
+    forms = json.loads(r.data.decode('utf-8'))['forms']
+    assert 2 == len(forms)
+    assert forms[0]['email'] == 'contact@mark.com' # forms are sorted by -id, so the newer comes first
+    assert forms[0]['host'] == 'mark.com'
 
-        # add this other email address to user account
-        self.client.post('/account/add-email', data={'address': 'contact@mark.com'})
+    # create a new form spontaneously with an email already verified
+    r = client.post(u'/márkö@example.com',
+        headers = {'Referer': 'elsewhere.com'},
+        data={'name': 'luke'}
+    )
+    f = Form.query.filter_by(host='elsewhere.com', email=u'márkö@example.com').first()
+    f.confirm_sent = True
+    f.confirmed = True
+    DB.session.add(f)
+    DB.session.commit()
 
-        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
-        self.client.get(link, query_string=qs)
-
-        # confirm that the user account now has access to the form
-        r = self.client.get('/forms',
-            headers={'Accept': 'application/json'},
-        )
-        forms = json.loads(r.data)['forms']
-        self.assertEqual(2, len(forms))
-        self.assertEqual(forms[0]['email'], 'contact@mark.com') # forms are sorted by -id, so the newer comes first
-        self.assertEqual(forms[0]['host'], 'mark.com')
-
-        # create a new form spontaneously with an email already verified
-        r = self.client.post(u'/márkö@example.com',
-            headers = {'Referer': 'elsewhere.com'},
-            data={'name': 'luke'}
-        )
-        f = Form.query.filter_by(host='elsewhere.com', email=u'márkö@example.com').first()
-        f.confirm_sent = True
-        f.confirmed = True
-        DB.session.add(f)
-        DB.session.commit()
-
-        # confirm that the user has already accessto that form
-        r = self.client.get('/forms',
-            headers={'Accept': 'application/json'},
-        )
-        forms = json.loads(r.data)['forms']
-        self.assertEqual(3, len(forms))
-        self.assertEqual(forms[0]['email'], u'márkö@example.com')
-        self.assertEqual(forms[0]['host'], 'elsewhere.com')
+    # confirm that the user has already accessto that form
+    r = client.get('/forms',
+        headers={'Accept': 'application/json'},
+    )
+    forms = json.loads(r.data.decode('utf-8'))['forms']
+    assert 3 == len(forms)
+    assert forms[0]['email'] == u'márkö@example.com'
+    assert forms[0]['host'] == 'elsewhere.com'
