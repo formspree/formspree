@@ -1,0 +1,8 @@
+We have successfully downgraded your subscription from {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }}. If you didn't mean for this to happen you can easily resubscribe from your {{ config.SERVICE_NAME }} dashboard ({{ url_for('account') }}).
+
+Please note that your form will no longer have unlimited submissions and other {{ config.UPGRADED_PLAN_NAME }} features ({{ url_for('index') }}#features).
+
+---
+
+- Why did I receive this email?
+Someone (hopefully you?) registered an account at {{config.SERVICE_NAME}} with this email. If this wasn't you, no worries. This is the only email you'll get.

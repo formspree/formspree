@@ -2,6 +2,9 @@ development.env
 *.py[cod]
 node_modules
 npm-debug.log
+ssl-keys
+dart-sass
+dump.rdb
 
 # C extensions
 *.so
@@ -24,6 +27,7 @@ env
 venv
 test_form/
 __pycache__
+.pytest_cache
 
 # Installer logs
 pip-log.txt
@@ -67,3 +71,4 @@ celerybeat-schedule.db
 include
 
 mydata
+*.dump

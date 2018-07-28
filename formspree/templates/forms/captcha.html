@@ -1,46 +1,70 @@
 {% extends 'layouts/message.html' %}
 
 {% block head_scripts %}
-  <script type="text/javascript">
-    var appendField = function(form, key, value) {
-      var input = document.createElement('input');
-      input.setAttribute('name', key);
-      input.setAttribute('value', value);
-      input.setAttribute('style', 'display:none');
-      form.appendChild(input);
+<script type="text/javascript">
+var appendField = function(form, key, value) {
+  var textarea = document.createElement('textarea')
+  textarea.setAttribute('name', key)
+  textarea.innerHTML = value
+  textarea.setAttribute('style', 'display:none')
+  form.appendChild(textarea)
+}
+
+var success = function(response) {
+  var form = document.querySelector('#passthrough')
+
+  try {
+    // remove data from sessionStorage
+    sessionStorage.removeItem('data')
+    sessionStorage.removeItem('sorted_keys')
+  } catch (e) {}
+
+  // handles the case where user has a button named 'submit'
+  document.createElement('form').submit.call(form)
+}
+
+var onloadCallback = function() {
+  var form = document.querySelector('#passthrough')
+  var data = {{ data|tojson|safe }}
+  var keys = {{ sorted_keys|tojson|safe }}
+
+  try {
+    if (sessionStorage.getItem('data')) {
+      if (Object.keys(data).length > 1) { // if data is valid overwrite current storage
+        sessionStorage.setItem('data', JSON.stringify(data))
+        sessionStorage.setItem('sorted_keys', JSON.stringify(keys))
+      } else {
+        // passed in blank data except host_nonce
+        data = JSON.parse(sessionStorage.getItem('data'))
+        keys = JSON.parse(sessionStorage.getItem('sorted_keys'))
+      }
+    } else {
+      sessionStorage.setItem('data', JSON.stringify(data))
+      sessionStorage.setItem('sorted_keys', JSON.stringify(keys))
     }
+  } catch (e) { /* Safari for iOS in incognito mode doesn't provide sessionStorage. */ }
 
-    var success = function(response) {
-      var form = document.querySelector('#passthrough');
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i]
+    if (data.hasOwnProperty(key)) {
+      appendField(form, key, data[key])
+      delete data[key]
+    }
+  }
+  for (var key in data) {
+    if (data.hasOwnProperty(key)) {
+      appendField(form, key, data[key])
+    }
+  }
 
-      //handles the case where user has a button named 'submit'
-      document.createElement('form').submit.call(form);
-    };
-
-    var onloadCallback = function() {
-      var form = document.querySelector('#passthrough');
-      var data = {{ data|tojson|safe }};
-      var keys = {{ sorted_keys|tojson|safe }};
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i]
-        if (data.hasOwnProperty(key)) {
-          appendField(form, key, data[key])
-          delete data[key];
-        }
-      }
-      for (var key in data) {
-        if (data.hasOwnProperty(key)) {
-          appendField(form, key, data[key])
-        }
-      }
-
-      grecaptcha.render('recaptcha', {
-        'sitekey' : {{ config.RECAPTCHA_KEY|tojson|safe }},
-        'callback' : success,
-        'size': window.innerWidth < 400 ? 'compact' : 'normal'
-      });
-    };
-  </script>
+  grecaptcha.render('recaptcha', {
+    'sitekey': {{ config.RECAPTCHA_KEY|tojson|safe }},
+    'callback': success,
+    'size': window.innerWidth < 400 ? 'compact' : 'normal',
+    'hl': {{ lang|tojson|safe }} || undefined
+  })
+}
+</script>
 {% endblock head_scripts %}
 
 {% block base %}
@@ -53,8 +77,10 @@
 
     <div class="container">
       <div class="col-1-1">
-        <h1>Almost there</h1>
-        <p>Please help us fight spam by following the directions below:</p>
+        {% block instructions %}
+          <h1>Almost there</h1>
+          <p>Please help us fight spam by following the directions below:</p>
+        {% endblock %}
 
         <form action="{{ action }}" method="POST" id="passthrough">
           <div id="recaptcha" style="text-align:center; display:inline-block"></div>

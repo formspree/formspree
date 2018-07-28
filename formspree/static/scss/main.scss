@@ -8,6 +8,7 @@ $accent: #ddd;
 
 $red: #D9534F;
 $green: #359173;
+$gray: #707070;
 
 $warning-orange: #D87431;
 $info-blue: $navy;
@@ -17,11 +18,12 @@ $error-red: #CC3F36;
 @import 'grid.scss';
 @import 'typography.scss';
 @import 'hint/hint.scss';
-@import 'https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css';
 @import 'alertbox.scss';
 @import 'dashboard.scss';
 @import 'nav.scss';
 @import 'toastr.scss';
+@import 'submissions.scss';
+@import 'ionicons/ionicons.scss';
 
 html {
     height: 100%;
@@ -221,7 +223,49 @@ form input, form textarea {
     margin-bottom: 0.5em;
 }
 
+table {
+    &#invoices{
+        line-height: 3em;
+            overflow-x: auto;
+      @media screen and (max-width: 736px) {
+        border: 0;
+
+        thead { display: none; }
+
+        tr {
+          margin-bottom: 10px;
+          display: block;
+          border-bottom: 5px solid #ddd;
+
+          td {
+            display: block;
+            font-size: 13px;
+            border-bottom: 1px dotted #ccc;
+            margin: 10px auto;
+            max-width: 100%;
+          }
+
+          td:last-child {
+            border-bottom: 0;
+          }
+
+          td:before {
+            content: attr(data-label);
+            display: block;
+            text-transform: uppercase;
+            font-weight: bold;
+          }
+        }
+      }
+
+    }
+
+}
+
 button, a.button {
+    &.no-uppercase {
+        text-transform: none !important;
+    }
     font-size: 1em;
     text-transform: uppercase;
     font-weight: 600;
@@ -240,11 +284,23 @@ button, a.button {
             background-color: $dark-green;
         }
     }
+    &:focus {
+        outline:0;
+    }
+    &.destructive {
+        color: $red;
+        border-color: $red;
+    }
+    &.disabled {
+        color: $gray;
+        border-color: $gray;
+    }
     &[disabled],
     &[disabled]:hover {
       color: lighten($green, 40%);
       border-color: lighten($green, 40%);
     }
+
 }
 
 

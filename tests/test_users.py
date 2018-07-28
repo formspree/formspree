@@ -1,503 +1,501 @@
-import httpretty
 import json
+import time
 import stripe
 
 from formspree import settings
-from formspree.app import DB
+from formspree.stuff import DB
 from formspree.forms.helpers import HASH
 from formspree.users.models import User, Email
 from formspree.forms.models import Form, Submission
 
-from formspree_test_case import FormspreeTestCase
-from utils import parse_confirmation_link_sent
+from .conftest import parse_confirmation_link_sent
 
-class UserAccountsTestCase(FormspreeTestCase):
+def test_register_page(client, msend):
+    r = client.get('/register')
+    assert 200 == r.status_code
 
-    def test_register_page(self):
-        r = self.client.get('/register')
-        self.assertEqual(200, r.status_code)
+def test_login_page(client, msend):
+    r = client.get('/login')
+    assert 200 == r.status_code
 
-    def test_login_page(self):
-        r = self.client.get('/login')
-        self.assertEqual(200, r.status_code)
+def test_forgot_password_page(client, msend):
+    r = client.get('/login/reset')
+    assert 200 == r.status_code
 
-    def test_forgot_password_page(self):
-        r = self.client.get('/login/reset')
-        self.assertEqual(200, r.status_code)
+def test_user_auth(client, msend):
+    # register
+    r = client.post('/register',
+        data={'email': 'alice@springs.com',
+              'password': 'canada'}
+    )
+    assert r.status_code == 302
+    assert r.location.endswith('/account')
+    assert 1 == User.query.count()
 
-    @httpretty.activate
-    def test_user_auth(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    # email confirmation
+    user = User.query.filter_by(email='alice@springs.com').first()
+    assert Email.query.get(['alice@springs.com', user.id]) is None
 
-        # register
-        r = self.client.post('/register',
-            data={'email': 'alice@springs.com',
-                  'password': 'canada'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.location.endswith('/account'))
-        self.assertEqual(1, User.query.count())
+    assert msend.called
+    link, qs = parse_confirmation_link_sent(msend.call_args[1]['text'])
+    client.get(
+        link,
+        query_string=qs,
+        follow_redirects=True
+    )
+    email = Email.query.get(['alice@springs.com', user.id])
+    assert Email.query.count() == 1
+    assert email is not None
+    assert email.owner_id == user.id
 
-        # email confirmation
-        user = User.query.filter_by(email='alice@springs.com').first()
-        self.assertIsNone(Email.query.get(['alice@springs.com', user.id]))
+    # logout
+    r = client.get('/logout')
+    assert r.status_code == 302
+    assert 1 == User.query.count()
 
-        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
-        self.client.get(
-            link,
-            query_string=qs,
-            follow_redirects=True
-        )
-        email = Email.query.get(['alice@springs.com', user.id])
-        self.assertEqual(Email.query.count(), 1)
-        self.assertIsNotNone(email)
-        self.assertEqual(email.owner_id, user.id)
+    # login   
+    r = client.post('/login',
+        data={'email': 'alice@springs.com',
+              'password': 'canada'}
+    )
+    assert r.status_code == 302
+    assert r.location.endswith('/dashboard')
+    assert 1 == User.query.count()
 
-        # logout
-        r = self.client.get('/logout')
-        self.assertEqual(r.status_code, 302)
-        self.assertEqual(1, User.query.count())
+def test_forgot_password(client, msend):
+    # register
+    r = client.post('/register',
+        data={'email': 'fragile@yes.com',
+              'password': 'roundabout'}
+    )
+    assert 1 == User.query.count()
+    initial_password = User.query.all()[0].password
 
-        # login   
-        r = self.client.post('/login',
-            data={'email': 'alice@springs.com',
-                  'password': 'canada'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.location.endswith('/dashboard'))
-        self.assertEqual(1, User.query.count())
+    # logout
+    client.get('/logout')
 
-    @httpretty.activate
-    def test_forgot_password(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    # forget password
+    r = client.post('/login/reset',
+        data={'email': 'fragile@yes.com'}
+    )
+    assert r.status_code == 200
 
-        # register
-        r = self.client.post('/register',
-            data={'email': 'fragile@yes.com',
-                  'password': 'roundabout'}
-        )
-        self.assertEqual(1, User.query.count())
-        initial_password = User.query.all()[0].password
+    # click on the email link
+    link, qs = parse_confirmation_link_sent( msend.call_args[1]['text'])
+    r = client.get(
+        link,
+        query_string=qs,
+        follow_redirects=True
+    )
+    assert r.status_code == 200
 
-        # logout
-        self.client.get('/logout')
+    # send new passwords (not matching)
+    r = client.post(link, data={'password1': 'verdes', 'password2': 'roxas'})
+    assert r.status_code == 302
+    assert r.location == link
+    assert User.query.all()[0].password == initial_password
 
-        # forget password
-        r = self.client.post('/login/reset',
-            data={'email': 'fragile@yes.com'}
-        )
-        self.assertEqual(r.status_code, 200)
+    # again, now matching
+    r = client.post(link, data={'password1': 'amarelas', 'password2': 'amarelas'})
+    assert r.status_code == 302
+    assert r.location.endswith('/dashboard')
+    assert User.query.all()[0].password != initial_password
+    
 
-        # click on the email link
-        link, qs = parse_confirmation_link_sent(httpretty.last_request().body)
-        r = self.client.get(
-            link,
-            query_string=qs,
-            follow_redirects=True
-        )
-        self.assertEqual(r.status_code, 200)
+def test_form_creation(client, msend):
+    # register user
+    r = client.post('/register',
+        data={'email': 'colorado@springs.com',
+              'password': 'banana'}
+    )
+    assert r.status_code == 302
+    assert 1 == User.query.count()
 
-        # send new passwords (not matching)
-        r = self.client.post(link, data={'password1': 'verdes', 'password2': 'roxas'})
-        self.assertEqual(r.status_code, 302)
-        self.assertEqual(r.location, link)
-        self.assertEqual(User.query.all()[0].password, initial_password)
+    # fail to create form
+    r = client.post('/forms',
+        headers={'Content-type': 'application/json'},
+        data={'email': 'hope@springs.com'}
+    )
+    assert r.status_code == 402
+    assert 'error' in json.loads(r.data.decode('utf-8'))
+    assert 0 == Form.query.count()
 
-        # again, now matching
-        r = self.client.post(link, data={'password1': 'amarelas', 'password2': 'amarelas'})
-        self.assertEqual(r.status_code, 302)
-        self.assertTrue(r.location.endswith('/dashboard'))
-        self.assertNotEqual(User.query.all()[0].password, initial_password)
-        
+    # upgrade user manually
+    user = User.query.filter_by(email='colorado@springs.com').first()
+    user.upgraded = True
+    DB.session.add(user)
+    DB.session.commit()
 
-    @httpretty.activate
-    def test_form_creation(self):
-        httpretty.register_uri(httpretty.POST, 'https://api.sendgrid.com/api/mail.send.json')
+    # successfully create form
+    r = client.post('/forms',
+        headers={'Accept': 'application/json', 'Content-type': 'application/json'},
+        data=json.dumps({'email': 'hope@springs.com'})
+    )
+    resp = json.loads(r.data.decode('utf-8'))
+    assert r.status_code == 200
+    assert 'submission_url' in resp
+    assert 'hashid' in resp
+    form_endpoint = resp['hashid']
+    assert resp['hashid'] in resp['submission_url']
+    assert 1 == Form.query.count()
+    assert Form.query.first().id == Form.get_with_hashid(resp['hashid']).id
 
-        # register user
-        r = self.client.post('/register',
-            data={'email': 'colorado@springs.com',
-                  'password': 'banana'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertEqual(1, User.query.count())
+    # post to form
+    r = client.post('/' + form_endpoint,
+        headers={'Referer': 'formspree.io'},
+        data={'name': 'bruce'}
+    )
+    assert "We've sent a link to your email" in r.data.decode('utf-8')
+    assert 'confirm your email' in msend.call_args[1]['text']
+    assert 1 == Form.query.count()
 
-        # fail to create form
-        r = self.client.post('/forms',
-            headers={'Content-type': 'application/json'},
-            data={'email': 'hope@springs.com'}
-        )
-        self.assertEqual(r.status_code, 402)
-        self.assertIn('error', json.loads(r.data))
-        self.assertEqual(0, Form.query.count())
+    # confirm form
+    form = Form.query.first()
+    client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
+    assert Form.query.first().confirmed
 
-        # upgrade user manually
-        user = User.query.filter_by(email='colorado@springs.com').first()
-        user.upgraded = True
-        DB.session.add(user)
-        DB.session.commit()
-
-        # successfully create form
-        r = self.client.post('/forms',
-            headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'hope@springs.com'})
-        )
-        resp = json.loads(r.data)
-        self.assertEqual(r.status_code, 200)
-        self.assertIn('submission_url', resp)
-        self.assertIn('hashid', resp)
-        form_endpoint = resp['hashid']
-        self.assertIn(resp['hashid'], resp['submission_url'])
-        self.assertEqual(1, Form.query.count())
-        self.assertEqual(Form.query.first().id, Form.get_with_hashid(resp['hashid']).id)
-
-        # post to form
-        r = self.client.post('/' + form_endpoint,
+    # send 5 forms (monthly limits should not apply to the upgraded user)
+    assert settings.MONTHLY_SUBMISSIONS_LIMIT == 2
+    for i in range(5):
+        r = client.post('/' + form_endpoint,
             headers={'Referer': 'formspree.io'},
-            data={'name': 'bruce'}
+            data={'name': 'ana',
+                  'submission': '__%s__' % i}
         )
-        self.assertIn("We've sent a link to your email", r.data)
-        self.assertIn('confirm+your+email', httpretty.last_request().body)
-        self.assertEqual(1, Form.query.count())
+    form = Form.query.first()
+    assert form.counter == 5
+    assert form.get_monthly_counter() == 5
+    assert 'ana' in msend.call_args[1]['text']
+    assert '__4__' in msend.call_args[1]['text']
+    assert 'You are past our limit' not in msend.call_args[1]['text']
 
-        # confirm form
-        form = Form.query.first()
-        self.client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
-        self.assertTrue(Form.query.first().confirmed)
+    # try (and fail) to submit from a different host
+    r = client.post('/' + form_endpoint,
+        headers={'Referer': 'bad.com'},
+        data={'name': 'usurper'}
+    )
+    assert r.status_code == 403
+    # no more data is sent to sendgrid
+    assert 'ana' in msend.call_args[1]['text']
+    assert '__4__' in msend.call_args[1]['text']
 
-        # send 5 forms (monthly limits should not apply to the upgraded user)
-        self.assertEqual(settings.MONTHLY_SUBMISSIONS_LIMIT, 2)
-        for i in range(5):
-            r = self.client.post('/' + form_endpoint,
-                headers={'Referer': 'formspree.io'},
-                data={'name': 'ana',
-                      'submission': '__%s__' % i}
-            )
-        form = Form.query.first()
-        self.assertEqual(form.counter, 5)
-        self.assertEqual(form.get_monthly_counter(), 5)
-        self.assertIn('ana', httpretty.last_request().body)
-        self.assertIn('__4__', httpretty.last_request().body)
-        self.assertNotIn('You+are+past+our+limit', httpretty.last_request().body)
+def test_form_toggle(client, msend):
+    # create and login a user
+    r = client.post('/register',
+        data={'email': 'hello@world.com',
+              'password': 'friend'}
+    )
+    assert r.status_code == 302
+    assert 1 == User.query.count()
 
-        # try (and fail) to submit from a different host
-        r = self.client.post('/' + form_endpoint,
-            headers={'Referer': 'bad.com'},
-            data={'name': 'usurper'}
-        )
-        self.assertEqual(r.status_code, 403)
-        self.assertIn('ana', httpretty.last_request().body) # no more data is sent to sendgrid
-        self.assertIn('__4__', httpretty.last_request().body)
+    # upgrade user
+    user = User.query.filter_by(email='hello@world.com').first()
+    user.upgraded = True
+    DB.session.add(user)
+    DB.session.commit()
 
-    def test_form_toggle(self):
-                # create and login a user
-        r = self.client.post('/register',
-            data={'email': 'hello@world.com',
-                  'password': 'friend'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertEqual(1, User.query.count())
+    # successfully create form
+    r = client.post('/forms',
+        headers={'Accept': 'application/json', 'Content-type': 'application/json'},
+        data=json.dumps({'email': 'hope@springs.com'})
+    )
+    resp = json.loads(r.data.decode('utf-8'))
+    assert r.status_code == 200
+    assert 'submission_url' in resp
+    assert 'hashid' in resp
+    form_endpoint = resp['hashid']
+    assert resp['hashid'] in resp['submission_url']
+    assert 1 == Form.query.count()
+    assert Form.query.first().id == Form.get_with_hashid(resp['hashid']).id
 
-        # upgrade user
-        user = User.query.filter_by(email='hello@world.com').first()
-        user.upgraded = True
-        DB.session.add(user)
-        DB.session.commit()
+    # post to form
+    r = client.post('/' + form_endpoint,
+        headers={'Referer': 'formspree.io'},
+        data={'name': 'bruce'}
+    )
 
-        # successfully create form
-        r = self.client.post('/forms',
-            headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'hope@springs.com'})
-        )
-        resp = json.loads(r.data)
-        self.assertEqual(r.status_code, 200)
-        self.assertIn('submission_url', resp)
-        self.assertIn('hashid', resp)
-        form_endpoint = resp['hashid']
-        self.assertIn(resp['hashid'], resp['submission_url'])
-        self.assertEqual(1, Form.query.count())
-        self.assertEqual(Form.query.first().id, Form.get_with_hashid(resp['hashid']).id)
+    # confirm form
+    form = Form.query.first()
+    client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
+    assert Form.query.first().confirmed
+    assert 0 == Submission.query.count()
 
-        # post to form
-        r = self.client.post('/' + form_endpoint,
+    # disable the form
+    r = client.post('/forms/' + form_endpoint + '/toggle',
+        headers={'Referer': settings.SERVICE_URL})
+    assert 302 == r.status_code
+    assert r.location.endswith('/dashboard')
+    assert Form.query.first().disabled
+    assert 0 == Form.query.first().counter
+
+    # logout and attempt to enable the form
+    client.get('/logout')
+    r = client.post('/forms/' + form_endpoint + '/toggle',
+        headers={'Referer': settings.SERVICE_URL},
+        follow_redirects=True)
+    assert 200 == r.status_code
+    assert Form.query.first().disabled
+
+    # fail when attempting to post to form
+    r = client.post('/' + form_endpoint,
+        headers={'Referer': 'formspree.io'},
+        data={'name': 'bruce'}
+    )
+    assert 403 == r.status_code
+    assert 0 == Form.query.first().counter
+
+    # log back in and re-enable form
+    r = client.post('/login',
+        data={'email': 'hello@world.com',
+              'password': 'friend'}
+    )
+    r = client.post('/forms/' + form_endpoint + '/toggle',
+        headers={'Referer': settings.SERVICE_URL},
+        follow_redirects=True)
+    assert 200 == r.status_code
+    assert not Form.query.first().disabled
+
+    # successfully post to form
+    r = client.post('/' + form_endpoint,
+        headers={'Referer': 'formspree.io'},
+        data={'name': 'bruce'}
+    )
+    assert 1 == Form.query.first().counter
+
+def test_form_and_submission_deletion(client, msend):
+    # create and login a user
+    r = client.post('/register',
+        data={'email': 'hello@world.com',
+              'password': 'friend'}
+    )
+    assert r.status_code == 302
+    assert 1 == User.query.count()
+
+    # upgrade user
+    user = User.query.filter_by(email='hello@world.com').first()
+    user.upgraded = True
+    DB.session.add(user)
+    DB.session.commit()
+
+    # successfully create form
+    r = client.post('/forms',
+        headers={'Accept': 'application/json', 'Content-type': 'application/json'},
+        data=json.dumps({'email': 'hope@springs.com'})
+    )
+    resp = json.loads(r.data.decode('utf-8'))
+    assert r.status_code == 200
+    assert 'submission_url' in resp
+    assert 'hashid' in resp
+    form_endpoint = resp['hashid']
+    assert resp['hashid'] in resp['submission_url']
+    assert 1 == Form.query.count()
+    assert Form.query.first().id == Form.get_with_hashid(resp['hashid']).id
+
+    # post to form
+    r = client.post('/' + form_endpoint,
+        headers={'Referer': 'formspree.io'},
+        data={'name': 'bruce'}
+    )
+
+    # confirm form
+    form = Form.query.first()
+    client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
+    assert Form.query.first().confirmed
+    assert 0 == Submission.query.count()
+
+    # increase the submission limit
+    old_submission_limit = settings.ARCHIVED_SUBMISSIONS_LIMIT
+    settings.ARCHIVED_SUBMISSIONS_LIMIT = 10
+    # make 5 submissions
+    for i in range(5):
+        r = client.post('/' + form_endpoint,
             headers={'Referer': 'formspree.io'},
-            data={'name': 'bruce'}
+            data={'name': 'ana',
+                  'submission': '__%s__' % i}
         )
 
-        # confirm form
-        form = Form.query.first()
-        self.client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
-        self.assertTrue(Form.query.first().confirmed)
-        self.assertEqual(0, Submission.query.count())
+    assert 5 == Submission.query.count()
 
-        # disable the form
-        r = self.client.post('/forms/' + form_endpoint + '/toggle',
-            headers={'Referer': settings.SERVICE_URL})
-        self.assertEqual(302, r.status_code)
-        self.assertTrue(r.location.endswith('/dashboard'))
-        self.assertTrue(Form.query.first().disabled)
-        self.assertEqual(0, Form.query.first().counter)
+    # delete a submission in form
+    first_submission = Submission.query.first()
+    r = client.post('/forms/' + form_endpoint + '/delete/' + str(first_submission.id),
+        headers={'Referer': settings.SERVICE_URL},
+        follow_redirects=True)
+    assert 200 == r.status_code
+    assert 4 == Submission.query.count()
+    assert DB.session.query(Submission.id).filter_by(id='0').scalar() is None
+    # make sure you've deleted the submission
 
-        # logout and attempt to enable the form
-        self.client.get('/logout')
-        r = self.client.post('/forms/' + form_endpoint + '/toggle',
-            headers={'Referer': settings.SERVICE_URL},
-            follow_redirects=True)
-        self.assertEqual(200, r.status_code)
-        self.assertTrue(Form.query.first().disabled)
+    # logout user
+    client.get('/logout')
 
-        # fail when attempting to post to form
-        r = self.client.post('/' + form_endpoint,
-            headers={'Referer': 'formspree.io'},
-            data={'name': 'bruce'}
-        )
-        self.assertEqual(403, r.status_code)
-        self.assertEqual(0, Form.query.first().counter)
+    # attempt to delete form you don't have access to (while logged out)
+    r = client.post('/forms/' + form_endpoint + '/delete',
+        headers={'Referer': settings.SERVICE_URL})
+    assert 302 == r.status_code
+    assert 1 == Form.query.count()
 
-        # log back in and re-enable form
-        r = self.client.post('/login',
-            data={'email': 'hello@world.com',
-                  'password': 'friend'}
-        )
-        r = self.client.post('/forms/' + form_endpoint + '/toggle',
-            headers={'Referer': settings.SERVICE_URL},
-            follow_redirects=True)
-        self.assertEqual(200, r.status_code)
-        self.assertFalse(Form.query.first().disabled)
+    # create different user
+    r = client.post('/register',
+        data={'email': 'john@usa.com',
+              'password': 'america'}
+    )
 
-        # successfully post to form
-        r = self.client.post('/' + form_endpoint,
-            headers={'Referer': 'formspree.io'},
-            data={'name': 'bruce'}
-        )
-        self.assertEqual(1, Form.query.first().counter)
+    # attempt to delete form we don't have access to
+    r = client.post('/forms/' + form_endpoint + '/delete',
+        headers={'Referer': settings.SERVICE_URL})
+    assert 400 == r.status_code
+    assert 1 == Form.query.count()
 
-    def test_form_and_submission_deletion(self):
-        # create and login a user
-        r = self.client.post('/register',
-            data={'email': 'hello@world.com',
-                  'password': 'friend'}
-        )
-        self.assertEqual(r.status_code, 302)
-        self.assertEqual(1, User.query.count())
+    client.get('/logout')
 
-        # upgrade user
-        user = User.query.filter_by(email='hello@world.com').first()
-        user.upgraded = True
-        DB.session.add(user)
-        DB.session.commit()
+    #log back in to original account
+    r = client.post('/login',
+        data={'email': 'hello@world.com',
+              'password': 'friend'}
+    )
 
-        # successfully create form
-        r = self.client.post('/forms',
-            headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-            data=json.dumps({'email': 'hope@springs.com'})
-        )
-        resp = json.loads(r.data)
-        self.assertEqual(r.status_code, 200)
-        self.assertIn('submission_url', resp)
-        self.assertIn('hashid', resp)
-        form_endpoint = resp['hashid']
-        self.assertIn(resp['hashid'], resp['submission_url'])
-        self.assertEqual(1, Form.query.count())
-        self.assertEqual(Form.query.first().id, Form.get_with_hashid(resp['hashid']).id)
+    # delete the form created
+    r = client.post('/forms/' + form_endpoint + '/delete',
+        headers={'Referer': settings.SERVICE_URL},
+        follow_redirects=True)
+    assert 200 == r.status_code
+    assert 0 == Form.query.count()
 
-        # post to form
-        r = self.client.post('/' + form_endpoint,
-            headers={'Referer': 'formspree.io'},
-            data={'name': 'bruce'}
-        )
+    # reset submission limit
+    settings.ARCHIVED_SUBMISSIONS_LIMIT = old_submission_limit
 
-        # confirm form
-        form = Form.query.first()
-        self.client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
-        self.assertTrue(Form.query.first().confirmed)
-        self.assertEqual(0, Submission.query.count())
+def test_user_upgrade_and_downgrade(client, msend, mocker):
+    # check correct usage of stripe test keys during test
+    assert '_test_' in settings.STRIPE_PUBLISHABLE_KEY
+    assert '_test_' in settings.STRIPE_SECRET_KEY
+    assert stripe.api_key in settings.STRIPE_TEST_SECRET_KEY
 
-        # increase the submission limit
-        old_submission_limit = settings.ARCHIVED_SUBMISSIONS_LIMIT
-        settings.ARCHIVED_SUBMISSIONS_LIMIT = 10
-        # make 5 submissions
-        for i in range(5):
-            r = self.client.post('/' + form_endpoint,
-                headers={'Referer': 'formspree.io'},
-                data={'name': 'ana',
-                      'submission': '__%s__' % i}
-            )
+    # register user
+    r = client.post('/register',
+        data={'email': 'maria@example.com',
+              'password': 'uva'}
+    )
+    assert r.status_code == 302
+    assert msend.called
+    assert msend.call_args[1]['to'] == 'maria@example.com'
+    assert 'Confirm email for your account' in msend.call_args[1]['subject']
+    msend.reset_mock()
 
-        self.assertEqual(5, Submission.query.count())
+    user = User.query.filter_by(email='maria@example.com').first()
+    assert user.upgraded == False
+    
+    # subscribe with card through stripe
+    token = stripe.Token.create(card={
+        'number': '4242424242424242',
+        'exp_month': '11',
+        'exp_year':'2026',
+        'cvc': '123',
+    })['id']
 
-        # delete a submission in form
-        first_submission = Submission.query.first()
-        r = self.client.post('/forms/' + form_endpoint + '/delete/' + unicode(first_submission.id),
-            headers={'Referer': settings.SERVICE_URL},
-            follow_redirects=True)
-        self.assertEqual(200, r.status_code)
-        self.assertEqual(4, Submission.query.count())
-        self.assertTrue(DB.session.query(Submission.id).filter_by(id='0').scalar() is None) #make sure you deleted the submission
+    r = client.post('/account/upgrade', data={
+        'stripeToken': token
+    })
 
-        # logout user
-        self.client.get('/logout')
+    user = User.query.filter_by(email='maria@example.com').first()
+    assert user.upgraded == True
 
-        # attempt to delete form you don't have access to (while logged out)
-        r = self.client.post('/forms/' + form_endpoint + '/delete',
-            headers={'Referer': settings.SERVICE_URL})
-        self.assertEqual(302, r.status_code)
-        self.assertEqual(1, Form.query.count())
+    # downgrade back to the free plan
+    r = client.post('/account/downgrade', follow_redirects=True)
 
-        # create different user
-        r = self.client.post('/register',
-            data={'email': 'john@usa.com',
-                  'password': 'america'}
-        )
+    # redirect back to /account, the HTML shows that the user is not yet
+    # in the free plan, since it will be valid for the next 30 days
+    assert "You've cancelled your subscription and it is ending on" in r.data.decode('utf-8')
 
-        # attempt to delete form we don't have access to
-        r = self.client.post('/forms/' + form_endpoint + '/delete',
-            headers={'Referer': settings.SERVICE_URL})
-        self.assertEqual(400, r.status_code)
-        self.assertEqual(1, Form.query.count())
+    user = User.query.filter_by(email='maria@example.com').first()
+    assert user.upgraded == True
 
-        self.client.get('/logout')
+    customer = stripe.Customer.retrieve(user.stripe_id)
+    assert customer.subscriptions.data[0].cancel_at_period_end == True
 
-        #log back in to original account
-        r = self.client.post('/login',
-            data={'email': 'hello@world.com',
-                  'password': 'friend'}
-        )
+    # simulate stripe webhook reporting that the plan has been canceled just now
+    m_senddowngraded = mocker.patch('formspree.users.views.send_downgrade_email.delay')
+    customer.subscriptions.data[0].delete()
+    # this will send webhooks automatically only for 
+    # endpoints registered on the stripe dashboard
 
-        # delete the form created
-        r = self.client.post('/forms/' + form_endpoint + '/delete',
-            headers={'Referer': settings.SERVICE_URL},
-            follow_redirects=True)
-        self.assertEqual(200, r.status_code)
-        self.assertEqual(0, Form.query.count())
-
-        # reset submission limit
-        settings.ARCHIVED_SUBMISSIONS_LIMIT = old_submission_limit
-
-    def test_user_upgrade_and_downgrade(self):
-        # check correct usage of stripe test keys during test
-        self.assertIn('_test_', settings.STRIPE_PUBLISHABLE_KEY)
-        self.assertIn('_test_', settings.STRIPE_SECRET_KEY)
-        self.assertIn(stripe.api_key, settings.STRIPE_TEST_SECRET_KEY)
-
-        # register user
-        r = self.client.post('/register',
-            data={'email': 'maria@example.com',
-                  'password': 'uva'}
-        )
-        self.assertEqual(r.status_code, 302)
-
-        user = User.query.filter_by(email='maria@example.com').first()
-        self.assertEqual(user.upgraded, False)
-        
-        # subscribe with card through stripe
-        token = stripe.Token.create(card={
-            'number': '4242424242424242',
-            'exp_month': '11',
-            'exp_year':'2026',
-            'cvc': '123',
-        })['id']
-        r = self.client.post('/account/upgrade', data={
-            'stripeToken': token
-        })
-
-        user = User.query.filter_by(email='maria@example.com').first()
-        self.assertEqual(user.upgraded, True)
-
-        # downgrade back to the free plan
-        r = self.client.post('/account/downgrade', follow_redirects=True)
-
-        # redirect back to /account, the HTML shows that the user is not yet
-        # in the free plan, since it will be valid for the next 30 days
-        self.assertIn("You've cancelled your subscription and it is ending on", r.data)
-
-        user = User.query.filter_by(email='maria@example.com').first()
-        self.assertEqual(user.upgraded, True)
-
-        customer = stripe.Customer.retrieve(user.stripe_id)
-        self.assertEqual(customer.subscriptions.data[0].cancel_at_period_end, True)
-
-        # simulate stripe webhook reporting that the plan has been canceled just now
-        customer.subscriptions.data[0].delete()
-        # this will send webhooks automatically only for 
-        # endpoints registered on the stripe dashboard
-
-        self.client.post('/webhooks/stripe', data=json.dumps({
-            'type': 'customer.subscription.deleted',
-            'data': {
-                'object': {
-                    'customer': user.stripe_id
-                }
+    client.post('/webhooks/stripe', data=json.dumps({
+        'type': 'customer.subscription.deleted',
+        'data': {
+            'object': {
+                'customer': user.stripe_id
             }
-        }), headers={'Content-type': 'application/json'})
+        }
+    }), headers={'Content-type': 'application/json'})
 
-        user = User.query.filter_by(email='maria@example.com').first()
-        self.assertEqual(user.upgraded, False)
+    user = User.query.filter_by(email='maria@example.com').first()
+    assert user.upgraded == False
+    assert m_senddowngraded.called
 
-        # delete the stripe customer
-        customer.delete()
+    # delete the stripe customer
+    customer.delete()
 
-    def test_user_card_management(self):
-        # check correct usage of stripe test keys during test
-        self.assertIn('_test_', settings.STRIPE_PUBLISHABLE_KEY)
-        self.assertIn('_test_', settings.STRIPE_SECRET_KEY)
-        self.assertIn(stripe.api_key, settings.STRIPE_TEST_SECRET_KEY)
+def test_user_card_management(client, msend):
+    # check correct usage of stripe test keys during test
+    assert '_test_' in settings.STRIPE_PUBLISHABLE_KEY
+    assert '_test_' in settings.STRIPE_SECRET_KEY
+    assert stripe.api_key in settings.STRIPE_TEST_SECRET_KEY
 
-        # register user
-        r = self.client.post('/register',
-            data={'email': 'maria@example.com',
-                  'password': 'uva'}
-        )
-        self.assertEqual(r.status_code, 302)
+    # register user
+    r = client.post('/register',
+        data={'email': 'maria@example.com',
+              'password': 'uva'}
+    )
+    assert r.status_code == 302
 
-        user = User.query.filter_by(email='maria@example.com').first()
-        self.assertEqual(user.upgraded, False)
-        
-        # subscribe with card through stripe
-        token = stripe.Token.create(card={
-            'number': '4242424242424242',
-            'exp_month': '11',
-            'exp_year':'2026',
-            'cvc': '123',
-        })['id']
-        r = self.client.post('/account/upgrade', data={
-            'stripeToken': token
-        })
+    user = User.query.filter_by(email='maria@example.com').first()
+    assert user.upgraded == False
+    
+    # subscribe with card through stripe
+    token = stripe.Token.create(card={
+        'number': '4242424242424242',
+        'exp_month': '11',
+        'exp_year':'2026',
+        'cvc': '123',
+    })['id']
+    r = client.post('/account/upgrade', data={
+        'stripeToken': token
+    })
 
-        user = User.query.filter_by(email='maria@example.com').first()
-        self.assertEqual(user.upgraded, True)
+    user = User.query.filter_by(email='maria@example.com').first()
+    assert user.upgraded == True
 
-        # add another card
-        token = stripe.Token.create(card={
-            'number': '4012888888881881',
-            'exp_month': '11',
-            'exp_year':'2021',
-            'cvc': '345',
-        })['id']
-        r = self.client.post('/card/add', data={
-            'stripeToken': token
-        })
-        
-        customer = stripe.Customer.retrieve(user.stripe_id)
-        cards = customer.sources.all(object='card').data
-        self.assertEqual(len(cards), 2)
-        
-        # add a duplicate card
-        token = stripe.Token.create(card={
-            'number': '4242424242424242',
-            'exp_month': '11',
-            'exp_year':'2026',
-            'cvc': '123',
-        })['id']
-        r = self.client.post('/card/add', data={
-            'stripeToken': token
-        }, follow_redirects=True)
-        self.assertIn('That card already exists in your wallet', r.data)
-        
-        # delete a card
-        r = self.client.post('/card/%s/delete' % cards[1].id)
-        cards = customer.sources.all(object='card').data
-        self.assertEqual(len(cards), 1)
-        
-        # delete the customer
-        customer.delete()
+    # add another card
+    token = stripe.Token.create(card={
+        'number': '4012888888881881',
+        'exp_month': '11',
+        'exp_year':'2021',
+        'cvc': '345',
+    })['id']
+    r = client.post('/card/add', data={
+        'stripeToken': token
+    })
+    
+    customer = stripe.Customer.retrieve(user.stripe_id)
+    cards = customer.sources.all(object='card').data
+    assert len(cards) == 2
+    
+    # add a duplicate card
+    token = stripe.Token.create(card={
+        'number': '4242424242424242',
+        'exp_month': '11',
+        'exp_year':'2026',
+        'cvc': '123',
+    })['id']
+    r = client.post('/card/add', data={
+        'stripeToken': token
+    }, follow_redirects=True)
+    assert 'That card already exists in your wallet' in r.data.decode('utf-8')
+    
+    # delete a card
+    r = client.post('/card/%s/delete' % cards[1].id)
+    cards = customer.sources.all(object='card').data
+    assert len(cards) == 1
+    
+    # delete the customer
+    customer.delete()

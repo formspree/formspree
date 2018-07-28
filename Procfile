@@ -1,1 +1,2 @@
-web: gunicorn formspree:forms_app
+web: gunicorn formspree:app
+worker: celery worker --app=formspree.stuff

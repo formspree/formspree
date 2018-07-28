@@ -2,30 +2,39 @@ import unicodecsv as csv
 import json
 import requests
 import datetime
+import pyaml
 import io
 
 from flask import request, url_for, render_template, redirect, \
-                  jsonify, flash, make_response, Response, g
-from flask.ext.login import current_user, login_required
-from flask.ext.cors import cross_origin
-from urlparse import urljoin
+                  jsonify, flash, make_response, Response, g, \
+                  abort
+from flask_login import current_user, login_required
+from flask_cors import cross_origin
+from jinja2.exceptions import TemplateNotFound
+from urllib.parse import urljoin
 
 from formspree import settings
-from formspree.app import DB
-from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL
-from helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
+from formspree.stuff import DB
+from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
+                            url_domain, valid_url, send_email
+from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
-                    temp_store_forms_to_disable, get_temp_forms_to_disable, \
-                    HASH, EXCLUDE_KEYS, assign_ajax
-from models import Form, Submission
+                    HASH, assign_ajax, valid_domain_request, \
+                    KEYS_NOT_STORED, KEYS_EXCLUDED_FROM_EMAIL, \
+                    check_valid_form_settings_request, temp_store_forms_to_disable, get_temp_forms_to_disable
+from .models import Form, Submission
 
 
 def thanks():
-    return render_template('forms/thanks.html')
+    if request.args.get('next') and not valid_url(request.args.get('next')):
+        return render_template('error.html',
+            title='Invalid URL', text='An invalid URL was supplied'), 400
+    return render_template('forms/thanks.html', next=request.args.get('next'))
 
 
-@cross_origin(allow_headers=['Accept', 'Content-Type', 'X-Requested-With'])
+@cross_origin(allow_headers=['Accept', 'Content-Type',
+                             'X-Requested-With', 'Authorization'])
 @ordered_storage
 def send(email_or_string):
     '''
@@ -52,13 +61,26 @@ def send(email_or_string):
         received_data = request.get_json() or {}
         sorted_keys = received_data.keys()
 
+    sorted_keys = [k for k in sorted_keys if k not in KEYS_EXCLUDED_FROM_EMAIL]
+
+    # NOTE: host in this function generally refers to the referrer hostname.
+
     try:
         # Get stored hostname from redis (from captcha)
         host, referrer = get_temp_hostname(received_data['_host_nonce'])
     except KeyError:
         host, referrer = referrer_to_path(request.referrer), request.referrer
+    except ValueError as err:
+        g.log.error('Invalid hostname stored on Redis.', err=err)
+        return render_template(
+            'error.html',
+            title='Unable to submit form',
+            text='<p>We had a problem identifying to whom we should have submitted this form. Please try submitting again. If it fails once more, please let us know at {email}</p>'.format(
+                email=settings.CONTACT_EMAIL,
+            )
+        ), 500
 
-    if not host or host == 'www.google.com':
+    if not host:
         if request_wants_json():
             return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
         else:
@@ -73,7 +95,7 @@ def send(email_or_string):
 
     g.log = g.log.bind(host=host, wants='json' if request_wants_json() else 'html')
 
-    g.log.info('Received submission.')
+    g.log.info('Submitted.')
     if not IS_VALID_EMAIL(email_or_string):
         # in this case it can be a hashid identifying a
         # form generated from the dashboard
@@ -101,13 +123,14 @@ def send(email_or_string):
                 DB.session.commit()
 
                 # it is an error when
-                #   form is sitewide, but submission came from a host rooted somewhere else, or
                 #   form is not sitewide, and submission came from a different host
-            elif (not form.sitewide and form.host != host) or (
-                   form.sitewide and (
-                     not host.startswith(form.host) and \
-                     not remove_www(host).startswith(form.host)
-                   )
+                #   form is sitewide, but submission came from a host rooted somewhere else, or
+            elif (not form.sitewide and
+                  # ending slashes can be safely ignored here:
+                  form.host.rstrip('/') != host.rstrip('/')) or \
+                 (form.sitewide and \
+                  # removing www from both sides makes this a neutral operation:
+                  not remove_www(host).startswith(remove_www(form.host))
                  ):
                 g.log.info('Submission rejected. From a different host than confirmed.')
                 if request_wants_json():
@@ -135,10 +158,28 @@ def send(email_or_string):
         email = email_or_string.lower()
 
         # get the form for this request
-        form = Form.query.filter_by(hash=HASH(email, host)).first() \
-               or Form(email, host) # or create it if it doesn't exists
+        form = Form.query.filter_by(hash=HASH(email, host)).first()
 
-        # Check if it has been assigned about using AJAX or not
+        # or create it if it doesn't exist
+        if not form:
+            if request_wants_json():
+                # Can't create a new ajax form unless from the dashboard
+                ajax_error_str = "To prevent spam, only " + \
+                                 settings.UPGRADED_PLAN_NAME + \
+                                 " accounts may create AJAX forms."
+                return jsonerror(400, {'error': ajax_error_str})
+            elif url_domain(settings.SERVICE_URL) in host:
+                # Bad user is trying to submit a form spoofing formspree.io
+                g.log.info('User attempting to create new form spoofing SERVICE_URL. Ignoring.')
+                return render_template(
+                    'error.html',
+                    title='Unable to submit form',
+                    text='Sorry'), 400
+            else:
+                # all good, create form
+                form = Form(email, host)
+
+        # Check if it has been assigned using AJAX or not
         assign_ajax(form, request_wants_json())
 
         if form.disabled:
@@ -156,26 +197,50 @@ def send(email_or_string):
         captcha_verified = verify_captcha(received_data, request)
         needs_captcha = not (request_wants_json() or
                              captcha_verified or
-                             settings.TESTING) and not form.captcha_disabled
+                             settings.TESTING)
+
+        # if form is upgraded check if captcha is disabled
+        if form.upgraded:
+            needs_captcha = needs_captcha and not form.captcha_disabled
+
         if needs_captcha:
             data_copy = received_data.copy()
             # Temporarily store hostname in redis while doing captcha
             nonce = temp_store_hostname(form.host, request.referrer)
             data_copy['_host_nonce'] = nonce
             action = urljoin(settings.API_ROOT, email_or_string)
+            try:
+                if '_language' in received_data:
+                    return render_template(
+                        'forms/captcha_lang/{}.html'.format(received_data['_language']),
+                        data=data_copy,
+                        sorted_keys=sorted_keys,
+                        action=action,
+                        lang=received_data['_language']
+                    )
+            except TemplateNotFound:
+                g.log.error('Requested language not found for reCAPTCHA page, defaulting to English', referrer=request.referrer, lang=received_data['_language'])
+                pass
+
             return render_template('forms/captcha.html',
-                                   data=data_copy,
-                                   sorted_keys=sorted_keys,
-                                   action=action)
+                                           data=data_copy,
+                                           sorted_keys=sorted_keys,
+                                           action=action,
+                                           lang=None)
 
         status = form.send(received_data, sorted_keys, referrer)
     else:
-        status = form.send_confirmation()
+        status = form.send_confirmation(store_data=received_data)
 
     # Respond to the request accordingly to the status code
     if status['code'] == Form.STATUS_EMAIL_SENT:
         if request_wants_json():
             return jsonify({'success': "email sent", 'next': status['next']})
+        else:
+            return redirect(status['next'], code=302)
+    elif status['code'] == Form.STATUS_NO_EMAIL:
+        if request_wants_json():
+            return jsonify({'success': "no email sent, access submission archive on {} dashboard".format(settings.SERVICE_NAME), 'next': status['next']})
         else:
             return redirect(status['next'], code=302)
     elif status['code'] == Form.STATUS_EMAIL_EMPTY:
@@ -314,6 +379,18 @@ def unblock_email(email):
 
     elif request.method == 'GET':
         return render_template('forms/unblock_email.html', email=email), 200
+
+
+def unconfirm_form(form_id, digest):
+    '''
+    We send a digest as the List-Unsubscribe header on every submission.
+    Here we get that digest and handle the unconfirmation request.
+    '''
+    form = Form.query.get(form_id)
+    if form.unconfirm_with_digest(digest):
+        return '', 200
+    else:
+        return abort(401)
 
 
 def confirm_email(nonce):
@@ -575,21 +652,28 @@ def form_submissions(hashid, format=None):
         else:
             return redirect(url_for('dashboard'))
 
-    submissions = form.submissions
-
     if not format:
         # normal request.
         if request_wants_json():
             return jsonify({
                 'host': form.host,
                 'email': form.email,
-                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in form.submissions]
             })
         else:
             fields = set()
-            for s in submissions:
+            for s in form.submissions:
                 fields.update(s.data.keys())
-            fields -= EXCLUDE_KEYS
+            fields -= KEYS_NOT_STORED
+
+            submissions = []
+            for sub in form.submissions:
+                for f in fields:
+                    value = sub.data.get(f, '')
+                    typ = type(value)
+                    sub.data[f] = value if typ is str \
+                                  else pyaml.dump(value, safe=True)
+                submissions.append(sub)
 
             return render_template('forms/submissions.html',
                 form=form,
@@ -603,7 +687,7 @@ def form_submissions(hashid, format=None):
                 json.dumps({
                     'host': form.host,
                     'email': form.email,
-                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in submissions]
+                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in form.submissions]
                 }, sort_keys=True, indent=2),
                 mimetype='application/json',
                 headers={
@@ -613,12 +697,12 @@ def form_submissions(hashid, format=None):
             )
         elif format == 'csv':
             out = io.BytesIO()
-            fieldnames = set(field for sub in submissions for field in sub.data.keys())
+            fieldnames = set(field for sub in form.submissions for field in sub.data.keys())
             fieldnames = ['date'] + sorted(fieldnames)
             
             w = csv.DictWriter(out, fieldnames=fieldnames, encoding='utf-8')
             w.writeheader()
-            for sub in submissions:
+            for sub in form.submissions:
                 w.writerow(dict(sub.data, date=sub.submitted_at.isoformat()))
 
             return Response(
@@ -632,13 +716,62 @@ def form_submissions(hashid, format=None):
 
 
 @login_required
+def form_recaptcha_toggle(hashid):
+    form = Form.get_with_hashid(hashid)
+    valid_check = check_valid_form_settings_request(form)
+    if valid_check != True:
+        return valid_check
+
+    checked_status = request.json['checked']
+    form.captcha_disabled = not checked_status
+    DB.session.add(form)
+    DB.session.commit()
+
+    if form.captcha_disabled:
+        return jsonify(disabled=True, message='CAPTCHA successfully disabled')
+    else:
+        return jsonify(disabled=False, message='CAPTCHA successfully enabled')
+
+@login_required
+def form_email_notification_toggle(hashid):
+    form = Form.get_with_hashid(hashid)
+    valid_check = check_valid_form_settings_request(form)
+    if valid_check != True:
+        return valid_check
+
+    checked_status = request.json['checked']
+    form.disable_email = not checked_status
+    DB.session.add(form)
+    DB.session.commit()
+
+    if form.disable_email:
+        return jsonify(disabled=True, message='Email notifications successfully disabled')
+    else:
+        return jsonify(disabled=False, message='Email notifications successfully enabled')
+
+@login_required
+def form_archive_toggle(hashid):
+    form = Form.get_with_hashid(hashid)
+    valid_check = check_valid_form_settings_request(form)
+    if valid_check != True:
+        return valid_check
+
+    checked_status = request.json['checked']
+    form.disable_storage = not checked_status
+    DB.session.add(form)
+    DB.session.commit()
+
+    if form.disable_storage:
+        return jsonify(disabled=True, message='Submission archive successfully disabled')
+    else:
+        return jsonify(disabled=False, message='Submission archive successfully enabled')
+
+@login_required
 def form_toggle(hashid):
     form = Form.get_with_hashid(hashid)
 
     # check that this request came from user dashboard to prevent XSS and CSRF
-    referrer = referrer_to_baseurl(request.referrer)
-    service = referrer_to_baseurl(settings.SERVICE_URL)
-    if referrer != service:
+    if not valid_domain_request(request):
         return render_template('error.html',
                                title='Improper Request',
                                text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400

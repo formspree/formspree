@@ -1,0 +1,144 @@
+{
+  "name": "formspree",
+  "description": "",
+  "scripts": {
+  },
+  "env": {
+    "ACCOUNT_SENDER": {
+      "required": true
+    },
+    "API_ROOT": {
+      "required": true
+    },
+    "ARCHIVED_SUBMISSIONS_LIMIT": {
+      "required": true
+    },
+    "CONTACT_EMAIL": {
+      "required": true
+    },
+    "CONTACT_FORM_HASHID": {
+      "required": true
+    },
+    "DEFAULT_SENDER": {
+      "required": true
+    },
+    "HASHIDS_SALT": {
+      "required": true
+    },
+    "HEROKU_POSTGRESQL_JADE_URL": {
+      "required": true
+    },
+    "LIBRATO_PASSWORD": {
+      "required": true
+    },
+    "LIBRATO_TOKEN": {
+      "required": true
+    },
+    "LIBRATO_USER": {
+      "required": true
+    },
+    "MAILGUN_API_KEY": {
+      "required": true
+    },
+    "MAILGUN_DOMAIN": {
+      "required": true
+    },
+    "MAILGUN_PUBLIC_KEY": {
+      "required": true
+    },
+    "MAILGUN_SMTP_LOGIN": {
+      "required": true
+    },
+    "MAILGUN_SMTP_PASSWORD": {
+      "required": true
+    },
+    "MAILGUN_SMTP_PORT": {
+      "required": true
+    },
+    "MAILGUN_SMTP_SERVER": {
+      "required": true
+    },
+    "NEWSLETTER_EMAIL": {
+      "required": true
+    },
+    "NONCE_SECRET": {
+      "required": true
+    },
+    "PAPERTRAIL_API_TOKEN": {
+      "required": true
+    },
+    "PGSTUDIO_URL": {
+      "required": true
+    },
+    "RATE_LIMIT": {
+      "required": true
+    },
+    "RECAPTCHA_ENABLED": {
+      "required": true
+    },
+    "RECAPTCHA_KEY": {
+      "required": true
+    },
+    "RECAPTCHA_SECRET": {
+      "required": true
+    },
+    "REDIS_URL": {
+      "required": true
+    },
+    "REDISTOGO_URL": {
+      "required": true
+    },
+    "SECRET_KEY": {
+      "required": true
+    },
+    "SENDGRID_API_KEY": {
+      "required": true
+    },
+    "SENDGRID_PASSWORD": {
+      "required": true
+    },
+    "SENDGRID_USERNAME": {
+      "required": true
+    },
+    "SERVICE_NAME": {
+      "required": true
+    },
+    "SERVICE_UPGRADE": {
+      "required": true
+    },
+    "SERVICE_URL": {
+      "required": true
+    },
+    "STRIPE_PUBLISHABLE_KEY": {
+      "required": true
+    },
+    "STRIPE_SECRET_KEY": {
+      "required": true
+    },
+    "STRIPE_TEST_PUBLISHABLE_KEY": {
+      "required": true
+    },
+    "STRIPE_TEST_SECRET_KEY": {
+      "required": true
+    },
+    "TYPEKIT_KEY": {
+      "required": true
+    }
+  },
+  "formation": {
+  },
+  "addons": [
+    "librato",
+    "mailgun",
+    "papertrail",
+    "heroku-postgresql",
+    "heroku-redis",
+    "redistogo",
+    "sendgrid"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+}

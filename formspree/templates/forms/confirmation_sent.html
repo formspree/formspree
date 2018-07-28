@@ -4,6 +4,12 @@
 
 {% block head_scripts %}
   <script type="text/javascript">
+    ga('send', {
+      hitType: 'event',
+      eventCategory: 'Formspree',
+      eventAction: 'confirm-sent',
+      eventLabel: 'Confirmation Sent'
+    });
     var onloadCallback = function() {
       grecaptcha.render('recaptcha', {
         'sitekey' : {{ config.RECAPTCHA_KEY|tojson|safe }},

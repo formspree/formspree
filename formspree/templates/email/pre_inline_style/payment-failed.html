@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Confirm Form</title>
+    <link href="email_styles.css" media="all" rel="stylesheet" type="text/css" />
+</head>
+<body itemscope itemtype="http://schema.org/EmailMessage">
+    <table class="body-wrap">
+        <tr>
+            <td></td>
+            <tr>
+                <td class="header">
+                    <img src="{{url_for('static', filename='img/email_headers/payment-failed@3x.png', _external=True)}}" width="400">
+                </td>
+            </tr>
+            <td class="container" width="600">
+                <div class="content">
+                    <table class="main" width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="content-wrap">
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                  <tr>
+                                      <td class="alert straight-edge alert-bad">
+                                          <strong>ALERT:</strong> Your payment for {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} failed
+                                      </td>
+                                  </tr>
+                                  <tr>
+                                      <td class="content-block">
+                                          Uh oh. Looks like your latest payment for {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} was declined. This could be due to a change in your card number or your card expiring, cancellation of your credit card, or the bank not recognizing the payment and taking action to prevent it.
+                                      </td>
+                                  </tr>
+                                    <tr>
+                                        <td class="content-block">
+                                            Please update your payment information as soon as possible by logging in to your <a href="{{ url_for('account', _external=True) }}">{{ config.SERVICE_NAME }} dashboard</a>.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="content-block">
+                                          Please note that if future payments continue to fail, we will downgrade your account and your form may stop working. If you are having issues, please contact our team as soon as possible at <a href="mailto:{{ config.CONTACT_EMAIL }}">{{ config.CONTACT_EMAIL }}</a>.
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="footer">
+                        <table width="100%">
+                            <tr>
+                                <td class="aligncenter content-block">Why did I receive this?
+                                    <br>Someone (hopefully you?) used your email with the {{config.SERVICE_NAME}} API on {{host}}. If this wasn't you, no worries. This is the only email you'll get. If you have any questions, feel free to shoot an email to <a href="mailto:{{config.CONTACT_EMAIL}}">{{config.CONTACT_EMAIL}}</a>.</td>
+                                <br>
+                            </tr>
+                            {% include "email/footer.html" %}
+                        </table>
+                    </div>
+                </div>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+</body>
+</html>
