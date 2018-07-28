@@ -8,14 +8,6 @@ def configure_routes(app):
     app.add_url_rule('/formspree-verify.txt', view_func=sv.formspree_verify)
 
     # Public forms
-# <<<<<<< HEAD
-#     app.add_url_rule('/<email_or_string>', 'send', view_func=forms.views.send, methods=['GET', 'POST'])
-#     app.add_url_rule('/unblock/<email>', 'unblock_email', view_func=forms.views.unblock_email, methods=['GET', 'POST'])
-#     app.add_url_rule('/resend/<email>', 'resend_confirmation', view_func=forms.views.resend_confirmation, methods=['POST'])
-#     app.add_url_rule('/confirm/<nonce>', 'confirm_email', view_func=forms.views.confirm_email, methods=['GET'])
-#     app.add_url_rule('/unconfirm/<nonce>', 'unconfirm_form', view_func=forms.views.unconfirm_form, methods=['GET'])
-#     app.add_url_rule('/thanks', 'thanks', view_func=forms.views.thanks, methods=['GET'])
-# =======
     app.add_url_rule('/<email_or_string>', 'send', view_func=fv.send, methods=['GET', 'POST'])
     app.add_url_rule('/unblock/<email>', 'unblock_email', view_func=fv.unblock_email, methods=['GET', 'POST'])
     app.add_url_rule('/resend/<email>', 'resend_confirmation', view_func=fv.resend_confirmation, methods=['POST'])
@@ -23,7 +15,6 @@ def configure_routes(app):
     app.add_url_rule('/request_unconfirm', 'request_unconfirm', view_func=fv.request_unconfirm, methods=['GET', 'POST'])
     app.add_url_rule('/unconfirm/<digest>/<form_id>', 'unconfirm_form', view_func=fv.unconfirm_form, methods=['POST'])
     app.add_url_rule('/thanks', 'thanks', view_func=fv.thanks, methods=['GET'])
-# >>>>>>> master
 
     # Users
     app.add_url_rule('/account', 'account', view_func=uv.account, methods=['GET'])
