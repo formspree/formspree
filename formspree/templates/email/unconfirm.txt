@@ -1,0 +1,9 @@
+We're about to disable the forms that target {{ forms[0].email }} from the following web addresses:
+
+{% for f in forms %}
+* {{ f.host }}
+{% endfor %}
+
+Please visit {{ url_for('unconfirm_form', nonce=nonce, _external=True) }} to confirm.
+
+ALERT: This will cancel all further submissions from the selected forms.

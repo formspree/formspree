@@ -12,6 +12,7 @@ def configure_routes(app):
     app.add_url_rule('/unblock/<email>', 'unblock_email', view_func=fv.unblock_email, methods=['GET', 'POST'])
     app.add_url_rule('/resend/<email>', 'resend_confirmation', view_func=fv.resend_confirmation, methods=['POST'])
     app.add_url_rule('/confirm/<nonce>', 'confirm_email', view_func=fv.confirm_email, methods=['GET'])
+    app.add_url_rule('/request_unconfirm', 'request_unconfirm', view_func=fv.request_unconfirm, methods=['GET', 'POST'])
     app.add_url_rule('/unconfirm/<digest>/<form_id>', 'unconfirm_form', view_func=fv.unconfirm_form, methods=['POST'])
     app.add_url_rule('/thanks', 'thanks', view_func=fv.thanks, methods=['GET'])
 

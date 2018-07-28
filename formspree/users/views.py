@@ -148,7 +148,7 @@ def forgot_password():
         user = User.query.filter_by(email=email).first()
         if not user or user.send_password_reset():
             return render_template(
-                'info.html',
+                'email-sent.html',
                 title='Reset email sent',
                 text=u"We've sent you a password reset link. Please check your email."
             )

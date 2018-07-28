@@ -22,6 +22,7 @@ KEYS_EXCLUDED_FROM_EMAIL = KEYS_NOT_STORED.union({'_subject', '_cc', '_next'})
 
 REDIS_COUNTER_KEY = 'monthly_{form_id}_{month}'.format
 REDIS_HOSTNAME_KEY = 'hostname_{nonce}'.format
+REDIS_FORMS_TO_DISABLE_KEY = 'willdisable_{nonce}'.format
 REDIS_FIRSTSUBMISSION_KEY = 'first_{nonce}'.format
 HASHIDS_CODEC = hashids.Hashids(alphabet='abcdefghijklmnopqrstuvwxyz',
                                 min_length=8,
@@ -179,5 +180,20 @@ def check_valid_form_settings_request(form):
 
     if not form:
         return jsonify(error='That form does not exist. Please check the link and try again.'), 400
-
     return True
+
+
+def temp_store_forms_to_disable(ids):
+    nonce = uuid.uuid4()
+    key = REDIS_FORMS_TO_DISABLE_KEY(nonce=nonce)
+    redis_store.set(key, ','.join(str(id) for id in ids))
+    redis_store.expire(key, 300000)
+    return str(nonce)
+
+
+def get_temp_forms_to_disable(nonce):
+    key = REDIS_FORMS_TO_DISABLE_KEY(nonce=nonce)
+    value = redis_store.get(key)
+    if value == None: raise KeyError()
+    redis_store.delete(key)
+    return value.split(',')
