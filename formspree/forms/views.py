@@ -7,7 +7,7 @@ import io
 
 from flask import request, url_for, render_template, redirect, \
                   jsonify, flash, make_response, Response, g, \
-                  abort
+                  session, abort
 from flask_login import current_user, login_required
 from flask_cors import cross_origin
 from jinja2.exceptions import TemplateNotFound
@@ -16,7 +16,7 @@ from urllib.parse import urljoin
 from formspree import settings
 from formspree.stuff import DB
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
-                            url_domain, valid_url
+                            url_domain, valid_url, send_email
 from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
@@ -374,23 +374,93 @@ def unblock_email(email):
         # fallback response -- should happen only when the recaptcha is failed.
         g.log.warning('Failed to unblock email. reCaptcha test failed.')
         return render_template('error.html',
-                               title='Unable to unblock email',
-                               text='Please make sure you pass the <i>reCaptcha</i> test before submitting.'), 500
+            title='Unable to unblock email',
+            text='Please make sure you pass the <i>reCaptcha</i> test before '
+                 'submitting.'), 500
 
     elif request.method == 'GET':
         return render_template('forms/unblock_email.html', email=email), 200
 
 
-def unconfirm_form(form_id, digest):
+def request_unconfirm_form(form_id):
     '''
-    We send a digest as the List-Unsubscribe header on every submission.
-    Here we get that digest and handle the unconfirmation request.
+    This endpoints triggers a confirmation email that directs users to the
+    GET version of unconfirm_form.
     '''
     form = Form.query.get(form_id)
-    if form.unconfirm_with_digest(digest):
-        return '', 200
-    else:
-        return abort(401)
+
+    unconfirm_url = url_for(
+        'unconfirm_form',
+        form_id=form.id,
+        digest=form.unconfirm_digest(),
+        _external=True
+    )
+
+    send_email(
+        to=form.email,
+        subject='Unsubscribe from form at {}'.format(form.host),
+        text=render_template('email/unsubscribe-confirmation.txt',
+            url=unconfirm_url,
+            email=form.email,
+            host=form.host),
+        sender=settings.DEFAULT_SENDER,
+    )
+
+    return render_template('info.html',
+        title='Link sent to your address',
+        text="To prevent unwanted form submission losses, we've sent the link "
+             "to finish the unsubscription to {}".format(form.email)), 200
+    
+
+def unconfirm_form(form_id, digest):
+    '''
+    Here we check the digest for a form and handle the unconfirmation.
+    Also works for List-Unsubscribe triggered POSTs.
+    When GET, give the user the option to unsubscribe from other forms as well.
+    '''
+    form = Form.query.get(form_id)
+    success = form.unconfirm_with_digest(digest)
+
+    if request.method == 'GET':
+        if success:
+            other_forms = Form.query.filter_by(confirmed=True, email=form.email)
+
+            session['unconfirming'] = form.email
+
+            return render_template('forms/unconfirm.html',
+                other_forms=other_forms,
+                disabled_form=form
+            ), 200
+        else:
+            return render_template('error.html',
+                title='Not a valid link',
+                text='This unconfirmation link is not valid.'), 400
+
+    if request.method == 'POST':
+        if success:
+            return '', 200
+        else:
+            return abort(401)
+
+
+def unconfirm_multiple():
+    unconfirming_for_email = session.get('unconfirming')
+    if not unconfirming_for_email:
+        return render_template('error.html',
+            title='Forbidden',
+            text="You're not allowed to unconfirm these forms."), 401
+
+    for form_id in request.form.getlist('form_ids'):
+        form = Form.query.get(form_id)
+        print(form.email + ' == ' + unconfirming_for_email)
+        if form.email == unconfirming_for_email:
+            form.confirmed = False
+            DB.session.add(form)
+    DB.session.commit()
+
+    return render_template('info.html',
+        title='Success',
+        text='The selected forms were unconfirmed successfully.'), 200
 
 
 def confirm_email(nonce):

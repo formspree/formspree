@@ -6,4 +6,4 @@ You are past our limit of {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per
 
 ---
 
-You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or send an email to {{config.CONTACT_EMAIL}}.
+You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or visit {{unconfirm_url}} to unsubscribe from this endpoint.
