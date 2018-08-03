@@ -14,7 +14,7 @@ from jinja2.exceptions import TemplateNotFound
 from urllib.parse import urljoin
 
 from formspree import settings
-from formspree.stuff import DB
+from formspree.stuff import DB, TEMPLATES
 from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
                             url_domain, valid_url, send_email
 from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
@@ -395,11 +395,12 @@ def request_unconfirm_form(form_id):
         digest=form.unconfirm_digest(),
         _external=True
     )
-
+    print('Unsubscribe template:')
+    print(TEMPLATES)
     send_email(
         to=form.email,
         subject='Unsubscribe from form at {}'.format(form.host),
-        html=render_template_string(g.templates.get('unsubscribe-confirmation.html'),
+        html=render_template_string(TEMPLATES.get('unsubscribe-confirmation.html'),
                                     url=unconfirm_url,
                                     email=form.email,
                                     host=form.host),

@@ -93,8 +93,8 @@ def create_app():
     configure_login(app)
     configure_logger(app)
 
-    with app.app_context():
-        g.templates = generate_templates()
+    TEMPLATES = generate_templates()
+    print(TEMPLATES['unsubscribe-confirmation.html'])
 
     app.jinja_env.filters['json'] = json.dumps
 

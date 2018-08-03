@@ -11,3 +11,4 @@ redis_store = Redis()
 stripe.api_key = settings.STRIPE_SECRET_KEY
 cdn = CDN()
 celery = Celery(__name__, broker=settings.CELERY_BROKER_URL)
+TEMPLATES = dict()

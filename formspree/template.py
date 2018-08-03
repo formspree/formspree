@@ -1,5 +1,4 @@
 import os
-from flask import render_template
 from premailer import transform
 
 TEMPLATES_DIR = 'formspree/templates/email/pre_inline_style/'
@@ -13,5 +12,6 @@ def generate_templates():
                 data = html.read()
                 template_map[filename] = transform(data)
 
-
+    for item in template_map:
+        print(item)
     return template_map
