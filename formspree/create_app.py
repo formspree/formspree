@@ -9,6 +9,7 @@ from flask_limiter.util import get_ipaddr
 from . import routes, settings
 from .stuff import DB, redis_store, cdn, celery
 from .users.models import User
+from .template import generate_templates
 
 def configure_login(app):
     login_manager = LoginManager()
@@ -91,6 +92,9 @@ def create_app():
     routes.configure_routes(app)
     configure_login(app)
     configure_logger(app)
+
+    with app.app_context():
+        g.templates = generate_templates()
 
     app.jinja_env.filters['json'] = json.dumps
 

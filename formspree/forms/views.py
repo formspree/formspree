@@ -7,7 +7,7 @@ import io
 
 from flask import request, url_for, render_template, redirect, \
                   jsonify, flash, make_response, Response, g, \
-                  session, abort
+                  session, abort, render_template_string
 from flask_login import current_user, login_required
 from flask_cors import cross_origin
 from jinja2.exceptions import TemplateNotFound
@@ -399,6 +399,10 @@ def request_unconfirm_form(form_id):
     send_email(
         to=form.email,
         subject='Unsubscribe from form at {}'.format(form.host),
+        html=render_template_string(g.templates.get('unsubscribe-confirmation.html'),
+                                    url=unconfirm_url,
+                                    email=form.email,
+                                    host=form.host),
         text=render_template('email/unsubscribe-confirmation.txt',
             url=unconfirm_url,
             email=form.email,
