@@ -395,8 +395,6 @@ def request_unconfirm_form(form_id):
         digest=form.unconfirm_digest(),
         _external=True
     )
-    print('Unsubscribe template:')
-    print(TEMPLATES)
     send_email(
         to=form.email,
         subject='Unsubscribe from form at {}'.format(form.host),
