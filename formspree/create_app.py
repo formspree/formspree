@@ -9,7 +9,6 @@ from flask_limiter.util import get_ipaddr
 from . import routes, settings
 from .stuff import DB, redis_store, cdn, celery
 from .users.models import User
-from .template import generate_templates
 
 def configure_login(app):
     login_manager = LoginManager()
