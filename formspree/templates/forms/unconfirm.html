@@ -40,13 +40,16 @@
     </div>
   </div>
   <script>
-    var checkAll = document.getElementById('disable-all')
     var all = document.querySelectorAll('input[type="checkbox"]')
-    checkAll.addEventListener('change', function () {
-      for (var i = 0; i < all.length; i++) {
-        all[i].checked = checkAll.checked
-      }
-    })
+
+    var checkAll = document.getElementById('disable-all')
+    if (checkAll) {
+      checkAll.addEventListener('change', function () {
+        for (var i = 0; i < all.length; i++) {
+          all[i].checked = checkAll.checked
+        }
+      })
+    }
 
     var button = document.querySelector('button')
     for (var i = 0; i < all.length; i++) {
