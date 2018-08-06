@@ -411,8 +411,8 @@ def request_unconfirm_form(form_id):
 
     return render_template('info.html',
         title='Link sent to your address',
-        text="To prevent unwanted form submission losses, we've sent the link "
-             "to finish the unsubscription to {}".format(form.email)), 200
+        text="We've sent an email to {} with a link to finish "
+             "unsubscribing.".format(form.email)), 200
     
 
 def unconfirm_form(form_id, digest):

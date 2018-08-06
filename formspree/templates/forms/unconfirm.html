@@ -17,7 +17,7 @@
   {% if other_forms.count() %}
   <div class="container">
     <div class="col-1-1">
-      <h3>Do you want to unconfirm these other forms too?</h3>
+      <h3>Would you like to unsubscribe from these other forms targeting {{ disabled_form.email }}?</h3>
       <form
         action="{{ url_for('unconfirm_multiple') }}"
         method="POST"
