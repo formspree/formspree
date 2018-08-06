@@ -92,6 +92,7 @@ def create_app():
     configure_login(app)
     configure_logger(app)
 
+
     app.jinja_env.filters['json'] = json.dumps
 
     def epoch_to_date(s):

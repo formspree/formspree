@@ -1,0 +1,10 @@
+Hello,
+
+You're receiving this because you've tried to unsubscribe from the form registered on Formspree for the email {{ email }} in the URL {{ host }}.
+
+To confirm and stop receiving submissions, visit {{ url }}
+
+If you don't want to stop receiving submissions, just ignore this message.
+
+Best,
+{{ config.SERVICE_NAME }} Team

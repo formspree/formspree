@@ -32,6 +32,7 @@ Flask-SQLAlchemy = "==2.1"
 Flask-Testing = "==0.6.1"
 unicodecsv = "==0.14.1"
 flask-migrate = "*"
+premailer = "==3.2.0"
 
 [pipenv]
 allow_prereleases = true

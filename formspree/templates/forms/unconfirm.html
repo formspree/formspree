@@ -1,0 +1,70 @@
+{% extends 'layouts/message.html' %}
+
+{% block base %}
+<div class="container narrow card">
+  <div class="container" id="header">
+    <div class="col-1-1 header info">
+      <i class="ion ion-help-circled"></i>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="col-1-1">
+      <h2>You'll not receive submissions for the form on {{ disabled_form.host }} targeting {{ disabled_form.email }} anymore.</h1>
+    </div>
+  </div>
+
+  {% if other_forms.count() %}
+  <div class="container">
+    <div class="col-1-1">
+      <h3>Would you like to unsubscribe from these other forms targeting {{ disabled_form.email }}?</h3>
+      <form
+        action="{{ url_for('unconfirm_multiple') }}"
+        method="POST"
+      >
+        <div style="text-align: left; padding-left: 5%">
+          {% if other_forms.count() > 1 %}
+            <label> <input type="checkbox" id="disable-all">Select all</label>
+            <hr>
+          {% endif %}
+          {% for f in other_forms %}
+            <div class="float-left"><label>
+              <input type="checkbox" name="form_ids" value="{{ f.id }}"> {{ f.host }}
+            </label></div>
+          {% endfor %}
+        </div>
+
+        <br>
+        <button disabled type="submit">Yes, I want to stop receiving submissions from these other forms</button>
+      </form>
+    </div>
+  </div>
+  <script>
+    var all = document.querySelectorAll('input[type="checkbox"]')
+
+    var checkAll = document.getElementById('disable-all')
+    if (checkAll) {
+      checkAll.addEventListener('change', function () {
+        for (var i = 0; i < all.length; i++) {
+          all[i].checked = checkAll.checked
+        }
+      })
+    }
+
+    var button = document.querySelector('button')
+    for (var i = 0; i < all.length; i++) {
+      all[i].addEventListener('change', function () {
+        var disabled = true
+        for (var j = 0; j < all.length; j++) {
+          if (all[j].checked) {
+            disabled = false
+            break
+          }
+        }
+        button.disabled = disabled
+      })
+    }
+  </script>
+  {% endif %}
+</div>
+{% endblock %}

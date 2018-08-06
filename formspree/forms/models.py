@@ -192,6 +192,9 @@ class Form(DB.Model):
                   where(~Submission.id.in_(newest))
                 )
 
+        # url to request_unconfirm_form page
+        unconfirm = url_for('request_unconfirm_form', form_id=self.id, _external=True)
+
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
         monthly_counter = self.get_monthly_counter()
@@ -203,29 +206,39 @@ class Form(DB.Model):
             send_email(
                 to=self.email,
                 subject="[WARNING] Approaching submission limit",
-                text=render_template('email/90-percent-warning.txt'),
-                html=render_template('email/90-percent-warning.html'),
+                text=render_template('email/90-percent-warning.txt', unconfirm_url=unconfirm),
+                html=render_template('email/90-percent-warning.html', unconfirm_url=unconfirm),
                 sender=settings.DEFAULT_SENDER
             )
 
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
+
         if not overlimit:
-            text = render_template('email/form.txt', data=data, host=self.host, keys=keys, now=now)
+            text = render_template('email/form.txt',
+                data=data, host=self.host, keys=keys, now=now,
+                unconfirm_url=unconfirm)
             # check if the user wants a new or old version of the email
             if format == 'plain':
-                html = render_template('email/plain_form.html', data=data, host=self.host, keys=keys, now=now)
+                html = render_template('email/plain_form.html',
+                    data=data, host=self.host, keys=keys, now=now,
+                    unconfirm_url=unconfirm)
             else:
-                html = render_template('email/form.html', data=data, host=self.host, keys=keys, now=now)
+                html = render_template('email/form.html',
+                    data=data, host=self.host, keys=keys, now=now,
+                    unconfirm_url=unconfirm)
         else:
             if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
-                g.log.info('Submission rejected. Form over quota.', monthly_counter=monthly_counter)
+                g.log.info('Submission rejected. Form over quota.',
+                    monthly_counter=monthly_counter)
                 # only send this overlimit notification for the first 25 overlimit emails
                 # after that, return an error so the user can know the website owner is not
                 # going to read his message.
-                return { 'code': Form.STATUS_OVERLIMIT }
+                return {'code': Form.STATUS_OVERLIMIT}
 
-            text = render_template('email/overlimit-notification.txt', host=self.host)
-            html = render_template('email/overlimit-notification.html', host=self.host)
+            text = render_template('email/overlimit-notification.txt',
+                host=self.host, unconfirm_url=unconfirm)
+            html = render_template('email/overlimit-notification.html',
+                host=self.host, unconfirm_url=unconfirm)
 
         # if emails are disabled and form is upgraded, don't send email notification
         if self.disable_email and self.upgraded:
