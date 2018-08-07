@@ -193,7 +193,7 @@ class Form(DB.Model):
                 )
 
         # url to request_unconfirm_form page
-        unconfirm = url_for('request_unconfirm_form', form_id=self.id, _external=True)
+        unconfirm = url_for('request_unconfirm_form', form_hashid=self.hashid, _external=True)
 
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
@@ -346,7 +346,7 @@ class Form(DB.Model):
                 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
                 'List-Unsubscribe': '<' + url_for(
                     'unconfirm_form',
-                    form_id=self.id,
+                    form_hashid=self.id,
                     digest=self.unconfirm_digest(),
                     _external=True
                 ) + '>'
