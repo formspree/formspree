@@ -382,16 +382,16 @@ def unblock_email(email):
         return render_template('forms/unblock_email.html', email=email), 200
 
 
-def request_unconfirm_form(form_id):
+def request_unconfirm_form(form_hashid):
     '''
     This endpoints triggers a confirmation email that directs users to the
     GET version of unconfirm_form.
     '''
-    form = Form.query.get(form_id)
+    form = Form.get_with_hashid(form_hashid)
 
     unconfirm_url = url_for(
         'unconfirm_form',
-        form_id=form.id,
+        form_hashid=form.hashid,
         digest=form.unconfirm_digest(),
         _external=True
     )
@@ -415,13 +415,13 @@ def request_unconfirm_form(form_id):
              "unsubscribing.".format(form.email)), 200
     
 
-def unconfirm_form(form_id, digest):
+def unconfirm_form(form_hashid, digest):
     '''
     Here we check the digest for a form and handle the unconfirmation.
     Also works for List-Unsubscribe triggered POSTs.
     When GET, give the user the option to unsubscribe from other forms as well.
     '''
-    form = Form.query.get(form_id)
+    form = Form.get_with_hashid(form_hashid)
     success = form.unconfirm_with_digest(digest)
 
     if request.method == 'GET':
@@ -454,7 +454,7 @@ def unconfirm_multiple():
             text="You're not allowed to unconfirm these forms."), 401
 
     for form_id in request.form.getlist('form_ids'):
-        form = Form.query.get(form_id)
+        form = Form.get_with_hashid(form_id)
         print(form.email + ' == ' + unconfirming_for_email)
         if form.email == unconfirming_for_email:
             form.confirmed = False

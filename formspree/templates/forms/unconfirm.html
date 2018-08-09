@@ -29,7 +29,7 @@
           {% endif %}
           {% for f in other_forms %}
             <div class="float-left"><label>
-              <input type="checkbox" name="form_ids" value="{{ f.id }}"> {{ f.host }}
+              <input type="checkbox" name="form_ids" value="{{ f.hashid }}"> {{ f.host }}
             </label></div>
           {% endfor %}
         </div>

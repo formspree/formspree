@@ -1,13 +1,13 @@
 import stripe
 import datetime
 
-from flask import request, flash, url_for, render_template, redirect, g
+from flask import request, flash, url_for, render_template, redirect, g, render_template_string
 from flask_login import login_user, logout_user, \
                             current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
 from formspree import settings
-from formspree.stuff import DB
+from formspree.stuff import DB, TEMPLATES
 from formspree.utils import send_email
 from .models import User, Email
 from .helpers import check_password, hash_pwd, send_downgrade_email
@@ -317,8 +317,8 @@ def stripe_webhook():
                        subject='[ACTION REQUIRED] Failed Payment for {} {}'.format(settings.SERVICE_NAME,
                                                                                    settings.UPGRADED_PLAN_NAME),
                        text=render_template('email/payment-failed.txt'),
-                       html=render_template('email/payment-failed.html'),
-                       sender=settings.DEFAULT_SENDER)
+                       html=render_template_string(TEMPLATES.get('payment-failed.html'),
+                       sender=settings.DEFAULT_SENDER))
         return 'ok'
     except ValueError as e:
         g.log.error('Webhook failed for customer', json=event, error=e)

@@ -1,8 +1,8 @@
-from flask import render_template
+from flask import render_template, render_template_string
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from formspree import settings
-from formspree.stuff import celery
+from formspree.stuff import celery, TEMPLATES
 from formspree.utils import send_email
 
 
@@ -21,6 +21,6 @@ def send_downgrade_email(customer_email):
         subject='Successfully downgraded from {} {}'.format(settings.SERVICE_NAME,
                                                             settings.UPGRADED_PLAN_NAME),
         text=render_template('email/downgraded.txt'),
-        html=render_template('email/downgraded.html'),
+        html=render_template_string(TEMPLATES.get('downgraded.html')),
         sender=settings.DEFAULT_SENDER
     )
