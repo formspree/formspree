@@ -13,7 +13,7 @@ def generate_templates():
 
                 # weird issue with jinja templates beforehand so we use this hack
                 # see https://github.com/peterbe/premailer/issues/72
-                mapping = (('%7B%7B%20', '{{ '), ('%20%7D%7D', ' }}'))
+                mapping = (('%7B%7B%20', '{{ '), ('%20%7D%7D', ' }}'), ('%7B%7B', '{{'), ('%7D%7D', '}}'), ('%20', ' '))
                 for k, v in mapping:
                     transformed_template = transformed_template.replace(k, v)
 

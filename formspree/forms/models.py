@@ -207,7 +207,7 @@ class Form(DB.Model):
                 to=self.email,
                 subject="[WARNING] Approaching submission limit",
                 text=render_template('email/90-percent-warning.txt', unconfirm_url=unconfirm),
-                html=render_template(TEMPLATES.get('email/90-percent-warning.html'), unconfirm_url=unconfirm),
+                html=render_template_string(TEMPLATES.get('90-percent-warning.html'), unconfirm_url=unconfirm),
                 sender=settings.DEFAULT_SENDER
             )
 
@@ -256,7 +256,7 @@ class Form(DB.Model):
                     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
                     'List-Unsubscribe': '<' + url_for(
                         'unconfirm_form',
-                        form_id=self.id,
+                        form_hashid=self.hashid,
                         digest=self.unconfirm_digest(),
                         _external=True
                     ) + '>'
@@ -353,7 +353,7 @@ class Form(DB.Model):
                 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
                 'List-Unsubscribe': '<' + url_for(
                     'unconfirm_form',
-                    form_hashid=self.id,
+                    form_hashid=self.hashid,
                     digest=self.unconfirm_digest(),
                     _external=True
                 ) + '>'

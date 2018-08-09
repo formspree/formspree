@@ -391,7 +391,7 @@ def request_unconfirm_form(form_hashid):
 
     unconfirm_url = url_for(
         'unconfirm_form',
-        form_id=form.hashid,
+        form_hashid=form.hashid,
         digest=form.unconfirm_digest(),
         _external=True
     )

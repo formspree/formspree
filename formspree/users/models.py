@@ -131,7 +131,7 @@ class Email(DB.Model):
             to=addr,
             subject='Confirm email for your account at %s' % settings.SERVICE_NAME,
             text=render_template('email/confirm-account.txt', email=addr, link=link),
-            html=render_template_string(TEMPLATES.get('email/confirm-account.html'), email=addr, link=link),
+            html=render_template_string(TEMPLATES.get('confirm-account.html'), email=addr, link=link),
             sender=settings.ACCOUNT_SENDER
         )
         if not res[0]:

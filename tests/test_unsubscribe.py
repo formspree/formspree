@@ -26,7 +26,7 @@ def test_unconfirm_process(client, msend):
         data={'name': 'carol'}
     )
     assert msend.called
-    request_unconfirm_url = url_for('request_unconfirm_form', form_id=f1.id, _external=True)
+    request_unconfirm_url = url_for('request_unconfirm_form', form_hashid=f1.hashid, _external=True)
     assert request_unconfirm_url in msend.call_args[1]['text']
     msend.reset_mock()
 
@@ -37,7 +37,7 @@ def test_unconfirm_process(client, msend):
 
     unconfirm_url_with_digest = url_for(
         'unconfirm_form',
-        form_id=f1.id,
+        form_hashid=f1.hashid,
         digest=f1.unconfirm_digest(),
         _external=True
     )
@@ -59,7 +59,7 @@ def test_unconfirm_process(client, msend):
 
     # we can use unconfirm_multiple to unconfirm f2
     assert f2.confirmed == True
-    r = client.post(unconfirm_multiple_url, data={'form_ids': [f2.id]})
+    r = client.post(unconfirm_multiple_url, data={'form_ids': [f2.hashid]})
     assert r.status_code == 200
     assert 'Success' in r.data.decode('utf-8')
     assert f2.confirmed == False
