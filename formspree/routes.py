@@ -1,4 +1,5 @@
 import formspree.forms.views as fv
+import formspree.forms.api as fa
 import formspree.users.views as uv
 import formspree.static_pages.views as sv
 
@@ -37,18 +38,18 @@ def configure_routes(app):
     app.add_url_rule('/logout', 'logout', view_func=uv.logout, methods=['GET'])
 
     # Users' forms
-    app.add_url_rule('/dashboard', 'dashboard', view_func=fv.forms, methods=['GET'])
-    app.add_url_rule('/forms', 'forms', view_func=fv.forms, methods=['GET'])
-    app.add_url_rule('/forms', 'create-form', view_func=fv.create_form, methods=['POST'])
-    app.add_url_rule('/forms/sitewide-check', view_func=fv.sitewide_check, methods=['GET'])
-    app.add_url_rule('/forms/<hashid>/', 'form-submissions', view_func=fv.form_submissions, methods=['GET'])
-    app.add_url_rule('/forms/<hashid>.<format>', 'form-submissions', view_func=fv.form_submissions, methods=['GET'])
-    app.add_url_rule('/forms/<hashid>/toggle-recaptcha', 'toggle-recaptcha', view_func=fv.form_recaptcha_toggle, methods=['POST'])
-    app.add_url_rule('/forms/<hashid>/toggle-emails', 'toggle-emails', view_func=fv.form_email_notification_toggle, methods=['POST'])
-    app.add_url_rule('/forms/<hashid>/toggle-storage', 'toggle-storage', view_func=fv.form_archive_toggle, methods=['POST'])
-    app.add_url_rule('/forms/<hashid>/toggle', 'form-toggle', view_func=fv.form_toggle, methods=['POST'])
-    app.add_url_rule('/forms/<hashid>/delete', 'form-deletion', view_func=fv.form_deletion, methods=['POST'])
-    app.add_url_rule('/forms/<hashid>/delete/<submissionid>', 'submission-deletion', view_func=fv.submission_deletion, methods=['POST'])
+    app.add_url_rule('/dashboard', 'dashboard', view_func=fv.serve_dashboard, methods=['GET'])
+    app.add_url_rule('/forms', 'dashboard', view_func=fv.serve_dashboard, methods=['GET'])
+    app.add_url_rule('/forms/<hashid>', view_func=fv.serve_dashboard, methods=['GET'])
+    app.add_url_rule('/forms/<hashid>/<path:s>', view_func=fv.serve_dashboard, methods=['GET'])
+    app.add_url_rule('/forms/<hashid>.<format>', view_func=fv.export_submissions, methods=['GET'])
+    app.add_url_rule('/api/forms', view_func=fa.list, methods=['GET'])
+    app.add_url_rule('/api/forms', view_func=fa.create, methods=['POST'])
+    app.add_url_rule('/api/forms/<hashid>', view_func=fa.get, methods=['GET'])
+    app.add_url_rule('/api/forms/<hashid>', view_func=fa.update, methods=['PATCH'])
+    app.add_url_rule('/api/forms/<hashid>', view_func=fa.delete, methods=['DELETE'])
+    app.add_url_rule('/api/forms/sitewide-check', view_func=fa.sitewide_check, methods=['POST'])
+    app.add_url_rule('/api/forms/<hashid>/submissions/<submissionid>', view_func=fa.submission_delete, methods=['DELETE'])
 
     # Webhooks
     app.add_url_rule('/webhooks/stripe', view_func=uv.stripe_webhook, methods=['POST'])

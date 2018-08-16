@@ -111,6 +111,14 @@
 }
 
 .dashboard {
+  #header {
+    h3 {
+      a {
+        margin: 0 10px;
+      }
+    }
+  }
+
   .row:after {
     content: "";
     display: none;
@@ -444,38 +452,16 @@
   }
 }
 
-.html-highlight {
-  clear: both;
-  font-size: 14px;
-  font-family: monospace;
-  padding: 5px;
-  border: 2px dashed #696969;
-  border-radius: 5px;
-
-  .bracket {
-    color: #a65700
-  }
-  .tagname {
-    color: #800000;
-    font-weight: bold;
-  }
-  .attrkey {
-    color: #074726
-  }
-  .equal {
-    color: #808030
-  }
-  .attrvalue {
-    color: #0000e6
-  }
-  .comment {
-    color: #696969
-  }
-}
-
 a.button.export {
   width: 11em;
   text-align: center;
   display: inline-block;
   margin: 0 0 20px 20px;
+}
+
+.CodeMirror {
+  border: 1px solid #eee;
+  padding: 10px;
+  height: auto;
+  font-size: 90%;
 }

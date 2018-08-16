@@ -22,18 +22,15 @@
   <!-- end google optimize and analytics -->
   <script src="//use.typekit.net/{{config.TYPEKIT_KEY}}.js"></script>
   <script>try{Typekit.load();}catch(e){}</script>
-  <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
   <link rel="icon" type="image/png" href="{{config.SERVICE_URL}}/static/img/favicon.ico">
   <meta name="viewport" content="initial-scale=1">
   <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js"></script>
   <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/v4-shims.js"></script>
-{#  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">#}
-{#<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.9/css/all.css" integrity="sha384-5SOiIsAziJl6AWe0HWRKTXlfcSHKmYV4RBF18PPJ173Kzn7jzMyFuTtk8JA7QQG1" crossorigin="anonymous">#}
 
-
-  <script src="{{ url_for('static', filename='js/vendor/jquery.min.js') }}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script type="text/javascript" src="https://js.stripe.com/v3/"></script>
   {% block head_scripts %}{% endblock %}
+  <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
 </head>
 <body class="{% block bodyclass %}{% endblock %}" id="{% block bodyid %}card{% endblock %}">
 
@@ -65,7 +62,7 @@
       </div>
       <div class="menu">
         {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
-        <span class="item"><a href="{{ url_for('forms') }}">Your forms</a></span>
+        <span class="item"><a href="{{ url_for('dashboard') }}">Your forms</a></span>
         <span class="item"><a href="{{ url_for('account') }}">{% if current_user.upgraded %}Your{% else %}Upgrade{% endif %} account</a></span>
     {% else %}
       <div class="greetings">
@@ -104,6 +101,6 @@
   <script type="text/javascript">
     Stripe.setPublishableKey('{{config.STRIPE_PUBLISHABLE_KEY}}');
   </script>
-  <script src="{{ url_for('static', filename='js/bundle.js') }}"></script>
+  <script src="{{ url_for('static', filename='bundle.js' if config.DEBUG else 'bundle.prod.js') }}"></script>
 </body>
 </html>

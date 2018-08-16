@@ -116,6 +116,47 @@ class Form(DB.Model):
         except IndexError:
             return None
 
+    def serialize(self):
+        return {
+            'sitewide': self.sitewide,
+            'hashid': self.hashid,
+            'hash': self.hash,
+            'counter': self.counter,
+            'email': self.email,
+            'host': self.host,
+            'confirm_sent': self.confirm_sent,
+            'confirmed': self.confirmed,
+            'disabled': self.disabled,
+            'captcha_disabled': self.captcha_disabled,
+            'disable_email': self.disable_email,
+            'disable_storage': self.disable_storage,
+            'is_public': bool(self.hash),
+            'url': '{S}/{E}'.format(
+                S=settings.SERVICE_URL,
+                E=self.hashid
+            )
+        }
+
+    def submissions_with_fields(self):
+        '''
+        Fetch all submissions, extract all fields names from every submission
+        into a single fields list, excluding the KEYS_NOT_STORED values, because
+        they are worthless.
+        Add the special 'date' field to every submission entry, based on
+        .submitted_at, and use this as the first field on the fields array.
+        '''
+
+        fields = set()
+        submissions = []
+        for s in self.submissions:
+            fields.update(s.data.keys())
+            s.data['date'] = s.submitted_at.isoformat()
+            s.data['id'] = s.id
+            submissions.append(s.data)
+
+        fields = ['date'] + sorted(fields - KEYS_NOT_STORED)
+        return submissions, fields
+
     def send(self, data, keys, referrer):
         '''
         Sends form to user's email.

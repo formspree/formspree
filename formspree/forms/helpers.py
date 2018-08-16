@@ -91,20 +91,22 @@ def sitewide_file_check(url, email):
 
     g.log = g.log.bind(url=url, email=email)
 
-    res = requests.get(url, timeout=3, headers={
-        'User-Agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.87 Chrome/55.0.2883.87 Safari/537.36'
-    })
-    if not res.ok:
-        g.log.debug('Sitewide file not found.', contents=res.text[:100])
-        return False
+    try:
+        res = requests.get(url, timeout=3, headers={
+            'User-Agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/55.0.2883.87 Chrome/55.0.2883.87 Safari/537.36'
+        })
+        if not res.ok:
+            g.log.debug('Sitewide file not found.', contents=res.text[:100])
+            return False
 
-    for line in res.text.splitlines():
-        line = line.strip(u'\xef\xbb\xbf ')
-        if line == email:
-            g.log.debug('Email found in sitewide file.')
-            return True
+        for line in res.text.splitlines():
+            line = line.strip(u'\xef\xbb\xbf ')
+            if line == email:
+                g.log.debug('Email found in sitewide file.')
+                return True
+    except requests.exceptions.ConnectionError:
+        pass
 
-    g.log.warn('Email not found in sitewide file.', contents=res.text[:100])
     return False
 
 
@@ -117,14 +119,6 @@ def verify_captcha(form_data, request):
         'remoteip': request.remote_addr,
     }, timeout=2)
     return r.ok and r.json().get('success')
-
-
-def valid_domain_request(request):
-    # check that this request came from user dashboard to prevent XSS and CSRF
-    referrer = referrer_to_baseurl(request.referrer)
-    service = referrer_to_baseurl(settings.SERVICE_URL)
-
-    return referrer == service
 
 
 def assign_ajax(form, sent_using_ajax):
@@ -168,16 +162,3 @@ def fetch_first_submission(nonce):
         return json.loads(jsondata.decode('utf-8'))
     except:
         return None
-
-def check_valid_form_settings_request(form):
-    if not valid_domain_request(request):
-        return jsonify(error='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
-
-    if form.owner_id != current_user.id and form not in current_user.forms:
-        return jsonify(
-            error='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
-
-    if not form:
-        return jsonify(error='That form does not exist. Please check the link and try again.'), 400
-
-    return True

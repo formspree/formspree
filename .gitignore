@@ -5,6 +5,10 @@ npm-debug.log
 ssl-keys
 dart-sass
 dump.rdb
+formspree/static/bundle.js
+formspree/static/bundle.min.js
+formspree/static/main.css
+*tmp-browserify*
 
 # C extensions
 *.so

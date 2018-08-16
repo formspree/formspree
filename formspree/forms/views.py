@@ -20,9 +20,7 @@ from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
 from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
-                    HASH, assign_ajax, valid_domain_request, \
-                    KEYS_NOT_STORED, KEYS_EXCLUDED_FROM_EMAIL, \
-                    check_valid_form_settings_request
+                    HASH, assign_ajax, KEYS_EXCLUDED_FROM_EMAIL
 from .models import Form, Submission
 
 
@@ -486,349 +484,50 @@ def confirm_email(nonce):
 
 
 @login_required
-def forms():
-    '''
-    A reminder: this is the /forms endpoint, but for GET requests
-    it is also the /dashboard endpoint.
-
-    The /dashboard endpoint, the address gave by url_for('dashboard'),
-    is the target of a lot of redirects around the app, but it can
-    be changed later to point to somewhere else.
-    '''
-
-    # grab all the forms this user controls
-    if current_user.upgraded:
-        forms = current_user.forms.order_by(Form.id.desc()).all()
-    else:
-        forms = []
-
-    if request_wants_json():
-        return jsonify({
-            'ok': True,
-            'forms': [{
-                'email': f.email,
-                'host': f.host,
-                'confirm_sent': f.confirm_sent,
-                'confirmed': f.confirmed,
-                'is_public': bool(f.hash),
-                'url': '{S}/{E}'.format(
-                    S=settings.SERVICE_URL,
-                    E=f.hashid
-                )
-            } for f in forms]
-        })
-    else:
-        return render_template('forms/list.html',
-            enabled_forms=[form for form in forms if not form.disabled],
-            disabled_forms=[form for form in forms if form.disabled]
-        )
+def serve_dashboard(hashid=None, s=None):
+    return render_template('forms/dashboard.html')
 
 
 @login_required
-def create_form():
-    # create a new form
-
-    if not current_user.upgraded:
-        g.log.info('Failed to create form from dashboard. User is not upgraded.')
-        return jsonerror(402, {'error': "Please upgrade your account."})
-
-    if request.get_json():
-        email = request.get_json().get('email')
-        url = request.get_json().get('url')
-        sitewide = request.get_json().get('sitewide')
-    else:
-        email = request.form.get('email')
-        url = request.form.get('url')
-        sitewide = request.form.get('sitewide')
-
-    g.log = g.log.bind(email=email, url=url, sitewide=sitewide)
-
-    if not IS_VALID_EMAIL(email):
-        g.log.info('Failed to create form from dashboard. Invalid address.')
-        if request_wants_json():
-            return jsonerror(400, {'error': "The provided email address is not valid."})
-        else:
-            flash(u'The provided email address is not valid.', 'error')
-            return redirect(url_for('dashboard'))
-
-    g.log.info('Creating a new form from the dashboard.')
-
-    email = email.lower() # case-insensitive
-    form = Form(email, owner=current_user)
-    if url:
-        url = 'http://' + url if not url.startswith('http') else url
-        form.host = referrer_to_path(url)
-
-        # sitewide forms, verified with a file at the root of the target domain
-        if sitewide:
-            if sitewide_file_check(url, email):
-                form.host = remove_www(referrer_to_path(urljoin(url, '/'))[:-1])
-                form.sitewide = True
-            else:
-                return jsonerror(403, {
-                    'error': u"Couldn't verify the file at {}.".format(url)
-                })
-
-    DB.session.add(form)
-    DB.session.commit()
-
-    if form.host:
-        # when the email and url are provided, we can automatically confirm the form
-        # but only if the email is registered for this account
-        for email in current_user.emails:
-            if email.address == form.email:
-                g.log.info('No need for email confirmation.')
-                form.confirmed = True
-                DB.session.add(form)
-                DB.session.commit()
-                break
-        else:
-            # in case the email isn't registered for this user
-            # we automatically send the email confirmation
-            form.send_confirmation()
-
-    if request_wants_json():
-        return jsonify({
-            'ok': True,
-            'hashid': form.hashid,
-            'submission_url': settings.API_ROOT + '/' + form.hashid,
-            'confirmed': form.confirmed
-        })
-    else:
-        flash(u'Your new form endpoint was created!', 'success')
-        return redirect(url_for('dashboard', new=form.hashid) + '#form-' + form.hashid)
-
-
-@login_required
-def sitewide_check():
-    email = request.args.get('email')
-    url = request.args.get('url')
-
-    if sitewide_file_check(url, email):
-        return '', 200
-    else:
-        return '', 404
-
-
-@login_required
-def form_submissions(hashid, format=None):
+def export_submissions(hashid, format=None):
     if not current_user.upgraded:
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     form = Form.get_with_hashid(hashid)
-
     for cont in form.controllers:
         if cont.id == current_user.id: break
     else:
-        if request_wants_json():
-            return jsonerror(403, {'error': "You do not control this form."})
-        else:
-            return redirect(url_for('dashboard'))
+        return abort(401)
 
-    if not format:
-        # normal request.
-        if request_wants_json():
-            return jsonify({
+    submissions, fields = form.submissions_with_fields()
+
+    if format == 'json':
+        return Response(
+            json.dumps({
                 'host': form.host,
                 'email': form.email,
-                'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in form.submissions]
-            })
-        else:
-            fields = set()
-            for s in form.submissions:
-                fields.update(s.data.keys())
-            fields -= KEYS_NOT_STORED
+                'fields': fields,
+                'submissions': submissions
+            }, sort_keys=True, indent=2),
+            mimetype='application/json',
+            headers={
+                'Content-Disposition': 'attachment; filename=form-%s-submissions-%s.json' \
+                            % (hashid, datetime.datetime.now().isoformat().split('.')[0])
+            }
+        )
+    elif format == 'csv':
+        out = io.BytesIO()
+        
+        w = csv.DictWriter(out, fieldnames=fields, encoding='utf-8')
+        w.writeheader()
+        for sub in submissions:
+            w.writerow(sub)
 
-            submissions = []
-            for sub in form.submissions:
-                for f in fields:
-                    value = sub.data.get(f, '')
-                    typ = type(value)
-                    sub.data[f] = value if typ is str \
-                                  else pyaml.dump(value, safe=True)
-                submissions.append(sub)
-
-            return render_template('forms/submissions.html',
-                form=form,
-                fields=sorted(fields),
-                submissions=submissions
-            )
-    elif format:
-        # an export request, format can be json or csv
-        if format == 'json':
-            return Response(
-                json.dumps({
-                    'host': form.host,
-                    'email': form.email,
-                    'submissions': [dict(s.data, date=s.submitted_at.isoformat()) for s in form.submissions]
-                }, sort_keys=True, indent=2),
-                mimetype='application/json',
-                headers={
-                    'Content-Disposition': 'attachment; filename=form-%s-submissions-%s.json' \
-                                % (hashid, datetime.datetime.now().isoformat().split('.')[0])
-                }
-            )
-        elif format == 'csv':
-            out = io.BytesIO()
-            fieldnames = set(field for sub in form.submissions for field in sub.data.keys())
-            fieldnames = ['date'] + sorted(fieldnames)
-            
-            w = csv.DictWriter(out, fieldnames=fieldnames, encoding='utf-8')
-            w.writeheader()
-            for sub in form.submissions:
-                w.writerow(dict(sub.data, date=sub.submitted_at.isoformat()))
-
-            return Response(
-                out.getvalue(),
-                mimetype='text/csv',
-                headers={
-                    'Content-Disposition': 'attachment; filename=form-%s-submissions-%s.csv' \
-                                % (hashid, datetime.datetime.now().isoformat().split('.')[0])
-                }
-            )
-
-
-@login_required
-def form_recaptcha_toggle(hashid):
-    form = Form.get_with_hashid(hashid)
-    valid_check = check_valid_form_settings_request(form)
-    if valid_check != True:
-        return valid_check
-
-    checked_status = request.json['checked']
-    form.captcha_disabled = not checked_status
-    DB.session.add(form)
-    DB.session.commit()
-
-    if form.captcha_disabled:
-        return jsonify(disabled=True, message='CAPTCHA successfully disabled')
-    else:
-        return jsonify(disabled=False, message='CAPTCHA successfully enabled')
-
-@login_required
-def form_email_notification_toggle(hashid):
-    form = Form.get_with_hashid(hashid)
-    valid_check = check_valid_form_settings_request(form)
-    if valid_check != True:
-        return valid_check
-
-    checked_status = request.json['checked']
-    form.disable_email = not checked_status
-    DB.session.add(form)
-    DB.session.commit()
-
-    if form.disable_email:
-        return jsonify(disabled=True, message='Email notifications successfully disabled')
-    else:
-        return jsonify(disabled=False, message='Email notifications successfully enabled')
-
-@login_required
-def form_archive_toggle(hashid):
-    form = Form.get_with_hashid(hashid)
-    valid_check = check_valid_form_settings_request(form)
-    if valid_check != True:
-        return valid_check
-
-    checked_status = request.json['checked']
-    form.disable_storage = not checked_status
-    DB.session.add(form)
-    DB.session.commit()
-
-    if form.disable_storage:
-        return jsonify(disabled=True, message='Submission archive successfully disabled')
-    else:
-        return jsonify(disabled=False, message='Submission archive successfully enabled')
-
-@login_required
-def form_toggle(hashid):
-    form = Form.get_with_hashid(hashid)
-
-    # check that this request came from user dashboard to prevent XSS and CSRF
-    if not valid_domain_request(request):
-        return render_template('error.html',
-                               title='Improper Request',
-                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
-
-    if form.owner_id != current_user.id:
-        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
-            return render_template('error.html',
-                                  title='Wrong user',
-                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
-    if not form:
-            return render_template('error.html',
-                                   title='Not a valid form',
-                                   text='That form does not exist.<br />Please check the link and try again.'), 400
-    else:
-        form.disabled = not form.disabled
-        DB.session.add(form)
-        DB.session.commit()
-        if form.disabled:
-            flash(u'Form successfully disabled', 'success')
-        else:
-            flash(u'Form successfully enabled', 'success')
-        return redirect(url_for('dashboard'))
-
-
-@login_required
-def form_deletion(hashid):
-    form = Form.get_with_hashid(hashid)
-
-    # check that this request came from user dashboard to prevent XSS and CSRF
-    referrer = referrer_to_baseurl(request.referrer)
-    service = referrer_to_baseurl(settings.SERVICE_URL)
-    if referrer != service:
-        return render_template('error.html',
-                               title='Improper Request',
-                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
-
-    if form.owner_id != current_user.id:
-        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
-            return render_template('error.html',
-                                  title='Wrong user',
-                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.'), 400
-    if not form:
-            return render_template('error.html',
-                                   title='Not a valid form',
-                                   text='That form does not exist.<br />Please check the link and try again.'), 400
-    else:
-        for submission in form.submissions:
-            DB.session.delete(submission)
-        DB.session.delete(form)
-        DB.session.commit()
-        flash(u'Form successfully deleted', 'success')
-        return redirect(url_for('dashboard'))
-
-
-@login_required
-def submission_deletion(hashid, submissionid):
-    submission = Submission.query.get(submissionid)
-    form = Form.get_with_hashid(hashid)
-
-    # check that this request came from user dashboard to prevent XSS and CSRF
-    referrer = referrer_to_baseurl(request.referrer)
-    service = referrer_to_baseurl(settings.SERVICE_URL)
-    if referrer != service:
-        return render_template('error.html',
-                               title='Improper Request',
-                               text='The request you made is not valid.<br />Please visit your dashboard and try again.'), 400
-
-    if form.owner_id != current_user.id:
-        if form not in current_user.forms: #accounts for bug when form isn't assigned owner_id bc it was not created from dashboard
-            return render_template('error.html',
-                                  title='Wrong user',
-                                  text='You aren\'t the owner of that form.<br />Please log in as the form owner and try again.' + str(form.id)), 400
-    if not submission:
-        return render_template('error.html',
-                              title='Not a valid submission',
-                              text='That submission does not exist.<br />Please check the link and try again.'), 400
-    elif submission.form_id != form.id:
-        return render_template('error.html',
-                              title='Not a valid submissions',
-                              text='That submission does not match the form provided.<br />Please check the link and try again.'), 400
-    else:
-        DB.session.delete(submission)
-        form.counter -= 1
-        DB.session.add(form)
-        DB.session.commit()
-        flash(u'Submission successfully deleted', 'success')
-        return redirect(url_for('form-submissions', hashid=hashid))
+        return Response(
+            out.getvalue(),
+            mimetype='text/csv',
+            headers={
+                'Content-Disposition': 'attachment; filename=form-%s-submissions-%s.csv' \
+                            % (hashid, datetime.datetime.now().isoformat().split('.')[0])
+            }
+        )
