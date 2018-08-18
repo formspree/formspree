@@ -3,10 +3,9 @@
 const React = require('react')
 const cs = require('class-set')
 const {Link} = require('react-router-dom')
-const createPortal = require('react-dom').createPortal
 
 const CreateForm = require('./CreateForm')
-const HeaderPortal = require('./HeaderPortal')
+const Portal = require('../Portal')
 
 module.exports = class FormList extends React.Component {
   constructor(props) {
@@ -62,9 +61,12 @@ module.exports = class FormList extends React.Component {
 
     return (
       <>
-        <HeaderPortal>
+        <Portal to=".menu .item:nth-child(2)">
+          <Link to="/forms">Your forms</Link>
+        </Portal>
+        <Portal to="#header .center">
           <h1>Your Forms</h1>
-        </HeaderPortal>
+        </Portal>
         <div className="col-1-1">
           <h4>Active Forms</h4>
           {this.state.enabled_forms.length ? (

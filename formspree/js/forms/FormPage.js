@@ -2,11 +2,11 @@
 
 const toastr = window.toastr
 const React = require('react')
-const {Route, NavLink, Redirect} = require('react-router-dom')
+const {Route, Link, NavLink, Redirect} = require('react-router-dom')
 const CodeMirror = require('react-codemirror2')
 require('codemirror/mode/xml/xml')
 
-const HeaderPortal = require('./HeaderPortal')
+const Portal = require('../Portal')
 
 module.exports = class FormPage extends React.Component {
   constructor(props) {
@@ -28,7 +28,10 @@ module.exports = class FormPage extends React.Component {
 
     return (
       <>
-        <HeaderPortal>
+        <Portal to=".menu .item:nth-child(2)">
+          <Link to="/forms">Your forms</Link>
+        </Portal>
+        <Portal to="#header .center">
           <h1>{hashid}</h1>
           <h3>
             <NavLink
@@ -44,7 +47,7 @@ module.exports = class FormPage extends React.Component {
               Form Settings
             </NavLink>
           </h3>
-        </HeaderPortal>
+        </Portal>
         <Route
           exact
           path={`/forms/${hashid}`}

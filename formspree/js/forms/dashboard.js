@@ -21,4 +21,5 @@ class Dashboard extends React.Component {
   }
 }
 
+document.querySelector('.menu .item:nth-child(2)').innerHTML = ''
 render(<Dashboard />, document.querySelector('.container.block'))
