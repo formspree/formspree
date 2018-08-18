@@ -518,7 +518,7 @@ def export_submissions(hashid, format=None):
     elif format == 'csv':
         out = io.BytesIO()
         
-        w = csv.DictWriter(out, fieldnames=fields, encoding='utf-8')
+        w = csv.DictWriter(out, fieldnames=['id'] + fields, encoding='utf-8')
         w.writeheader()
         for sub in submissions:
             w.writerow(sub)

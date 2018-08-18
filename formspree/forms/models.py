@@ -152,6 +152,8 @@ class Form(DB.Model):
             fields.update(s.data.keys())
             s.data['date'] = s.submitted_at.isoformat()
             s.data['id'] = s.id
+            for k in KEYS_NOT_STORED:
+                s.data.pop(k, None)
             submissions.append(s.data)
 
         fields = ['date'] + sorted(fields - KEYS_NOT_STORED)
