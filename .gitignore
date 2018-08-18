@@ -8,6 +8,7 @@ dump.rdb
 formspree/static/bundle.js
 formspree/static/bundle.min.js
 formspree/static/main.css
+formspree/static/main.min.css
 *tmp-browserify*
 
 # C extensions

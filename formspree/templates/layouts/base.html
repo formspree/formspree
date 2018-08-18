@@ -30,7 +30,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script type="text/javascript" src="https://js.stripe.com/v3/"></script>
   {% block head_scripts %}{% endblock %}
-  <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css' if config.DEBUG else 'main.min.css') }}">
 </head>
 <body class="{% block bodyclass %}{% endblock %}" id="{% block bodyid %}card{% endblock %}">
 
@@ -101,6 +101,6 @@
   <script type="text/javascript">
     Stripe.setPublishableKey('{{config.STRIPE_PUBLISHABLE_KEY}}');
   </script>
-  <script src="{{ url_for('static', filename='bundle.js' if config.DEBUG else 'bundle.prod.js') }}"></script>
+  <script src="{{ url_for('static', filename='bundle.js' if config.DEBUG else 'bundle.min.js') }}"></script>
 </body>
 </html>

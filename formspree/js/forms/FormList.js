@@ -171,10 +171,7 @@ class FormItem extends React.Component {
           </Link>
         </td>
         <td className="target-email" data-label="Target email address">
-          <Link
-            to={`/forms/${form.hashid}/settings`}
-            className="no-underline"
-          >
+          <Link to={`/forms/${form.hashid}/settings`} className="no-underline">
             <span
               className="hint--top"
               data-hint={`https://${location.host}/${
@@ -186,7 +183,10 @@ class FormItem extends React.Component {
           </Link>
         </td>
         <td className="n-submissions" data-label="Submissions counter">
-          <Link to={`/forms/${form.hashid}/submissions`} className="no-underline">
+          <Link
+            to={`/forms/${form.hashid}/submissions`}
+            className="no-underline"
+          >
             {form.counter == 0 ? (
               <span className="never">never submitted</span>
             ) : (

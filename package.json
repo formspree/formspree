@@ -51,5 +51,8 @@
       ],
       "rules": []
     }
+  },
+  "scripts": {
+    "heroku-postbuild": "make prod"
   }
 }
