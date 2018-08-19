@@ -2,7 +2,7 @@ Hey there,
 
 Someone just submitted your form on {{host}}.
 
-You are past our limit of {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per month, but the contents of this form were stored at our databases. You can access them by just logging in at {{ config.SERVICE_URL }}/register and upgrading your account.
+You are past our limit of {{ limit }} submissions per month, but the contents of this form were stored at our databases. You can access them by just logging in at {{ config.SERVICE_URL }}/register and upgrading your account.
 
 ---
 

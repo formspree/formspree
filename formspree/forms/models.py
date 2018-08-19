@@ -209,10 +209,12 @@ class Form(DB.Model):
             send_email(
                 to=self.email,
                 subject="[WARNING] Approaching submission limit",
-                text=render_template('email/90-percent-warning.txt', unconfirm_url=unconfirm),
+                text=render_template('email/90-percent-warning.txt',
+                    unconfirm_url=unconfirm, limit=monthly_limit
+                ),
                 html=render_template_string(
                     TEMPLATES.get('90-percent-warning.html'),
-                    unconfirm_url=unconfirm
+                    unconfirm_url=unconfirm, limit=monthly_limit
                 ),
                 sender=settings.DEFAULT_SENDER
             )
@@ -242,9 +244,9 @@ class Form(DB.Model):
                 return {'code': Form.STATUS_OVERLIMIT}
 
             text = render_template('email/overlimit-notification.txt',
-                host=self.host, unconfirm_url=unconfirm)
+                host=self.host, unconfirm_url=unconfirm, limit=monthly_limit)
             html = render_template_string(TEMPLATES.get('overlimit-notification.html'),
-                host=self.host, unconfirm_url=unconfirm)
+                host=self.host, unconfirm_url=unconfirm, limit=monthly_limit)
 
         # if emails are disabled and form is upgraded, don't send email notification
         if self.disable_email and self.upgraded:
