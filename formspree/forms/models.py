@@ -179,7 +179,8 @@ class Form(DB.Model):
 
         # sometimes we'll delete all archived submissions over the limit
         if random.random() < settings.EXPENSIVELY_WIPE_SUBMISSIONS_FREQUENCY:
-            records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT
+            records_to_keep = settings.ARCHIVED_SUBMISSIONS_LIMIT if self.upgraded \
+                    else settings.MONTHLY_SUBMISSIONS_LIMIT
             total_records = DB.session.query(func.count(Submission.id)) \
                 .filter_by(form_id=self.id) \
                 .scalar()
