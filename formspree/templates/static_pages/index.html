@@ -88,7 +88,7 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>What about privacy?</h4>
-                    <p>We only store contents of the last 100 form submissions and delete the rest. Emails are sent using SendGrid's API, so on that end their privacy policies apply.</p>
+                    <p>Unless you've opted in, we only store contents of the last {{ config.MONTHLY_SUBMISSIONS_LIMIT }} form submissions and delete the rest. Emails are sent using SendGrid's API, so on that end their privacy policies apply.</p>
                 </div>
             </div>
       </div>
@@ -97,7 +97,7 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>How much does it cost?</h4>
-                    <p>{{config.SERVICE_NAME}} is free for 1000 submissions per email each month. If you need more, there's a <a href="#plans">{{ config.UPGRADED_PLAN_NAME }} Plan</a>.</p>
+                    <p>{{config.SERVICE_NAME}} is free for {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per email each month. If you need more, there's a <a href="#plans">{{ config.UPGRADED_PLAN_NAME }} Plan</a>.</p>
                 </div>
             </div>
             <div class="col-1-2">
@@ -253,15 +253,15 @@
       <div class="container narrow block">
             <div class="col-1-1">
                 <h3>Unlimited form submissions</h3>
-                <p>Getting more than 1000 submissions each month? No problem, upgrading will cover that.</p>
+                <p>Getting more than {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions each month? No problem, upgrading will cover that.</p>
             </div>
       </div>
 
       <div class="container narrow block">
             <div class="col-1-1">
                 <h3>Access to submissions archive</h3>
-                <p>If you ever missed a submission email, for any reason, you can just login and read your last 1000 submissions, all listed and timestamped with full data. Also, the submissions can be exported to CSV or JSON!</p>
-                <p>It even works for submissions made while you were not a {{ config.UPGRADED_PLAN_NAME }} user (the last 100, in this case).</p>
+                <p>If you ever missed a submission email, for any reason, you can just login and read your last {{ config.ARCHIVED_SUBMISSIONS_LIMIT }} submissions, all listed and timestamped with full data. Also, the submissions can be exported to CSV or JSON!</p>
+                <p>It even works for submissions made while you were not a {{ config.UPGRADED_PLAN_NAME }} user (the last {{ config.MONTHLY_SUBMISSIONS_LIMIT }}, in this case).</p>
             </div>
       </div>
 
