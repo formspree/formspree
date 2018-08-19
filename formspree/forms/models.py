@@ -198,10 +198,13 @@ class Form(DB.Model):
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
         monthly_counter = self.get_monthly_counter()
-        if monthly_counter > settings.MONTHLY_SUBMISSIONS_LIMIT and not self.upgraded:
+        monthly_limit = settings.MONTHLY_SUBMISSIONS_LIMIT if \
+                self.id > settings.FORM_LIMIT_DECREASE_ACTIVATION_SEQUENCE \
+                else 1000
+        if monthly_counter > monthly_limit and not self.upgraded:
             overlimit = True
 
-        if monthly_counter == int(settings.MONTHLY_SUBMISSIONS_LIMIT * 0.9) and not self.upgraded:
+        if monthly_counter == int(monthly_limit * 0.9) and not self.upgraded:
             # send email notification
             send_email(
                 to=self.email,
@@ -230,7 +233,7 @@ class Form(DB.Model):
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
         else:
-            if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
+            if monthly_counter - monthly_limit > 25:
                 g.log.info('Submission rejected. Form over quota.',
                     monthly_counter=monthly_counter)
                 # only send this overlimit notification for the first 25 overlimit emails
