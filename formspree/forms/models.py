@@ -3,7 +3,7 @@ import random
 import hashlib
 import datetime
 
-from flask import url_for, render_template, g
+from flask import url_for, render_template, render_template_string, g
 from sqlalchemy.sql import table
 from sqlalchemy.sql.expression import delete
 from sqlalchemy import func
@@ -11,7 +11,7 @@ from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
 
 from formspree import settings
-from formspree.stuff import DB, redis_store
+from formspree.stuff import DB, redis_store, TEMPLATES
 from formspree.utils import send_email, unix_time_for_12_months_from_now, \
                             next_url, IS_VALID_EMAIL, request_wants_json
 from .helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
@@ -207,7 +207,10 @@ class Form(DB.Model):
                 to=self.email,
                 subject="[WARNING] Approaching submission limit",
                 text=render_template('email/90-percent-warning.txt', unconfirm_url=unconfirm),
-                html=render_template('email/90-percent-warning.html', unconfirm_url=unconfirm),
+                html=render_template_string(
+                    TEMPLATES.get('90-percent-warning.html'),
+                    unconfirm_url=unconfirm
+                ),
                 sender=settings.DEFAULT_SENDER
             )
 
@@ -223,7 +226,7 @@ class Form(DB.Model):
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
             else:
-                html = render_template('email/form.html',
+                html = render_template_string(TEMPLATES.get('form.html'),
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
         else:
@@ -237,7 +240,7 @@ class Form(DB.Model):
 
             text = render_template('email/overlimit-notification.txt',
                 host=self.host, unconfirm_url=unconfirm)
-            html = render_template('email/overlimit-notification.html',
+            html = render_template_string(TEMPLATES.get('overlimit-notification.html'),
                 host=self.host, unconfirm_url=unconfirm)
 
         # if emails are disabled and form is upgraded, don't send email notification
@@ -326,11 +329,16 @@ class Form(DB.Model):
                 else:
                     store_first_submission(nonce, store_data)
 
-            return render_template('email/confirm.%s' % ext,
-                                   email=self.email,
-                                   host=self.host,
-                                   nonce_link=link,
-                                   keys=keys)
+            params = dict(
+                email=self.email,
+                host=self.host,
+                nonce_link=link,
+                keys=keys
+            )
+            if ext == 'html':
+                return render_template_string(TEMPLATES.get('confirm.html'), **params)
+            elif ext == 'txt':
+                return render_template('email/confirm.txt', **params)
 
         DB.session.add(self)
         DB.session.flush()

@@ -3,8 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cdn import CDN
 from flask_redis import Redis
 from celery import Celery
-from .template import generate_templates
 
+from .template import generate_templates
 from . import settings
 
 DB = SQLAlchemy()
