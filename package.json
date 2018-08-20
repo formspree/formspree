@@ -44,14 +44,6 @@
     "jsxBracketSameLine": false,
     "bracketSpacing": false
   },
-  "eslintConfig": {
-    "overrides": {
-      "files": [
-        "*"
-      ],
-      "rules": []
-    }
-  },
   "scripts": {
     "heroku-postbuild": "make prod"
   }
