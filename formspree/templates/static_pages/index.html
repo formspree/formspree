@@ -88,7 +88,7 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>What about privacy?</h4>
-                    <p>Unless you've opted in, we only store contents of the last {{ config.MONTHLY_SUBMISSIONS_LIMIT }} form submissions and delete the rest. Emails are sent using SendGrid's API, so on that end their privacy policies apply.</p>
+                    <p>We only store up to {{ config.ARCHIVE_SUGMISSIONS_LIMIT }} form submissions per month. For details on our privacy practices, please see our <a href="http://docs.formspree.io/files/privacy.pdf">privacy policy</a>.</p>
                 </div>
             </div>
       </div>
@@ -97,7 +97,7 @@
             <div class="col-1-2">
                 <div class="card">
                     <h4>How much does it cost?</h4>
-                    <p>{{config.SERVICE_NAME}} is free for {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per email each month. If you need more, there's a <a href="#plans">{{ config.UPGRADED_PLAN_NAME }} Plan</a>.</p>
+                    <p>{{config.SERVICE_NAME}} is free for {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per form each month. If you need more, there's a <a href="#plans">{{ config.UPGRADED_PLAN_NAME }} Plan</a></p>
                 </div>
             </div>
             <div class="col-1-2">
@@ -261,7 +261,7 @@
             <div class="col-1-1">
                 <h3>Access to submissions archive</h3>
                 <p>If you ever missed a submission email, for any reason, you can just login and read your last {{ config.ARCHIVED_SUBMISSIONS_LIMIT }} submissions, all listed and timestamped with full data. Also, the submissions can be exported to CSV or JSON!</p>
-                <p>It even works for submissions made while you were not a {{ config.UPGRADED_PLAN_NAME }} user (the last {{ config.MONTHLY_SUBMISSIONS_LIMIT }}, in this case).</p>
+                <p>It even works for submissions made while you were not a {{ config.UPGRADED_PLAN_NAME }} user.</p>
             </div>
       </div>
 
