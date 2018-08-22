@@ -225,7 +225,7 @@ def test_monthly_limits(client, msend):
 
     # but the mocked sendgrid should never receive this last form
     assert 'maria' not in msend.call_args[1]['text']
-    assert 'You are past our limit' in msend.call_args[1]['text']
+    assert 'past the limit' in msend.call_args[1]['text']
 
     # all the other variables are ok:
     assert 1 == Form.query.count()
