@@ -2,6 +2,7 @@ import os
 import sys
 import datetime
 import click
+import hashids
 
 from flask_migrate import Migrate
 
@@ -59,5 +60,20 @@ def test(args):
     sys.exit(errno)
 
 
-if __name__ == "__main__":
-    app.run()
+@app.cli.command()
+@click.argument('args', nargs=-1)
+@click.option('-s', '--salt', default=None, help='hash salt')
+def hashid2id(args, salt=None):
+    '''Convert a hashid (from a url) to a form id.'''
+    if salt == None:
+        salt = settings.HASHIDS_SALT
+    try:
+        # Hash id constructor should match HASHIDS_CODEC constructor in forms.helpers
+        # except there may be a different salt
+        codec = hashids.Hashids(alphabet='abcdefghijklmnopqrstuvwxyz',
+                                min_length=8,
+                                salt=salt)
+        id = codec.decode(args[0])[0]
+        print ("The form ID is: %d" % id)
+    except IndexError:
+        print ("Invalid hashid or salt.")
