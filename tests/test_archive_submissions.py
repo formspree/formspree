@@ -219,50 +219,59 @@ def test_grandfather_limit_and_decrease(client, msend):
     settings.GRANDFATHER_MONTHLY_LIMIT = 2
     settings.MONTHLY_SUBMISSIONS_LIMIT = 1
     settings.FORM_LIMIT_DECREASE_ACTIVATION_SEQUENCE = 1
-    # the form limit should be 3 for the first form and 1 for the second
+    # the form limit should be 2 for the first form and 1 for the second
 
     # submit the forms
-    client.post('/1@example.com',
+    client.post('/grandfathered@example.com',
         headers = {'referer': 'http://somewhere.com'},
         data={'name': 'john'}
     )
-    form1 = Form.query.filter_by(host='somewhere.com',
-                                 email='1@example.com').first()
+    form_grandfathered = Form.query.filter_by(host='somewhere.com',
+                                 email='grandfathered@example.com').first()
 
-    client.post('/2@example.com',
+    client.post('/new@example.com',
         headers = {'referer': 'http://somewhere.com'},
         data={'name': 'john'}
     )
-    form2 = Form.query.filter_by(host='somewhere.com',
-                                 email='2@example.com').first()
+    form_new = Form.query.filter_by(host='somewhere.com',
+                                 email='new@example.com').first()
 
     # confirm formS
-    form1.confirmed = True
-    DB.session.add(form1)
-    form2.confirmed = True
-    DB.session.add(form2)
+    form_grandfathered.confirmed = True
+    DB.session.add(form_grandfathered)
+    form_new.confirmed = True
+    DB.session.add(form_new)
     DB.session.commit()
 
     # submit each form 3 times
-    for _ in range(3):
-        client.post('/1@example.com',
+    msend.reset_mock()
+    for i in range(3):
+        client.post('/grandfathered@example.com',
             headers = {'referer': 'http://somewhere.com'},
-            data={'_replyto': 'johann@gmail.com', 'name': 'johann', 'value': 'fivela'}
-        )
-        client.post('/2@example.com',
-            headers = {'referer': 'http://somewhere.com'},
-            data={'_replyto': 'johann@gmail.com', 'name': 'johann', 'value': 'fivela'}
+            data={'_replyto': 'johann@gmail.com', 'name': 'johann', 'value': 'v%s' % i}
         )
 
-    assert '1@example.com' == msend.call_args_list[-6][1]['to']
-    assert 'fivela' in msend.call_args_list[-6][1]['text']
-    assert '2@example.com' == msend.call_args_list[-5][1]['to']
-    assert 'fivela' in msend.call_args_list[-5][1]['text']
-    assert '1@example.com' == msend.call_args_list[-4][1]['to']
-    assert 'fivela' in msend.call_args_list[-4][1]['text']
-    assert '2@example.com' == msend.call_args_list[-3][1]['to']
-    assert 'past the limit of 1' in msend.call_args_list[-3][1]['text']
-    assert '1@example.com' == msend.call_args_list[-2][1]['to']
-    assert 'past the limit of 2' in msend.call_args_list[-2][1]['text']
-    assert '2@example.com' == msend.call_args_list[-1][1]['to']
-    assert 'past the limit of 1' in msend.call_args_list[-1][1]['text']
+    assert len(msend.call_args_list) == 4
+    assert 'grandfathered@example.com' == msend.call_args_list[-4][1]['to']
+    assert '90%' in msend.call_args_list[-4][1]['text']
+    assert 'grandfathered@example.com' == msend.call_args_list[-3][1]['to']
+    assert 'v0' in msend.call_args_list[-3][1]['text']
+    assert 'grandfathered@example.com' == msend.call_args_list[-2][1]['to']
+    assert 'v1' in msend.call_args_list[-2][1]['text']
+    assert 'grandfathered@example.com' == msend.call_args_list[-1][1]['to']
+    assert 'limit' in msend.call_args_list[-1][1]['text']
+
+    msend.reset_mock()
+    for i in range(3):
+        client.post('/new@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'_replyto': 'johann@gmail.com', 'name': 'johann', 'value': 'v%s' % i}
+        )
+
+    assert len(msend.call_args_list) == 3
+    assert 'new@example.com' == msend.call_args_list[-3][1]['to']
+    assert 'v0' in msend.call_args_list[-3][1]['text']
+    assert 'new@example.com' == msend.call_args_list[-2][1]['to']
+    assert 'limit' in msend.call_args_list[-2][1]['text']
+    assert 'new@example.com' == msend.call_args_list[-1][1]['to']
+    assert 'limit' in msend.call_args_list[-1][1]['text']
