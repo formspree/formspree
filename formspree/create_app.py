@@ -1,19 +1,26 @@
 import json
 import structlog
 
-from flask import Flask, g, request, redirect
+from flask import Flask, g, request, url_for, redirect, jsonify
 from flask_login import LoginManager, current_user
 from flask_limiter import Limiter
 from flask_limiter.util import get_ipaddr
 
 from . import routes, settings
+from .utils import request_wants_json
 from .stuff import DB, redis_store, cdn, celery
 from .users.models import User
+
 
 def configure_login(app):
     login_manager = LoginManager()
     login_manager.init_app(app)
-    login_manager.login_view = 'register'
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        if request_wants_json() or request.path.startswith("/api/"):
+            return jsonify({"error": "User not logged."}), 401
+        return redirect(url_for("register"))
 
     @login_manager.user_loader
     def load_user(id):
