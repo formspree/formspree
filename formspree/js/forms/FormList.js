@@ -99,7 +99,7 @@ module.exports = class FormList extends React.Component {
 
           {this.state.enabled_forms.length === 0 &&
           this.state.disabled_forms.length === 0 &&
-          this.user.upgraded ? (
+          this.state.user.upgraded ? (
             <h6 className="light">
               You don't have any forms associated with this account, maybe you
               should <a href="/account">verify your email</a>.
