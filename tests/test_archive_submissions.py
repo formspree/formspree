@@ -214,3 +214,64 @@ def test_upgraded_user_access(client, msend):
     client.get('/logout')
     r = client.get('/forms/' + form_endpoint + '/')
     assert r.status_code == 302 # it should return a redirect (via @user_required
+
+def test_grandfather_limit_and_decrease(client, msend):
+    settings.GRANDFATHER_MONTHLY_LIMIT = 2
+    settings.MONTHLY_SUBMISSIONS_LIMIT = 1
+    settings.FORM_LIMIT_DECREASE_ACTIVATION_SEQUENCE = 1
+    # the form limit should be 2 for the first form and 1 for the second
+
+    # submit the forms
+    client.post('/grandfathered@example.com',
+        headers = {'referer': 'http://somewhere.com'},
+        data={'name': 'john'}
+    )
+    form_grandfathered = Form.query.filter_by(host='somewhere.com',
+                                 email='grandfathered@example.com').first()
+
+    client.post('/new@example.com',
+        headers = {'referer': 'http://somewhere.com'},
+        data={'name': 'john'}
+    )
+    form_new = Form.query.filter_by(host='somewhere.com',
+                                 email='new@example.com').first()
+
+    # confirm formS
+    form_grandfathered.confirmed = True
+    DB.session.add(form_grandfathered)
+    form_new.confirmed = True
+    DB.session.add(form_new)
+    DB.session.commit()
+
+    # submit each form 3 times
+    msend.reset_mock()
+    for i in range(3):
+        client.post('/grandfathered@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'_replyto': 'johann@gmail.com', 'name': 'johann', 'value': 'v%s' % i}
+        )
+
+    assert len(msend.call_args_list) == 4
+    assert 'grandfathered@example.com' == msend.call_args_list[-4][1]['to']
+    assert '90%' in msend.call_args_list[-4][1]['text']
+    assert 'grandfathered@example.com' == msend.call_args_list[-3][1]['to']
+    assert 'v0' in msend.call_args_list[-3][1]['text']
+    assert 'grandfathered@example.com' == msend.call_args_list[-2][1]['to']
+    assert 'v1' in msend.call_args_list[-2][1]['text']
+    assert 'grandfathered@example.com' == msend.call_args_list[-1][1]['to']
+    assert 'limit' in msend.call_args_list[-1][1]['text']
+
+    msend.reset_mock()
+    for i in range(3):
+        client.post('/new@example.com',
+            headers = {'referer': 'http://somewhere.com'},
+            data={'_replyto': 'johann@gmail.com', 'name': 'johann', 'value': 'v%s' % i}
+        )
+
+    assert len(msend.call_args_list) == 3
+    assert 'new@example.com' == msend.call_args_list[-3][1]['to']
+    assert 'v0' in msend.call_args_list[-3][1]['text']
+    assert 'new@example.com' == msend.call_args_list[-2][1]['to']
+    assert 'limit' in msend.call_args_list[-2][1]['text']
+    assert 'new@example.com' == msend.call_args_list[-1][1]['to']
+    assert 'limit' in msend.call_args_list[-1][1]['text']

@@ -198,18 +198,24 @@ class Form(DB.Model):
         # check if the forms are over the counter and the user is not upgraded
         overlimit = False
         monthly_counter = self.get_monthly_counter()
-        if monthly_counter > settings.MONTHLY_SUBMISSIONS_LIMIT and not self.upgraded:
+        monthly_limit = settings.MONTHLY_SUBMISSIONS_LIMIT \
+                if self.id > settings.FORM_LIMIT_DECREASE_ACTIVATION_SEQUENCE \
+                else settings.GRANDFATHER_MONTHLY_LIMIT
+
+        if monthly_counter > monthly_limit and not self.upgraded:
             overlimit = True
 
-        if monthly_counter == int(settings.MONTHLY_SUBMISSIONS_LIMIT * 0.9) and not self.upgraded:
+        if monthly_counter == int(monthly_limit * 0.9) and not self.upgraded:
             # send email notification
             send_email(
                 to=self.email,
-                subject="[WARNING] Approaching submission limit",
-                text=render_template('email/90-percent-warning.txt', unconfirm_url=unconfirm),
+                subject="Formspree Notice: Approaching submission limit.",
+                text=render_template('email/90-percent-warning.txt',
+                    unconfirm_url=unconfirm, limit=monthly_limit
+                ),
                 html=render_template_string(
                     TEMPLATES.get('90-percent-warning.html'),
-                    unconfirm_url=unconfirm
+                    unconfirm_url=unconfirm, limit=monthly_limit
                 ),
                 sender=settings.DEFAULT_SENDER
             )
@@ -217,6 +223,7 @@ class Form(DB.Model):
         now = datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y')
 
         if not overlimit:
+            g.log.info('Submitted.')
             text = render_template('email/form.txt',
                 data=data, host=self.host, keys=keys, now=now,
                 unconfirm_url=unconfirm)
@@ -230,18 +237,19 @@ class Form(DB.Model):
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
         else:
-            if monthly_counter - settings.MONTHLY_SUBMISSIONS_LIMIT > 25:
-                g.log.info('Submission rejected. Form over quota.',
-                    monthly_counter=monthly_counter)
-                # only send this overlimit notification for the first 25 overlimit emails
-                # after that, return an error so the user can know the website owner is not
-                # going to read his message.
+            g.log.info('Submission rejected. Form over quota.',
+                monthly_counter=monthly_counter)
+            # send an overlimit notification for the first x overlimit emails
+            # after that, return an error so the user can know the website owner is not
+            # going to read his message.
+            if monthly_counter <= monthly_limit + settings.OVERLIMIT_NOTIFICATION_QUANTITY:
+                subject = 'Formspree Notice: Your submission limit has been reached.'
+                text = render_template('email/overlimit-notification.txt',
+                    host=self.host, unconfirm_url=unconfirm, limit=monthly_limit)
+                html = render_template_string(TEMPLATES.get('overlimit-notification.html'),
+                    host=self.host, unconfirm_url=unconfirm, limit=monthly_limit)
+            else:
                 return {'code': Form.STATUS_OVERLIMIT}
-
-            text = render_template('email/overlimit-notification.txt',
-                host=self.host, unconfirm_url=unconfirm)
-            html = render_template_string(TEMPLATES.get('overlimit-notification.html'),
-                host=self.host, unconfirm_url=unconfirm)
 
         # if emails are disabled and form is upgraded, don't send email notification
         if self.disable_email and self.upgraded:

@@ -223,9 +223,9 @@ def test_monthly_limits(client, msend):
     assert r.status_code == 302 # the response to the user is the same
                                          # being the form over the limits or not
 
-    # but the mocked sendgrid should never receive this last form
+    # the mocked sendgrid should never receive this last form
     assert 'maria' not in msend.call_args[1]['text']
-    assert 'You are past our limit' in msend.call_args[1]['text']
+    assert 'past the limit' in msend.call_args[1]['text']
 
     # all the other variables are ok:
     assert 1 == Form.query.count()
@@ -251,6 +251,40 @@ def test_monthly_limits(client, msend):
     )
     assert r.status_code == 302
     assert 'noah' in msend.call_args[1]['text']
+
+def test_overlimit_notifications(client, msend):
+    # monthly limit is set to 2 during tests
+    assert settings.MONTHLY_SUBMISSIONS_LIMIT == 2
+
+    # we'll send two overlimit notifications and no more
+    assert settings.OVERLIMIT_NOTIFICATION_QUANTITY == 2
+
+    # manually verify luke@example.com
+    r = client.post('/luke@testwebsite.com',
+        headers=http_headers,
+        data={'name': 'luke'}
+    )
+    f = Form.query.first()
+    f.confirm_sent = True
+    f.confirmed = True
+    DB.session.add(f)
+    DB.session.commit()
+
+    # submit the form multiple times
+    msend.reset_mock()
+    for i in range(0, 20):
+        r = client.post('/luke@testwebsite.com',
+            headers=http_headers,
+            data={'name': 'matthew'}
+        )
+
+    # but we'll only send 5 emails (1 warning, 2 normal, 2 overlimit)
+    assert len(msend.call_args_list) == 5
+    assert '90%' in msend.call_args_list[-5][1]['text']
+    assert 'matthew' in msend.call_args_list[-4][1]['text']
+    assert 'matthew' in msend.call_args_list[-3][1]['text']
+    assert 'limit' in msend.call_args_list[-2][1]['text']
+    assert 'limit' in msend.call_args_list[-1][1]['text']
 
 def test_first_submission_is_stored(client, msend):
     r = client.post('/what@firstsubmissed.com',

@@ -167,7 +167,7 @@ def test_form_creation(client, msend):
     assert form.get_monthly_counter() == 5
     assert 'ana' in msend.call_args[1]['text']
     assert '__4__' in msend.call_args[1]['text']
-    assert 'You are past our limit' not in msend.call_args[1]['text']
+    assert 'past the limit' not in msend.call_args[1]['text']
 
     # try (and fail) to submit from a different host
     r = client.post('/' + form_endpoint,

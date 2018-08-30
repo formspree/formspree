@@ -1,5 +1,5 @@
 Hey there,
 
-We want to let you know that you've approached the 90% of the limit of {{ config.SERVICE_NAME }} monthly limit. Please note that you get up to {{ config.MONTHLY_SUBMISSIONS_LIMIT }} submissions per month as a non {{ config.UPGRADED_PLAN_NAME }} customer, before your form will be disabled.
+You've reached 90% of the {{ config.SERVICE_NAME }} free monthly limit. You get up to {{ limit }} submissions per month for free. After that we will keep up to {{ config.ARCHIVED_SUBMISSIONS_LIMIT }} past submissions in our archive that you can access at any time if you upgrade.
 
-We've made it easy to upgrade! Simply register at {{ url_for('register') }}, and we'll automatically upgrade all your forms. In addition to getting unlimited monthly submissions, you get all the {{ config.UPGRADED_PLAN_NAME }} features ({{ url_for('index', _external=True) }}#features), including invisible emails, sitewide forms, and a submission archive.
+Upgrading is easy! Simply register at {{ url_for('register', _external=True) }}, and we'll automatically upgrade all your forms. In addition to getting unlimited monthly submissions, you get all the {{ config.UPGRADED_PLAN_NAME }} features ({{ url_for('index', _external=True) }}#features), including invisible emails, sitewide forms, and access to the submission archive.

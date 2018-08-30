@@ -53,7 +53,7 @@ def test_various_content_types(client, msend):
 
     # for this test only we will relax this limit.
     default_limit = settings.MONTHLY_SUBMISSIONS_LIMIT
-    settings.MONTHLY_SUBMISSIONS_LIMIT = len(types)
+    settings.MONTHLY_SUBMISSIONS_LIMIT = len(types) * 2
 
     for ct, acc, check in types:
         headers = {'Referer': 'http://testwebsite.com'}
