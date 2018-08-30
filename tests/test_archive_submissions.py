@@ -161,10 +161,14 @@ def test_upgraded_user_access(client, msend):
     DB.session.commit()
 
     # create form
-    r = client.post('/forms',
-        headers={'Accept': 'application/json',
-                 'Content-type': 'application/json'},
-        data=json.dumps({'email': 'hope@springs.com'})
+    r = client.post(
+        "/api-int/forms",
+        headers={
+            "Accept": "application/json",
+            "Content-type": "application/json",
+            "Referer": settings.SERVICE_URL,
+        },
+        data=json.dumps({"email": "hope@springs.com"}),
     )
     resp = json.loads(r.data.decode('utf-8'))
     form_endpoint = resp['hashid']
@@ -182,8 +186,9 @@ def test_upgraded_user_access(client, msend):
     )
 
     # test submissions endpoint (/forms/<hashid>/)
-    r = client.get('/forms/' + form_endpoint + '/',
-        headers={'Accept': 'application/json'}
+    r = client.get(
+        "/api-int/forms/" + form_endpoint,
+        headers={"Accept": "application/json", "Referer": settings.SERVICE_URL},
     )
     submissions = json.loads(r.data.decode('utf-8'))['submissions']
     assert len(submissions) == 1
@@ -200,17 +205,18 @@ def test_upgraded_user_access(client, msend):
     r = client.get('/forms/' + form_endpoint + '.csv')
     lines = r.data.decode('utf-8').splitlines()
     assert len(lines) == 2
-    assert lines[0] == 'date,message,name'
+    assert lines[0] == "id,date,message,name"
     assert '"hi in my name is bruce!"', lines[1]
 
     # test submissions endpoint with the user downgraded
     user.upgraded = False
     DB.session.add(user)
     DB.session.commit()
-    r = client.get('/forms/' + form_endpoint + '/')
-    assert r.status_code == 402 # it should fail
+    r = client.get("/api-int/forms/" + form_endpoint)
+    assert r.status_code == 402  # it should fail
 
     # test submissions endpoint without a logged user
-    client.get('/logout')
-    r = client.get('/forms/' + form_endpoint + '/')
-    assert r.status_code == 302 # it should return a redirect (via @user_required
+    client.get("/logout")
+    r = client.get("/api-int/forms/" + form_endpoint)
+    assert r.status_code == 401  # should return a json error (via flask login)
+    assert "error" in r.json

@@ -4,6 +4,7 @@ import requests
 import datetime
 import pyaml
 import io
+from urllib.parse import urljoin
 
 from flask import request, url_for, render_template, redirect, \
                   jsonify, flash, make_response, Response, g, \
@@ -11,7 +12,6 @@ from flask import request, url_for, render_template, redirect, \
 from flask_login import current_user, login_required
 from flask_cors import cross_origin
 from jinja2.exceptions import TemplateNotFound
-from urllib.parse import urljoin
 
 from formspree import settings
 from formspree.stuff import DB, TEMPLATES
@@ -453,7 +453,6 @@ def unconfirm_multiple():
 
     for form_id in request.form.getlist('form_ids'):
         form = Form.query.get(form_id)
-        print(form.email + ' == ' + unconfirming_for_email)
         if form.email == unconfirming_for_email:
             form.confirmed = False
             DB.session.add(form)

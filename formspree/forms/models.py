@@ -149,12 +149,13 @@ class Form(DB.Model):
         fields = set()
         submissions = []
         for s in self.submissions:
-            fields.update(s.data.keys())
-            s.data['date'] = s.submitted_at.isoformat()
-            s.data['id'] = s.id
+            data = s.data.copy()
+            fields.update(data.keys())
+            data["date"] = s.submitted_at.isoformat()
+            data["id"] = s.id
             for k in KEYS_NOT_STORED:
-                s.data.pop(k, None)
-            submissions.append(s.data)
+                data.pop(k, None)
+            submissions.append(data)
 
         fields = ['date'] + sorted(fields - KEYS_NOT_STORED)
         return submissions, fields

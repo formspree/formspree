@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 from flask import request, jsonify, g
 from flask_login import current_user, login_required
 
