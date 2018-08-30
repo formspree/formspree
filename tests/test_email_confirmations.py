@@ -50,8 +50,9 @@ def test_user_gets_previous_forms_assigned_to_him(client, msend):
     )
 
     # confirm that the user account doesn't have access to the form
-    r = client.get('/forms',
-        headers={'Accept': 'application/json'},
+    r = client.get(
+        "/api-int/forms",
+        headers={"Accept": "application/json", "Referer": settings.SERVICE_URL},
     )
     forms = json.loads(r.data.decode('utf-8'))['forms']
     assert 0 == len(forms)
@@ -61,8 +62,9 @@ def test_user_gets_previous_forms_assigned_to_him(client, msend):
     client.get(link, query_string=qs)
 
     # confirm that the user has no access to the form since he is not upgraded
-    r = client.get('/forms',
-        headers={'Accept': 'application/json'},
+    r = client.get(
+        "/api-int/forms",
+        headers={"Accept": "application/json", "Referer": settings.SERVICE_URL},
     )
     forms = json.loads(r.data.decode('utf-8'))['forms']
     assert 0 == len(forms)
@@ -74,8 +76,9 @@ def test_user_gets_previous_forms_assigned_to_him(client, msend):
     DB.session.commit()
 
     # confirm that the user account has access to the form
-    r = client.get('/forms',
-        headers={'Accept': 'application/json'},
+    r = client.get(
+        "/api-int/forms",
+        headers={"Accept": "application/json", "Referer": settings.SERVICE_URL},
     )
     forms = json.loads(r.data.decode('utf-8'))['forms']
     assert 1 == len(forms)
@@ -94,8 +97,9 @@ def test_user_gets_previous_forms_assigned_to_him(client, msend):
     DB.session.commit()
 
     # confirm that the user account doesn't have access to the form
-    r = client.get('/forms',
-        headers={'Accept': 'application/json'},
+    r = client.get(
+        "/api-int/forms",
+        headers={"Accept": "application/json", "Referer": settings.SERVICE_URL},
     )
     forms = json.loads(r.data.decode('utf-8'))['forms']
     assert 1 == len(forms)
@@ -107,8 +111,9 @@ def test_user_gets_previous_forms_assigned_to_him(client, msend):
     client.get(link, query_string=qs)
 
     # confirm that the user account now has access to the form
-    r = client.get('/forms',
-        headers={'Accept': 'application/json'},
+    r = client.get(
+        "/api-int/forms",
+        headers={"Accept": "application/json", "Referer": settings.SERVICE_URL},
     )
     forms = json.loads(r.data.decode('utf-8'))['forms']
     assert 2 == len(forms)
@@ -127,8 +132,9 @@ def test_user_gets_previous_forms_assigned_to_him(client, msend):
     DB.session.commit()
 
     # confirm that the user has already accessto that form
-    r = client.get('/forms',
-        headers={'Accept': 'application/json'},
+    r = client.get(
+        "/api-int/forms",
+        headers={"Accept": "application/json", "Referer": settings.SERVICE_URL},
     )
     forms = json.loads(r.data.decode('utf-8'))['forms']
     assert 3 == len(forms)

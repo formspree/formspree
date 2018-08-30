@@ -1,3 +1,5 @@
+/** @format */
+
 const url = require('url')
 const isValidUrl = require('valid-url').isWebUri
 const isValidEmail = require('is-valid-email')
@@ -11,7 +13,7 @@ const $ = window.$
 const toastr = window.toastr
 
 /* create-form validation for site-wide forms */
-module.exports = function sitewide () {
+module.exports = function sitewide() {
   var parentNode = $('#create-form .container')
   if (!parentNode.length) return
 
@@ -37,20 +39,29 @@ module.exports = function sitewide () {
   parentNode.on('input', 'input[name="url"], input[name="email"]', run)
   parentNode.on('click', '.verify button', check)
 
-  function run () {
+  function run() {
     let checkbox = parentNode.find('input[name="sitewide"]')
 
-    let email = parentNode.find('input[name="email"]').val().trim()
-    let urlv = parentNode.find('input[name="url"]').val().trim()
+    let email = parentNode
+      .find('input[name="email"]')
+      .val()
+      .trim()
+    let urlv = parentNode
+      .find('input[name="url"]')
+      .val()
+      .trim()
     urlv = /^https?:\/\//.test(urlv) ? urlv : 'http://' + urlv
     let sitewide = checkbox.is(':checked')
 
     // wrong input
-    if (!isValidEmail(email)) { // invalid email
+    if (!isValidEmail(email)) {
+      // invalid email
       data.invalid = 'email'
-    } else if (sitewide && !isValidUrl(urlv)) { // invalid url with sitewide
+    } else if (sitewide && !isValidUrl(urlv)) {
+      // invalid url with sitewide
       data.invalid = 'url'
-    } else if (!sitewide && urlv && urlv !== 'http://' && !isValidUrl(urlv)) { // invalid url without sitewide
+    } else if (!sitewide && urlv && urlv !== 'http://' && !isValidUrl(urlv)) {
+      // invalid url without sitewide
       data.invalid = 'url'
     } else {
       data.invalid = null
@@ -63,15 +74,17 @@ module.exports = function sitewide () {
     apply(render(data))
   }
 
-  function check () {
+  function check() {
     $.ajax({
       url: '/forms/sitewide-check?' + parentNode.find('form').serialize(),
-      success: function () {
-        toastr.success('The file exists! you can create your site-wide form now.')
+      success: function() {
+        toastr.success(
+          'The file exists! you can create your site-wide form now.'
+        )
         data.verified = true
         apply(render(data))
       },
-      error: function () {
+      error: function() {
         toastr.warning("The verification file wasn't found.")
         data.verified = false
         data.disableVerification = true
@@ -87,17 +100,29 @@ module.exports = function sitewide () {
     return false
   }
 
-  function apply (vtree) {
+  function apply(vtree) {
     let patches = diff(tree, vtree)
     rootNode = patch(rootNode, patches)
     tree = vtree
   }
 
-  function render ({invalid, sitewide, verified, urlv, email, disableVerification}) {
+  function render({
+    invalid,
+    sitewide,
+    verified,
+    urlv,
+    email,
+    disableVerification
+  }) {
     return h('form', {method: 'post', action: formActionURL}, [
       h('.col-1-1', [
         h('h4', 'Send email to:'),
-        h('input', {type: 'email', name: 'email', placeholder: emailPlaceholder, value: email})
+        h('input', {
+          type: 'email',
+          name: 'email',
+          placeholder: emailPlaceholder,
+          value: email
+        })
       ]),
       h('.col-1-1', [
         h('h4', 'From URL:'),
@@ -112,35 +137,47 @@ module.exports = function sitewide () {
         ]),
         h('.col-3-4.info', [
           invalid
-            ? h('div.red', invalid === 'email'
-              ? 'Please input a valid email address.'
-              : [
-                'Please input a valid URL. For example: ',
-                h('span.code', url.resolve('http://www.mywebsite.com', sitewide ? '' : '/contact.html'))
-              ])
-            : sitewide && verified || !sitewide
+            ? h(
+                'div.red',
+                invalid === 'email'
+                  ? 'Please input a valid email address.'
+                  : [
+                      'Please input a valid URL. For example: ',
+                      h(
+                        'span.code',
+                        url.resolve(
+                          'http://www.mywebsite.com',
+                          sitewide ? '' : '/contact.html'
+                        )
+                      )
+                    ]
+              )
+            : (sitewide && verified) || !sitewide
               ? h('div', {innerHTML: '&#8203;'})
               : h('span', [
-                'Please ensure ',
-                h('span.code', url.resolve(urlv, '/formspree-verify.txt')),
-                ' exists and contains a line with ',
-                h('span.code', email)
-              ])
+                  'Please ensure ',
+                  h('span.code', url.resolve(urlv, '/formspree-verify.txt')),
+                  ' exists and contains a line with ',
+                  h('span.code', email)
+                ])
         ]),
         h('.col-1-3', [
           h('.verify', [
-            h('button', sitewide && !invalid && !disableVerification
-              ? {}
-              : sitewide
-                ? {disabled: true}
-                : {style: {visibility: 'hidden'}, disabled: true},
-            'Verify')
+            h(
+              'button',
+              sitewide && !invalid && !disableVerification
+                ? {}
+                : sitewide
+                  ? {disabled: true}
+                  : {style: {visibility: 'hidden'}, disabled: true},
+              'Verify'
+            )
           ])
         ]),
         h('.col-1-3', {innerHTML: '&#8203;'}),
         h('.col-1-3', [
           h('.create', [
-            sitewide && verified || !sitewide && !invalid
+            (sitewide && verified) || (!sitewide && !invalid)
               ? h('button', {type: 'submit'}, 'Create form')
               : h('button', {disabled: true}, 'Create form')
           ])

@@ -112,9 +112,10 @@ def test_form_creation(client, msend):
     assert 1 == User.query.count()
 
     # fail to create form
-    r = client.post('/forms',
-        headers={'Content-type': 'application/json'},
-        data={'email': 'hope@springs.com'}
+    r = client.post(
+        "/api-int/forms",
+        headers={"Content-type": "application/json", "Referer": settings.SERVICE_URL},
+        data={"email": "hope@springs.com"},
     )
     assert r.status_code == 402
     assert 'error' in json.loads(r.data.decode('utf-8'))
@@ -127,9 +128,10 @@ def test_form_creation(client, msend):
     DB.session.commit()
 
     # successfully create form
-    r = client.post('/forms',
-        headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-        data=json.dumps({'email': 'hope@springs.com'})
+    r = client.post(
+        "/api-int/forms",
+        headers={"Content-type": "application/json", "Referer": settings.SERVICE_URL},
+        data=json.dumps({"email": "hope@springs.com"}),
     )
     resp = json.loads(r.data.decode('utf-8'))
     assert r.status_code == 200
@@ -195,9 +197,10 @@ def test_form_toggle(client, msend):
     DB.session.commit()
 
     # successfully create form
-    r = client.post('/forms',
-        headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-        data=json.dumps({'email': 'hope@springs.com'})
+    r = client.post(
+        "/api-int/forms",
+        headers={"Referer": settings.SERVICE_URL, "Content-type": "application/json"},
+        data=json.dumps({"email": "hope@springs.com"}),
     )
     resp = json.loads(r.data.decode('utf-8'))
     assert r.status_code == 200
@@ -221,19 +224,25 @@ def test_form_toggle(client, msend):
     assert 0 == Submission.query.count()
 
     # disable the form
-    r = client.post('/forms/' + form_endpoint + '/toggle',
-        headers={'Referer': settings.SERVICE_URL})
-    assert 302 == r.status_code
-    assert r.location.endswith('/dashboard')
+    r = client.patch(
+        "/api-int/forms/" + form_endpoint,
+        headers={"Referer": settings.SERVICE_URL, "Content-Type": "application/json"},
+        data=json.dumps({"disabled": True}),
+    )
+    assert 200 == r.status_code
+    assert r.json["ok"]
     assert Form.query.first().disabled
     assert 0 == Form.query.first().counter
 
     # logout and attempt to enable the form
-    client.get('/logout')
-    r = client.post('/forms/' + form_endpoint + '/toggle',
-        headers={'Referer': settings.SERVICE_URL},
-        follow_redirects=True)
-    assert 200 == r.status_code
+    client.get("/logout")
+    r = client.patch(
+        "/api-int/forms/" + form_endpoint,
+        headers={"Content-Type": "application/json", "Referer": settings.SERVICE_URL},
+        data=json.dumps({"disabled": True}),
+    )
+    assert 401 == r.status_code
+    assert "error" in json.loads(r.data.decode("utf-8"))
     assert Form.query.first().disabled
 
     # fail when attempting to post to form
@@ -245,13 +254,12 @@ def test_form_toggle(client, msend):
     assert 0 == Form.query.first().counter
 
     # log back in and re-enable form
-    r = client.post('/login',
-        data={'email': 'hello@world.com',
-              'password': 'friend'}
+    r = client.post("/login", data={"email": "hello@world.com", "password": "friend"})
+    r = client.patch(
+        "/api-int/forms/" + form_endpoint,
+        headers={"Referer": settings.SERVICE_URL, "Content-Type": "application/json"},
+        data=json.dumps({"disabled": False}),
     )
-    r = client.post('/forms/' + form_endpoint + '/toggle',
-        headers={'Referer': settings.SERVICE_URL},
-        follow_redirects=True)
     assert 200 == r.status_code
     assert not Form.query.first().disabled
 
@@ -278,9 +286,14 @@ def test_form_and_submission_deletion(client, msend):
     DB.session.commit()
 
     # successfully create form
-    r = client.post('/forms',
-        headers={'Accept': 'application/json', 'Content-type': 'application/json'},
-        data=json.dumps({'email': 'hope@springs.com'})
+    r = client.post(
+        "/api-int/forms",
+        headers={
+            "Accept": "application/json",
+            "Content-type": "application/json",
+            "Referer": settings.SERVICE_URL,
+        },
+        data=json.dumps({"email": "hope@springs.com"}),
     )
     resp = json.loads(r.data.decode('utf-8'))
     assert r.status_code == 200
@@ -318,9 +331,10 @@ def test_form_and_submission_deletion(client, msend):
 
     # delete a submission in form
     first_submission = Submission.query.first()
-    r = client.post('/forms/' + form_endpoint + '/delete/' + str(first_submission.id),
-        headers={'Referer': settings.SERVICE_URL},
-        follow_redirects=True)
+    r = client.delete(
+        "/api-int/forms/" + form_endpoint + "/submissions/" + str(first_submission.id),
+        headers={"Referer": settings.SERVICE_URL},
+    )
     assert 200 == r.status_code
     assert 4 == Submission.query.count()
     assert DB.session.query(Submission.id).filter_by(id='0').scalar() is None
@@ -330,9 +344,10 @@ def test_form_and_submission_deletion(client, msend):
     client.get('/logout')
 
     # attempt to delete form you don't have access to (while logged out)
-    r = client.post('/forms/' + form_endpoint + '/delete',
-        headers={'Referer': settings.SERVICE_URL})
-    assert 302 == r.status_code
+    r = client.delete(
+        "/api-int/forms/" + form_endpoint, headers={"Referer": settings.SERVICE_URL}
+    )
+    assert 401 == r.status_code
     assert 1 == Form.query.count()
 
     # create different user
@@ -342,9 +357,10 @@ def test_form_and_submission_deletion(client, msend):
     )
 
     # attempt to delete form we don't have access to
-    r = client.post('/forms/' + form_endpoint + '/delete',
-        headers={'Referer': settings.SERVICE_URL})
-    assert 400 == r.status_code
+    r = client.delete(
+        "/api-int/forms/" + form_endpoint, headers={"Referer": settings.SERVICE_URL}
+    )
+    assert 401 == r.status_code
     assert 1 == Form.query.count()
 
     client.get('/logout')
@@ -356,9 +372,9 @@ def test_form_and_submission_deletion(client, msend):
     )
 
     # delete the form created
-    r = client.post('/forms/' + form_endpoint + '/delete',
-        headers={'Referer': settings.SERVICE_URL},
-        follow_redirects=True)
+    r = client.delete(
+        "/api-int/forms/" + form_endpoint, headers={"Referer": settings.SERVICE_URL}
+    )
     assert 200 == r.status_code
     assert 0 == Form.query.count()
 
