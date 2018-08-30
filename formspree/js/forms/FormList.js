@@ -22,7 +22,7 @@ module.exports = class FormList extends React.Component {
 
   async componentDidMount() {
     try {
-      let r = await (await fetch('/api/forms', {
+      let r = await (await fetch('/api-int/forms', {
         credentials: 'same-origin',
         headers: {Accept: 'application/json'}
       })).json()

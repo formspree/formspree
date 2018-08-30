@@ -18,7 +18,7 @@ def configure_login(app):
 
     @login_manager.unauthorized_handler
     def unauthorized():
-        if request_wants_json() or request.path.startswith("/api/"):
+        if request_wants_json() or request.path.startswith("/api-int/"):
             return jsonify({"error": "User not logged."}), 401
         return redirect(url_for("register"))
 

@@ -84,7 +84,7 @@ module.exports = class FormPage extends React.Component {
     let hashid = this.props.match.params.hashid
 
     try {
-      let r = await (await fetch(`/api/forms/${hashid}`, {
+      let r = await (await fetch(`/api-int/forms/${hashid}`, {
         credentials: 'same-origin',
         headers: {Accept: 'application/json'}
       })).json()
@@ -236,7 +236,7 @@ class FormSubmissions extends React.Component {
 
     try {
       let r = await (await fetch(
-        `/api/forms/${this.props.form.hashid}/submissions/${subid}`,
+        `/api-int/forms/${this.props.form.hashid}/submissions/${subid}`,
         {
           method: 'DELETE',
           credentials: 'same-origin',
@@ -460,7 +460,7 @@ class FormSettings extends React.Component {
 
   async update(e) {
     try {
-      let res = await (await fetch(`/api/forms/${this.props.form.hashid}`, {
+      let res = await (await fetch(`/api-int/forms/${this.props.form.hashid}`, {
         method: 'PATCH',
         body: JSON.stringify({
           [e.currentTarget.name]: !e.currentTarget.checked
@@ -502,7 +502,7 @@ class FormSettings extends React.Component {
 
     this.setState({deleting: false})
     try {
-      let res = await (await fetch(`/api/forms/${this.props.form.hashid}`, {
+      let res = await (await fetch(`/api-int/forms/${this.props.form.hashid}`, {
         method: 'DELETE',
         credentials: 'same-origin',
         headers: {

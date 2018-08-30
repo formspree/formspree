@@ -208,7 +208,7 @@ module.exports = class CreateForm extends React.Component {
     e.preventDefault()
 
     try {
-      let r = await (await fetch(`/api/forms/sitewide-check`, {
+      let r = await (await fetch(`/api-int/forms/sitewide-check`, {
         method: 'POST',
         body: JSON.stringify({email: this.state.email, url: this.state.url}),
         credentials: 'same-origin',
@@ -240,7 +240,7 @@ module.exports = class CreateForm extends React.Component {
     e.preventDefault()
 
     try {
-      let r = await (await fetch('/api/forms', {
+      let r = await (await fetch('/api-int/forms', {
         method: 'POST',
         body: JSON.stringify({
           email: this.state.email,
