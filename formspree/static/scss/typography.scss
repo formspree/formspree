@@ -7,7 +7,8 @@ body {
     font-family: $font-primary, $font-local, sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6, p {
+h1, h2, h3, h4, h5, h6, p,
+.h1-seo-hack, .h2-seo-hack, .h3-seo-hack {
 
     font-family: $font-primary, $font-local, sans-serif;
 
@@ -26,7 +27,8 @@ h1, h2, h3, h4, h5, h6, p {
     -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, 
+.h1-seo-hack, .h2-seo-hack, .h3-seo-hack {
     font-weight: 600;
     line-height: 1.3em;
 
@@ -64,3 +66,23 @@ a {
 .caps {
     text-transform: uppercase;
 }
+
+.h1-seo-hack {
+    font-size: $h1_font_size;
+    margin: $h1_margin;
+    display: block;
+}
+
+.h2-seo-hack {
+    font-size: $h2_font_size;
+    margin: $h2_margin;
+    
+    display: block;
+}
+
+.h3-seo-hack {
+    font-size: $h3_font_size;
+    margin: $h3_margin;
+    display: block;
+}
+

@@ -52,14 +52,13 @@ body#card {
 #title {
     text-align: center;
     margin-bottom: 3em;
-    h1 {
+    .h1-seo-hack {
         font-size: 1.2em;
     }
     img {
         max-width: 70px;
     }
 }
-
 
 .row.section {
     padding-top: 5em;
