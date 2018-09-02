@@ -32,7 +32,7 @@ module.exports = class FormPage extends React.Component {
           <Link to="/forms">Your forms</Link>
         </Portal>
         <Portal to="#header .center">
-          <h1>{hashid}</h1>
+          <h1>Form Details</h1>
         </Portal>
         <Route
           exact
@@ -114,32 +114,7 @@ class FormSubmissions extends React.Component {
 
     return (
       <div className="col-1-1 submissions-col">
-        <h2>
-          Submissions for
-          {!form.hash ? (
-            <span className="code">/{form.hashid}</span>
-          ) : (
-            <span className="code">/{form.email}</span>
-          )}
-          on <span className="code">{form.host}</span>
-          {form.sitewide ? 'and all its subpaths.' : null}
-          {form.hash ? (
-            <>
-              <br />
-              <small>
-                you can now replace the email in the URL with{' '}
-                <span className="code">{`/${form.hashid}`}</span>
-              </small>
-            </>
-          ) : (
-            <>
-              <br />
-              <small>
-                targeting <span className="code">{form.email}</span>
-              </small>
-            </>
-          )}
-        </h2>
+        <FormDescription prefix="Submissions for" form={form} />
         {form.submissions.length ? (
           <>
             <table className="submissions responsive">
@@ -279,6 +254,7 @@ class FormSettings extends React.Component {
     return (
       <>
         <div className="col-1-1" id="settings">
+          <FormDescription prefix="Settings for" form={form} />
           <h2>Sample HTML</h2>
           <div className="container">
             <div className="row">
@@ -522,4 +498,35 @@ class FormSettings extends React.Component {
       toastr.error('Failed to delete form. See the console for more details.')
     }
   }
+}
+
+function FormDescription({prefix, form}) {
+  return (
+    <h2 className="form-description">
+      {prefix}{' '}
+      {!form.hash ? (
+        <span className="code">/{form.hashid}</span>
+      ) : (
+        <span className="code">/{form.email}</span>
+      )}{' '}
+      at <span className="code">{form.host}</span>
+      {form.sitewide ? 'and all its subpaths.' : null}
+      {form.hash ? (
+        <>
+          <br />
+          <small>
+            you can now replace the email in the URL with{' '}
+            <span className="code">{`/${form.hashid}`}</span>
+          </small>
+        </>
+      ) : (
+        <>
+          <br />
+          <small>
+            targeting <span className="code">{form.email}</span>
+          </small>
+        </>
+      )}
+    </h2>
+  )
 }
