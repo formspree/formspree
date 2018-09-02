@@ -43,6 +43,12 @@ module.exports = class FormPage extends React.Component {
           <>
             <h4 className="tabs">
               <NavLink
+                to={`/forms/${hashid}/integrations`}
+                activeStyle={{color: 'inherit', cursor: 'normal'}}
+              >
+                Integrations
+              </NavLink>
+              <NavLink
                 to={`/forms/${hashid}/submissions`}
                 activeStyle={{color: 'inherit', cursor: 'normal'}}
               >
@@ -55,6 +61,15 @@ module.exports = class FormPage extends React.Component {
                 Settings
               </NavLink>
             </h4>
+            <Route
+              path="/forms/:hashid/integrations"
+              render={() => (
+                <FormIntegrations
+                  form={this.state.form}
+                  onUpdate={this.fetchForm}
+                />
+              )}
+            />
             <Route
               path="/forms/:hashid/submissions"
               render={() => (
@@ -94,6 +109,54 @@ module.exports = class FormPage extends React.Component {
       console.error(e)
       toastr.error(`Failed to fetch form, see the console for more details.`)
     }
+  }
+}
+
+class FormIntegrations extends React.Component {
+  render() {
+    let {form} = this.props
+
+    let htmlSample = `<!-- Use this code in your HTML, modifying it according to your needs -->
+<form
+  action="${form.url}"
+  method="POST"
+>
+  <label>
+    Your email:
+    <input type="text" name="_replyto">
+  </label>
+  <label>
+    Your message:
+    <textarea name="message"></textarea>
+  </label>
+
+  <!-- your other form fields go here -->
+
+  <button type="submit">Send</button>
+</form>`
+
+    return (
+      <>
+        <div className="col-1-1">
+          <FormDescription prefix="Integrating" form={form} />
+          <h3>HTML</h3>
+          <div className="container">
+            <div className="row">
+              <div className="col-1-1">
+                <CodeMirror.UnControlled
+                  value={htmlSample}
+                  options={{
+                    theme: 'oceanic-next',
+                    mode: 'xml',
+                    viewportMargin: Infinity
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    )
   }
 }
 
@@ -255,44 +318,6 @@ class FormSettings extends React.Component {
       <>
         <div className="col-1-1" id="settings">
           <FormDescription prefix="Settings for" form={form} />
-          <h2>Sample HTML</h2>
-          <div className="container">
-            <div className="row">
-              <div className="col-1-1">
-                <p>
-                  Use this code in your HTML, modifying it according to your
-                  needs:
-                </p>
-                <CodeMirror.UnControlled
-                  value={`<form
-  action="${form.url}"
-  method="POST"
->
-  <label>
-    Your email:
-    <input type="text" name="_replyto">
-  </label>
-  <label>
-    Your message:
-    <textarea name="message"></textarea>
-  </label>
-
-  <!-- your other form fields go here -->
-
-  <button type="submit">Send</button>
-</form>`}
-                  options={{
-                    theme: 'oceanic-next',
-                    mode: 'xml',
-                    viewportMargin: Infinity
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-1-1">
-          <h2>Form Settings</h2>
           <div className="container">
             <div className="row">
               <div className="col-5-6">
