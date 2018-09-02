@@ -111,11 +111,13 @@
 }
 
 .dashboard {
-  #header {
-    h3 {
-      a {
-        margin: 0 10px;
-      }
+  .tabs {
+    margin: -4em 20px 3em;
+
+    a {
+      margin: 0 20px;
+
+      &:first-child { margin-left: 0; }
     }
   }
 

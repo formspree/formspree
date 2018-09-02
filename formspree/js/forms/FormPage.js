@@ -33,20 +33,6 @@ module.exports = class FormPage extends React.Component {
         </Portal>
         <Portal to="#header .center">
           <h1>{hashid}</h1>
-          <h3>
-            <NavLink
-              to={`/forms/${hashid}/submissions`}
-              activeStyle={{color: 'inherit', cursor: 'normal'}}
-            >
-              Submission History
-            </NavLink>
-            <NavLink
-              to={`/forms/${hashid}/settings`}
-              activeStyle={{color: 'inherit', cursor: 'normal'}}
-            >
-              Form Settings
-            </NavLink>
-          </h3>
         </Portal>
         <Route
           exact
@@ -55,6 +41,20 @@ module.exports = class FormPage extends React.Component {
         />
         {this.state.form && (
           <>
+            <h4 className="tabs">
+              <NavLink
+                to={`/forms/${hashid}/submissions`}
+                activeStyle={{color: 'inherit', cursor: 'normal'}}
+              >
+                Submissions
+              </NavLink>
+              <NavLink
+                to={`/forms/${hashid}/settings`}
+                activeStyle={{color: 'inherit', cursor: 'normal'}}
+              >
+                Settings
+              </NavLink>
+            </h4>
             <Route
               path="/forms/:hashid/submissions"
               render={() => (
@@ -315,7 +315,7 @@ class FormSettings extends React.Component {
             </div>
           </div>
         </div>
-        <div className="col-1-1" id="settings">
+        <div className="col-1-1">
           <h2>Form Settings</h2>
           <div className="container">
             <div className="row">
