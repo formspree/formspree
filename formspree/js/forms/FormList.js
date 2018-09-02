@@ -1,5 +1,7 @@
 /** @format */
 
+const toastr = window.toastr
+const fetch = window.fetch
 const React = require('react')
 const cs = require('class-set')
 const {Link} = require('react-router-dom')
@@ -22,10 +24,15 @@ module.exports = class FormList extends React.Component {
 
   async componentDidMount() {
     try {
-      let r = await (await fetch('/api-int/forms', {
+      let resp = await fetch('/api-int/forms', {
         credentials: 'same-origin',
         headers: {Accept: 'application/json'}
-      })).json()
+      })
+      let r = await resp.json()
+
+      if (!resp.ok || r.error) {
+        throw new Error(r.error || '')
+      }
 
       this.setState({
         user: r.user,
@@ -36,6 +43,9 @@ module.exports = class FormList extends React.Component {
     } catch (e) {
       console.error(e)
       this.setState({error: e.message})
+      toastr.error(
+        'Failed to fetch your forms. See the console for more details.'
+      )
     }
   }
 
@@ -174,7 +184,7 @@ class FormItem extends React.Component {
           {form.email}
         </td>
         <td className="n-submissions" data-label="Submissions counter">
-          {form.counter == 0 ? (
+          {form.counter === 0 ? (
             <Link
               to={`/forms/${form.hashid}/integrations`}
               className="no-underline"

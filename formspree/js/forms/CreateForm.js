@@ -5,6 +5,7 @@ const isValidUrl = require('valid-url').isWebUri
 const isValidEmail = require('is-valid-email')
 const React = require('react')
 const toastr = window.toastr
+const fetch = window.fetch
 
 const modals = require('../modals')
 
@@ -208,7 +209,7 @@ module.exports = class CreateForm extends React.Component {
     e.preventDefault()
 
     try {
-      let r = await (await fetch(`/api-int/forms/sitewide-check`, {
+      let resp = await fetch(`/api-int/forms/sitewide-check`, {
         method: 'POST',
         body: JSON.stringify({email: this.state.email, url: this.state.url}),
         credentials: 'same-origin',
@@ -216,9 +217,10 @@ module.exports = class CreateForm extends React.Component {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         }
-      })).json()
+      })
+      let r = await resp.json()
 
-      if (!r.ok) {
+      if (!resp.ok || !r.ok) {
         toastr.warning("The verification file wasn't found.")
         this.setState({verified: false, disableVerification: true})
 
@@ -232,7 +234,9 @@ module.exports = class CreateForm extends React.Component {
       this.setState({verified: true})
     } catch (e) {
       console.error(e)
-      toastr.error(e.message)
+      toastr.error(
+        'Failed to call the sitewide verification API, see the console for more details.'
+      )
     }
   }
 
@@ -240,7 +244,7 @@ module.exports = class CreateForm extends React.Component {
     e.preventDefault()
 
     try {
-      let r = await (await fetch('/api-int/forms', {
+      let resp = await fetch('/api-int/forms', {
         method: 'POST',
         body: JSON.stringify({
           email: this.state.email,
@@ -252,13 +256,23 @@ module.exports = class CreateForm extends React.Component {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         }
-      })).json()
+      })
+      let r = await resp.json()
+
+      if (!r.ok || r.error) {
+        toastr.warning(
+          r.error
+            ? `Error creating form: ${r.error}`
+            : 'Unexpected error creating form.'
+        )
+        return
+      }
 
       toastr.success('Form created!')
       this.props.history.push(`/forms/${r.hashid}`)
     } catch (e) {
       console.error(e)
-      toastr.error(e.message)
+      toastr.error('Failed to create form, see the console for more details.')
     }
   }
 }

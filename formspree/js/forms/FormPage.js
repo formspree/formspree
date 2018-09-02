@@ -1,6 +1,7 @@
 /** @format */
 
 const toastr = window.toastr
+const fetch = window.fetch
 const React = require('react')
 const {Route, Link, NavLink, Redirect} = require('react-router-dom')
 const CodeMirror = require('react-codemirror2')
@@ -99,10 +100,18 @@ module.exports = class FormPage extends React.Component {
     let hashid = this.props.match.params.hashid
 
     try {
-      let r = await (await fetch(`/api-int/forms/${hashid}`, {
+      let resp = await fetch(`/api-int/forms/${hashid}`, {
         credentials: 'same-origin',
         headers: {Accept: 'application/json'}
-      })).json()
+      })
+      let r = await resp.json()
+
+      if (!resp.ok || r.error) {
+        toastr.warning(
+          r.error ? `Error fetching form: ${r.error}` : 'Error fetching form.'
+        )
+        return
+      }
 
       this.setState({form: r})
     } catch (e) {
@@ -273,17 +282,22 @@ class FormSubmissions extends React.Component {
     let subid = e.currentTarget.dataset.sub
 
     try {
-      let r = await (await fetch(
+      let resp = await fetch(
         `/api-int/forms/${this.props.form.hashid}/submissions/${subid}`,
         {
           method: 'DELETE',
           credentials: 'same-origin',
           headers: {Accept: 'application/json'}
         }
-      )).json()
+      )
+      let r = await resp.json()
 
-      if (r.error) {
-        toastr.warning(`Failed to delete submission: ${r.error}`)
+      if (!resp.ok || r.error) {
+        toastr.warning(
+          r.error
+            ? `Failed to delete submission: ${r.error}`
+            : `Failed to delete submission.`
+        )
         return
       }
 
@@ -461,7 +475,7 @@ class FormSettings extends React.Component {
 
   async update(e) {
     try {
-      let res = await (await fetch(`/api-int/forms/${this.props.form.hashid}`, {
+      let resp = await fetch(`/api-int/forms/${this.props.form.hashid}`, {
         method: 'PATCH',
         body: JSON.stringify({
           [e.currentTarget.name]: !e.currentTarget.checked
@@ -471,10 +485,15 @@ class FormSettings extends React.Component {
           Accept: 'application/json',
           'Content-Type': 'application/json'
         }
-      })).json()
+      })
+      let r = await resp.json()
 
-      if (res.error) {
-        toastr.warning(`Failed to save settings: ${res.error}`)
+      if (!resp.ok || r.error) {
+        toastr.warning(
+          r.error
+            ? `Failed to save settings: ${r.error}`
+            : 'Failed to save settings.'
+        )
         return
       }
 
@@ -503,16 +522,21 @@ class FormSettings extends React.Component {
 
     this.setState({deleting: false})
     try {
-      let res = await (await fetch(`/api-int/forms/${this.props.form.hashid}`, {
+      let resp = await fetch(`/api-int/forms/${this.props.form.hashid}`, {
         method: 'DELETE',
         credentials: 'same-origin',
         headers: {
           Accept: 'application/json'
         }
-      })).json()
+      })
+      let r = await resp.json()
 
-      if (res.error) {
-        toastr.warning(`Failed to delete form: ${res.error}`)
+      if (resp.error || r.error) {
+        toastr.warning(
+          r.error
+            ? `failed to delete form: ${r.error}`
+            : 'failed to delete form.'
+        )
         return
       }
 

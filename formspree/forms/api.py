@@ -149,7 +149,6 @@ def delete(hashid):
     # check that this request came from user dashboard to prevent XSS and CSRF
     referrer = referrer_to_baseurl(request.referrer)
     service = referrer_to_baseurl(settings.SERVICE_URL)
-
     if referrer != service:
         return jsonerror(400, {'error': 'Improper request.'})
 
