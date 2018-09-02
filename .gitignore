@@ -62,14 +62,16 @@ nosetests.xml
 codekit-config.json
 .idea/*
 
-.env
-
 aliases.json
 
+.env
+.venv 
 dev.env
 sta.env
 pro.env
 test.env
+
+.vscode
 
 celerybeat-schedule.db
 .Python
