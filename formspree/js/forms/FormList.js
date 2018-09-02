@@ -154,46 +154,45 @@ class FormItem extends React.Component {
           </Link>
         </td>
         <td data-label="URL">
-          <Link to={`/forms/${form.hashid}/settings`} className="no-underline">
-            {form.host ? (
-              <div>
-                {form.host}
-                {form.sitewide ? (
-                  <span
-                    className="highlight tooltip hint--top"
-                    data-hint="This form works for all paths under {{ form.host }}/"
-                  >
-                    / *
-                  </span>
-                ) : null}
-              </div>
-            ) : (
-              'Waiting for a submission'
-            )}
-          </Link>
+          {form.host ? (
+            <div>
+              {form.host}
+              {form.sitewide ? (
+                <span
+                  className="highlight tooltip hint--top"
+                  data-hint="This form works for all paths under {{ form.host }}/"
+                >
+                  / *
+                </span>
+              ) : null}
+            </div>
+          ) : (
+            'Waiting for a submission'
+          )}
         </td>
         <td className="target-email" data-label="Target email address">
-          <Link to={`/forms/${form.hashid}/settings`} className="no-underline">
-            <span
-              className="hint--top"
-              data-hint={`https://${location.host}/${
-                form.hash ? form.email : form.hashid
-              }`}
-            >
-              {form.email}
-            </span>
-          </Link>
+          {form.email}
         </td>
         <td className="n-submissions" data-label="Submissions counter">
-          <Link
-            to={`/forms/${form.hashid}/submissions`}
-            className="no-underline"
-          >
-            {form.counter == 0 ? (
+          {form.counter == 0 ? (
+            <Link
+              to={`/forms/${form.hashid}/integrations`}
+              className="no-underline"
+            >
               <span className="never">never submitted</span>
-            ) : (
-              `${form.counter} submissions`
-            )}
+            </Link>
+          ) : (
+            <Link
+              to={`/forms/${form.hashid}/submissions`}
+              className="no-underline"
+            >
+              {form.counter} submissions
+            </Link>
+          )}
+        </td>
+        <td>
+          <Link to={`/forms/${form.hashid}/settings`} className="no-underline">
+            <span className="ion-gear-b" />
           </Link>
         </td>
       </tr>
