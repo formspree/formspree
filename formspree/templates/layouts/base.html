@@ -102,6 +102,7 @@
   <script type="text/javascript">
     Stripe.setPublishableKey('{{config.STRIPE_PUBLISHABLE_KEY}}');
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.min.js"></script>
   <script src="{{ url_for('static', filename='bundle.js' if config.DEBUG else 'bundle.min.js') }}"></script>
 </body>
 </html>
