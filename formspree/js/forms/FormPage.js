@@ -558,8 +558,14 @@ function FormDescription({prefix, form}) {
       ) : (
         <span className="code">/{form.email}</span>
       )}{' '}
-      at <span className="code">{form.host}</span>
-      {form.sitewide ? 'and all its subpaths.' : null}
+      {form.host ? (
+        <>
+          at <span className="code">{form.host}</span>
+          {form.sitewide ? ' and all its subpaths.' : null}
+        </>
+      ) : (
+        ''
+      )}
       {form.hash ? (
         <>
           <br />
