@@ -186,7 +186,7 @@ class FormItem extends React.Component {
         <td className="n-submissions" data-label="Submissions counter">
           {form.counter === 0 ? (
             <Link
-              to={`/forms/${form.hashid}/integrations`}
+              to={`/forms/${form.hashid}/integration`}
               className="no-underline"
             >
               <span className="never">never submitted</span>

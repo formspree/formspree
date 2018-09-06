@@ -125,6 +125,42 @@
     font-size: 20px;
   }
 
+  .integration-tabs {
+    & > * {
+      display: inline-block;
+      cursor: pointer;
+      border-radius: 2px 2px 0 0;
+      padding: 7px 15px;
+      margin-right: 2px;
+      background-color: #9a9a9a;
+      color: white;
+      font-family: monospace;
+
+      &:hover {
+        background-color: #737373;
+      }
+
+      &.active {
+        background-color: #304148;
+        color: #f8f8f2;
+      }
+    }
+  }
+
+  .integration-nocode {
+    color: #f8f8f2;
+    text-align: center;
+    padding: 18px;
+
+    p {
+      color: inherit;
+    }
+
+    a {
+      font-weight: bold;
+    }
+  }
+
   .row:after {
     content: "";
     display: none;
@@ -466,7 +502,6 @@ a.button.export {
 }
 
 .CodeMirror {
-  border: 1px solid #eee;
   padding: 10px;
   height: auto;
   font-size: 90%;

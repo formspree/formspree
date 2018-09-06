@@ -5,7 +5,9 @@ const fetch = window.fetch
 const React = require('react')
 const {Route, Link, NavLink, Redirect} = require('react-router-dom')
 const CodeMirror = require('react-codemirror2')
+const cs = require('class-set')
 require('codemirror/mode/xml/xml')
+require('codemirror/mode/javascript/javascript')
 
 const Portal = require('../Portal')
 
@@ -44,10 +46,10 @@ module.exports = class FormPage extends React.Component {
           <>
             <h4 className="tabs">
               <NavLink
-                to={`/forms/${hashid}/integrations`}
+                to={`/forms/${hashid}/integration`}
                 activeStyle={{color: 'inherit', cursor: 'normal'}}
               >
-                Integrations
+                Integration
               </NavLink>
               <NavLink
                 to={`/forms/${hashid}/submissions`}
@@ -63,9 +65,9 @@ module.exports = class FormPage extends React.Component {
               </NavLink>
             </h4>
             <Route
-              path="/forms/:hashid/integrations"
+              path="/forms/:hashid/integration"
               render={() => (
-                <FormIntegrations
+                <FormIntegration
                   form={this.state.form}
                   onUpdate={this.fetchForm}
                 />
@@ -121,12 +123,27 @@ module.exports = class FormPage extends React.Component {
   }
 }
 
-class FormIntegrations extends React.Component {
+class FormIntegration extends React.Component {
+  constructor(props) {
+    super(props)
+
+    this.changeTab = this.changeTab.bind(this)
+
+    this.state = {
+      activeTab: 'HTML',
+      availableTabs: ['HTML', 'AJAX']
+    }
+  }
+
   render() {
     let {form} = this.props
 
-    let htmlSample = `<!-- Use this code in your HTML, modifying it according to your needs -->
-<form
+    var codeSample
+    var modeSample
+    switch (this.state.activeTab) {
+      case 'HTML':
+        modeSample = 'xml'
+        codeSample = `<form
   action="${form.url}"
   method="POST"
 >
@@ -143,29 +160,75 @@ class FormIntegrations extends React.Component {
 
   <button type="submit">Send</button>
 </form>`
+        break
+      case 'AJAX':
+        modeSample = 'javascript'
+        codeSample = `// There should be an HTML form elsewhere on the page. See the "HTML" tab.
+var form = document.querySelector('form')
+var data = new FormData(form)
+var req = new XMLHttpRequest()
+req.open(form.method, form.action)
+req.send(data)`
+        break
+    }
+
+    var integrationSnippet
+    if (this.state.activeTab === 'AJAX' && !form.captcha_disabled) {
+      integrationSnippet = (
+        <div className="integration-nocode CodeMirror cm-s-oceanic-next">
+          <p>Want to submit your form through AJAX?</p>
+          <p>
+            <Link to={`/forms/${form.hashid}/settings`}>Disable reCAPTCHA</Link>{' '}
+            for this form to make it possible!
+          </p>
+        </div>
+      )
+    } else {
+      integrationSnippet = (
+        <CodeMirror.UnControlled
+          value={codeSample}
+          options={{
+            theme: 'oceanic-next',
+            mode: modeSample,
+            viewportMargin: Infinity
+          }}
+        />
+      )
+    }
 
     return (
       <>
         <div className="col-1-1">
-          <FormDescription prefix="Integrating" form={form} />
-          <h3>HTML</h3>
           <div className="container">
-            <div className="row">
-              <div className="col-1-1">
-                <CodeMirror.UnControlled
-                  value={htmlSample}
-                  options={{
-                    theme: 'oceanic-next',
-                    mode: 'xml',
-                    viewportMargin: Infinity
-                  }}
-                />
+            <div className="integration">
+              <p>
+                Paste this code in your HTML, modifying it according to your
+                needs:
+              </p>
+              <div className="integration-tabs">
+                {this.state.availableTabs.map(tabName => (
+                  <div
+                    key={tabName}
+                    data-tab={tabName}
+                    onClick={this.changeTab}
+                    className={cs({active: this.state.activeTab === tabName})}
+                  >
+                    {tabName}
+                  </div>
+                ))}
               </div>
+              {integrationSnippet}
             </div>
           </div>
         </div>
       </>
     )
+  }
+
+  changeTab(e) {
+    e.preventDefault()
+
+    this.setState({activeTab: e.target.dataset.tab})
   }
 }
 

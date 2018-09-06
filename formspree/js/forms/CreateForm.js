@@ -269,7 +269,7 @@ module.exports = class CreateForm extends React.Component {
       }
 
       toastr.success('Form created!')
-      this.props.history.push(`/forms/${r.hashid}/integrations`)
+      this.props.history.push(`/forms/${r.hashid}/integration`)
     } catch (e) {
       console.error(e)
       toastr.error('Failed to create form, see the console for more details.')

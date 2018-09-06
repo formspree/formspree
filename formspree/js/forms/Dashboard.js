@@ -1,13 +1,12 @@
 /** @format */
 
 const React = require('react')
-const render = require('react-dom').render
 const {BrowserRouter: Router, Route} = require('react-router-dom')
 
 const FormList = require('./FormList')
 const FormPage = require('./FormPage')
 
-class Dashboard extends React.Component {
+module.exports = class Dashboard extends React.Component {
   render() {
     return (
       <Router>
@@ -19,9 +18,4 @@ class Dashboard extends React.Component {
       </Router>
     )
   }
-}
-
-if (document.querySelector('body.forms.dashboard')) {
-  document.querySelector('.menu .item:nth-child(2)').innerHTML = ''
-  render(<Dashboard />, document.querySelector('.container.block'))
 }

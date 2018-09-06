@@ -77,7 +77,7 @@ $('a.resend').on('click', function() {
 })
 
 /* scripts at other files */
-require('./forms/dashboard.js')
+require('./forms/main.js')
 
 /* toggle the card management menu */
 $(function() {
