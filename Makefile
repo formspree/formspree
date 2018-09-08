@@ -5,8 +5,9 @@ prod: formspree/static/bundle.min.js formspree/static/main.min.css
 watch:
 	find formspree/js/ formspree/scss/ -name '*.js' -o -name '*.scss' | entr make
 
-prettier:
-	./node_modules/.bin/prettier --write "formspree/js/**/*.js"
+format:
+	./node_modules/.bin/prettier --write "formspree/js/**.js"
+	./node_modules/.bin/prettier --write "formspree/scss/**.scss"
 
 formspree/static/bundle.js: $(shell find formspree/js)
 	./node_modules/.bin/browserify formspree/js/main.js -dv --outfile formspree/static/bundle.js
