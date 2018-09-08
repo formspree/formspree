@@ -384,12 +384,14 @@ class FormSettings extends React.Component {
     this.cancelDelete = this.cancelDelete.bind(this)
 
     this.state = {
-      deleting: false
+      deleting: false,
+      temporaryFormChanges: {}
     }
   }
 
   render() {
     let {form} = this.props
+    let tmp = this.state.temporaryFormChanges
 
     return (
       <>
@@ -409,7 +411,7 @@ class FormSettings extends React.Component {
                   <input
                     type="checkbox"
                     onChange={this.update}
-                    checked={!form.disabled}
+                    checked={'disabled' in tmp ? !tmp.disabled : !form.disabled}
                     name="disabled"
                   />
                   <span className="slider" />
@@ -432,7 +434,11 @@ class FormSettings extends React.Component {
                     <input
                       type="checkbox"
                       onChange={this.update}
-                      checked={!form.captcha_disabled}
+                      checked={
+                        'captcha_disabled' in tmp
+                          ? !tmp.captcha_disabled
+                          : !form.captcha_disabled
+                      }
                       name="captcha_disabled"
                     />
                     <span className="slider" />
@@ -453,7 +459,11 @@ class FormSettings extends React.Component {
                   <input
                     type="checkbox"
                     onChange={this.update}
-                    checked={!form.disable_email}
+                    checked={
+                      'disable_email' in tmp
+                        ? !tmp.disable_email
+                        : !form.disable_email
+                    }
                     name="disable_email"
                   />
                   <span className="slider" />
@@ -473,7 +483,11 @@ class FormSettings extends React.Component {
                   <input
                     type="checkbox"
                     onChange={this.update}
-                    checked={!form.disable_storage}
+                    checked={
+                      'disable_storage' in tmp
+                        ? !tmp.disable_storage
+                        : !form.disable_storage
+                    }
                     name="disable_storage"
                   />
                   <span className="slider" />
@@ -537,11 +551,19 @@ class FormSettings extends React.Component {
   }
 
   async update(e) {
+    let attr = e.currentTarget.name
+    let val = !e.currentTarget.checked
+
+    this.setState(state => {
+      state.temporaryFormChanges[attr] = val
+      return state
+    })
+
     try {
       let resp = await fetch(`/api-int/forms/${this.props.form.hashid}`, {
         method: 'PATCH',
         body: JSON.stringify({
-          [e.currentTarget.name]: !e.currentTarget.checked
+          [attr]: val
         }),
         credentials: 'same-origin',
         headers: {
@@ -561,10 +583,13 @@ class FormSettings extends React.Component {
       }
 
       toastr.success('Settings saved.')
-      this.props.onUpdate()
+      this.props.onUpdate().then(() => {
+        this.setState({temporaryFormChanges: {}})
+      })
     } catch (e) {
       console.error(e)
       toastr.error('Failed to update form. See the console for more details.')
+      this.setState({temporaryFormChanges: {}})
     }
   }
 
