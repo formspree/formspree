@@ -43,7 +43,7 @@
       <div class="card">
         <h3>Plan</h3>
 
-        {% if current_user.upgraded %}
+        {% if current_user.has_feature('dashboard') %}
           <p>You are a {{ config.SERVICE_NAME }} {{ config.UPGRADED_PLAN_NAME }} user.</p>
           {% if sub.cancel_at_period_end %}
             <p>You've cancelled your subscription and it is ending on {{ sub.current_period_end }}.</p>

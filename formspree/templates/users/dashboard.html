@@ -18,7 +18,7 @@
 
   <div class="row section grey">
     <div class="container narrow block">
-      {% if current_user.upgraded %}
+      {% if current_user.has_feature('dashboard') %}
         <div class="col-1-2">
           <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/formspree/formspree">managed on GitHub</a>. For fastest support check out our <a href="https://help.formspree.io">knowledge base</a> or use the form on the right.</p>
         </div>

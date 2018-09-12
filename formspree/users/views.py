@@ -10,7 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from formspree import settings
 from formspree.stuff import DB, TEMPLATES
 from formspree.utils import send_email
-from .models import User, Email
+
+from .models import User, Email, Plan
 from .helpers import check_password, hash_pwd, send_downgrade_email
 
 
@@ -230,7 +231,7 @@ def upgrade():
               "error")
         return redirect(url_for('dashboard'))
 
-    current_user.upgraded = True
+    current_user.plan = Plan.gold
     DB.session.add(current_user)
     DB.session.commit()
     flash(u"Congratulations! You are now a {SERVICE_NAME} "
@@ -273,7 +274,8 @@ def downgrade():
               "warning")
         return redirect(url_for('account'))
 
-    sub = sub.delete(at_period_end=True)
+    sub.cancel_at_period_end = True
+    sub.save()
     flash(u"You were unregistered from the {SERVICE_NAME} "
           "{UPGRADED_PLAN_NAME} plan.".format(**settings.__dict__),
           'success')
@@ -305,7 +307,7 @@ def stripe_webhook():
             customer = stripe.Customer.retrieve(customer_id)
             if len(customer.subscriptions.data) == 0:
                 user = User.query.filter_by(stripe_id=customer_id).first()
-                user.upgraded = False
+                user.plan = Plan.free
                 DB.session.add(user)
                 DB.session.commit()
                 g.log.info('Downgraded user from webhook.', account=user.email)
@@ -315,8 +317,10 @@ def stripe_webhook():
             customer = stripe.Customer.retrieve(customer_id)
             g.log.info('User payment failed', account=customer.email)
             send_email(to=customer.email,
-                       subject='[ACTION REQUIRED] Failed Payment for {} {}'.format(settings.SERVICE_NAME,
-                                                                                   settings.UPGRADED_PLAN_NAME),
+                       subject='[ACTION REQUIRED] Failed Payment for {} {}'.format(
+                           settings.SERVICE_NAME,
+                           settings.UPGRADED_PLAN_NAME
+                       ),
                        text=render_template('email/payment-failed.txt'),
                        html=render_template_string(TEMPLATES.get('payment-failed.html')),
                        sender=settings.DEFAULT_SENDER)
@@ -428,6 +432,7 @@ def account():
                 sub.current_period_end = datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')
         except stripe.error.StripeError:
             return render_template('error.html', title='Unable to connect', text="We're unable to make a secure connection to verify your account details. Please try again in a little bit. If this problem persists, please contact <strong>%s</strong>" % settings.CONTACT_EMAIL)
+
     return render_template('users/account.html', emails=emails, cards=cards, sub=sub)
 
 @login_required
