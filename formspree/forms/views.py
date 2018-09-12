@@ -2,7 +2,6 @@ import unicodecsv as csv
 import json
 import requests
 import datetime
-import pyaml
 import io
 from urllib.parse import urljoin
 
