@@ -14,7 +14,7 @@ from .models import Form, Submission
 @login_required
 def list():
     # grab all the forms this user controls
-    if current_user.upgraded:
+    if current_user.has_feature('dashboard'):
         forms = current_user.forms.order_by(Form.id.desc()).all()
     else:
         forms = []
@@ -22,8 +22,8 @@ def list():
     return jsonify({
         'ok': True,
         'user': {
-           'upgraded': current_user.upgraded,
-           'email': current_user.email
+            'features': {f: True for f in current_user.features},
+            'email': current_user.email
         },
         'forms': [f.serialize() for f in forms]
     })
@@ -37,8 +37,8 @@ def create():
     if referrer != service:
         return jsonerror(400, {'error': 'Improper request.'})
 
-    if not current_user.upgraded:
-        g.log.info('Failed to create form from dashboard. User is not upgraded.')
+    if not current_user.has_feature('dashboard'):
+        g.log.info('Failed to create form from dashboard. Forbidden.')
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     email = request.get_json().get('email')
@@ -97,7 +97,7 @@ def create():
 
 @login_required
 def get(hashid):
-    if not current_user.upgraded:
+    if not current_user.has_feature('dashboard'):
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     form = Form.get_with_hashid(hashid)

@@ -1,7 +1,7 @@
 from formspree import settings
 from formspree.stuff import DB
 from formspree.forms.models import Form
-from formspree.users.models import User, Email
+from formspree.users.models import User, Email, Plan
 
 http_headers = {
     'Referer': 'testwebsite.com'
@@ -233,13 +233,13 @@ def test_monthly_limits(client, msend):
     assert f.counter == 3
     assert f.get_monthly_counter() == 3 # the counters mark 4
 
-    # the user pays and becomes upgraded
+    # the user pays and becomes gold
     r = client.post('/register',
         data={'email': 'luke@testwebsite.com',
               'password': 'banana'}
     )
     user = User.query.filter_by(email='luke@testwebsite.com').first()
-    user.upgraded = True
+    user.plan = Plan.gold
     user.emails = [Email(address='luke@testwebsite.com')]
     DB.session.add(user)
     DB.session.commit()

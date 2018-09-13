@@ -1,6 +1,7 @@
 import hmac
 import hashlib
 from datetime import datetime
+
 from flask import url_for, render_template, render_template_string, g
 
 from formspree import settings
@@ -8,13 +9,30 @@ from formspree.stuff import DB, TEMPLATES
 from formspree.utils import send_email, IS_VALID_EMAIL
 from .helpers import hash_pwd
 
+
+class Plan(DB.Enum):
+    free = 'v1_free'
+    gold = 'v1_gold'
+    platinum = 'v1_platinum'
+
+    plan_features = {
+        'v1_free': set(),
+        'v1_gold': {'dashboard', 'unlimited'},
+        'v1_platinum': {'dashboard', 'unlimited', 'whitelabel'}
+    }
+
+    @classmethod
+    def has_feature(cls, plan, feature_id):
+        return feature_id in cls.plan_features[plan]
+
+
 class User(DB.Model):
     __tablename__ = 'users'
 
     id = DB.Column(DB.Integer, primary_key=True)
     email = DB.Column(DB.Text, unique=True, index=True)
     password = DB.Column(DB.String(100))
-    upgraded = DB.Column(DB.Boolean)
+    plan = DB.Column(DB.Enum(*Plan.plan_features.keys(), name='plans'), nullable=False)
     stripe_id = DB.Column(DB.String(50))
     registered_on = DB.Column(DB.DateTime)
     invoice_address = DB.Column(DB.Text)
@@ -40,7 +58,7 @@ class User(DB.Model):
 
         self.email = email
         self.password = hash_pwd(password)
-        self.upgraded = False
+        self.plan = Plan.free
         self.registered_on = datetime.utcnow()
 
     @property
@@ -54,6 +72,13 @@ class User(DB.Model):
     @property
     def is_anonymous(self):
         return False
+
+    @property
+    def features(self):
+        return Plan.plan_features[self.plan]
+
+    def has_feature(self, feature_id):
+        return Plan.has_feature(self.plan, feature_id)
 
     def get_id(self):
         return self.id

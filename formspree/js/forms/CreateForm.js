@@ -36,7 +36,7 @@ module.exports = class CreateForm extends React.Component {
   }
 
   render() {
-    if (!this.props.user.upgraded) {
+    if (!this.props.user.features.dashboard) {
       return (
         <div className="col-1-1 create-form">
           <h6 className="light">

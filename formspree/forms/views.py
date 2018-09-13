@@ -195,8 +195,8 @@ def send(email_or_string):
                              captcha_verified or
                              settings.TESTING)
 
-        # if form is upgraded check if captcha is disabled
-        if form.upgraded:
+        # check if captcha is disabled
+        if form.has_feature('dashboard'):
             needs_captcha = needs_captcha and not form.captcha_disabled
 
         if needs_captcha:
@@ -487,7 +487,7 @@ def serve_dashboard(hashid=None, s=None):
 
 @login_required
 def export_submissions(hashid, format=None):
-    if not current_user.upgraded:
+    if not current_user.has_feature('dashboard'):
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     form = Form.get_with_hashid(hashid)

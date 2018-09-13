@@ -6,6 +6,8 @@ import datetime
 from flask import url_for, render_template, render_template_string, g
 from sqlalchemy.sql import table
 from sqlalchemy.sql.expression import delete
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy import func
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
@@ -14,6 +16,7 @@ from formspree import settings
 from formspree.stuff import DB, redis_store, TEMPLATES
 from formspree.utils import send_email, unix_time_for_12_months_from_now, \
                             next_url, IS_VALID_EMAIL, request_wants_json
+from formspree.users.models import Plan
 from .helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
                     http_form_to_dict, referrer_to_path, \
                     store_first_submission, fetch_first_submission, \
@@ -103,10 +106,9 @@ class Form(DB.Model):
             .filter(Form.id == self.id)
         return by_email.union(by_creation)
 
-    @property
-    def upgraded(self):
-        upgraded_controllers = [i for i in self.controllers if i.upgraded]
-        return len(upgraded_controllers) > 0
+    def has_feature(self, feature):
+        c = [user for user in self.controllers if user.has_feature(feature)]
+        return len(c) > 0
 
     @classmethod
     def get_with_hashid(cls, hashid):
@@ -207,8 +209,8 @@ class Form(DB.Model):
         # increment the forms counter
         self.counter = Form.counter + 1
 
-        # if submission storage is disabled and form is upgraded, don't store submission
-        if self.disable_storage and self.upgraded:
+        # if submission storage is disabled, don't store submission
+        if self.disable_storage and self.has_feature('dashboard'):
             pass
         else:
             DB.session.add(self)
@@ -239,17 +241,18 @@ class Form(DB.Model):
         # url to request_unconfirm_form page
         unconfirm = url_for('request_unconfirm_form', form_id=self.id, _external=True)
 
-        # check if the forms are over the counter and the user is not upgraded
+        # check if the forms are over the counter and the user has unlimited submissions
         overlimit = False
         monthly_counter = self.get_monthly_counter()
         monthly_limit = settings.MONTHLY_SUBMISSIONS_LIMIT \
                 if self.id > settings.FORM_LIMIT_DECREASE_ACTIVATION_SEQUENCE \
                 else settings.GRANDFATHER_MONTHLY_LIMIT
 
-        if monthly_counter > monthly_limit and not self.upgraded:
+        if monthly_counter > monthly_limit and not self.has_feature('unlimited'):
             overlimit = True
 
-        if monthly_counter == int(monthly_limit * 0.9) and not self.upgraded:
+        if monthly_counter == int(monthly_limit * 0.9) and \
+                        not self.has_feature('unlimited'):
             # send email notification
             send_email(
                 to=self.email,
@@ -295,8 +298,8 @@ class Form(DB.Model):
             else:
                 return {'code': Form.STATUS_OVERLIMIT}
 
-        # if emails are disabled and form is upgraded, don't send email notification
-        if self.disable_email and self.upgraded:
+        # if emails are disabled, don't send email notification
+        if self.disable_email and self.has_feature('dashboard'):
             return {'code': Form.STATUS_NO_EMAIL, 'next': next}
         else:
             result = send_email(
@@ -483,15 +486,12 @@ class Form(DB.Model):
         return True
 
 
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.ext.mutable import MutableDict
-
 class Submission(DB.Model):
     __tablename__ = 'submissions'
 
     id = DB.Column(DB.Integer, primary_key=True)
     submitted_at = DB.Column(DB.DateTime)
-    form_id = DB.Column(DB.Integer, DB.ForeignKey('forms.id'))
+    form_id = DB.Column(DB.Integer, DB.ForeignKey('forms.id'), nullable=False)
     data = DB.Column(MutableDict.as_mutable(JSON))
 
     def __init__(self, form_id):
