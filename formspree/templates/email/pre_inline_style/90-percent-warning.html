@@ -53,7 +53,7 @@ Upgrading is easy! Simply register at {{ url_for('register', _external=True) }},
 					<div class="footer">
 						<table width="100%">
 							<tr>
-								<td class="aligncenter content-block">You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or <a href="unconfirm_url">click here to unsubscribe</a> from this endpoint.</td>
+								<td class="aligncenter content-block">You are receiving this because you confirmed this email address on <a href="{{config.SERVICE_URL}}">{{config.SERVICE_NAME}}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {{host}} or <a href="{{unconfirm_url}}">click here to unsubscribe</a> from this endpoint.</td>
 							</tr>
                             {% include "email/footer.html" %}
 						</table>
