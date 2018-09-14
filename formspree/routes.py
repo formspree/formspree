@@ -50,6 +50,7 @@ def configure_routes(app):
     app.add_url_rule('/api-int/forms/<hashid>', view_func=fa.delete, methods=['DELETE'])
     app.add_url_rule('/api-int/forms/sitewide-check', view_func=fa.sitewide_check, methods=['POST'])
     app.add_url_rule('/api-int/forms/<hashid>/submissions/<submissionid>', view_func=fa.submission_delete, methods=['DELETE'])
+    app.add_url_rule('/api-int/forms/whitelabel/preview', view_func=fa.custom_template_preview_render, methods=['POST'])
 
     # Webhooks
     app.add_url_rule('/webhooks/stripe', view_func=uv.stripe_webhook, methods=['POST'])

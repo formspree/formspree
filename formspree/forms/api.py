@@ -1,3 +1,5 @@
+import datetime
+
 from urllib.parse import urljoin
 
 from flask import request, jsonify, g
@@ -8,7 +10,7 @@ from formspree.stuff import DB
 from formspree.utils import jsonerror, IS_VALID_EMAIL
 from .helpers import referrer_to_path, sitewide_file_check, remove_www, \
                      referrer_to_baseurl
-from .models import Form, Submission
+from .models import Form, Submission, EmailTemplate
 
 
 @login_required
@@ -104,9 +106,7 @@ def get(hashid):
     if not form:
         return jsonerror(404, {'error': "Form not found."})
 
-    for cont in form.controllers:
-        if cont.id == current_user.id: break
-    else:
+    if not form.controlled_by(current_user):
         return jsonerror(401, {'error': "You do not control this form."})
 
     submissions, fields = form.submissions_with_fields()
@@ -191,6 +191,52 @@ def submission_delete(hashid, submissionid):
     DB.session.add(form)
     DB.session.commit()
     return jsonify({'ok': True})
+
+
+@login_required
+def custom_template_set(hashid):
+    form = Form.get_with_hashid(hashid)
+    if not form:
+        return jsonerror(404, {'error': "Form not found."})
+
+    if not form.controlled_by(current_user):
+        return jsonerror(401, {'error': "You do not control this form."})
+
+    # TODO catch render exception before deploying
+    try:
+        pass
+    except:
+        return jsonerror(406, {'error': "Failed to render. The template has errors."})
+
+    print(form.template)
+
+    DB.session.add(form)
+    DB.session.commit()
+
+    return jsonify({'ok': True})
+
+
+@login_required
+def custom_template_preview_render():
+    if not current_user.has_feature('whitelabel'):
+        return jsonerror(402, {'error': "Please upgrade your account."})
+
+    template = EmailTemplate.temporary(
+        style=request.get_json()['style'],
+        body=request.get_json()['body']
+    )
+
+    return template.render_body(
+        data={
+            'name': 'Irwin Jones',
+            '_replyto': 'i.jones@example.com',
+            'message': 'Hello!\n\nThis is a preview message!'
+        },
+        host='example.com/',
+        keys=['name', '_replyto', 'message'],
+        now=datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y'),
+        unconfirm_url='#'
+    )
 
 
 @login_required

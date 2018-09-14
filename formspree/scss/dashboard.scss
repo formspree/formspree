@@ -494,6 +494,18 @@
   }
 }
 
+#whitelabel {
+  .container {
+    display: flex;
+    align-items: baseline;
+  }
+
+  #from::after {
+    content: ' submissions@formspree.io';
+    color: grey;
+  }
+}
+
 a.button.export {
   width: 11em;
   text-align: center;

@@ -2,6 +2,7 @@ import hmac
 import random
 import hashlib
 import datetime
+import pystache
 
 from flask import url_for, render_template, render_template_string, g
 from sqlalchemy.sql import table
@@ -11,6 +12,7 @@ from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy import func
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
+from premailer import transform
 
 from formspree import settings
 from formspree.stuff import DB, redis_store, TEMPLATES
@@ -43,6 +45,7 @@ class Form(DB.Model):
 
     owner = DB.relationship('User') # direct owner, defined by 'owner_id'
                                     # this property is basically useless. use .controllers
+    template = DB.relationship('EmailTemplate', uselist=False, back_populates='form')
     submissions = DB.relationship('Submission',
         backref='form', lazy='dynamic', order_by=lambda: Submission.id.desc())
 
@@ -106,6 +109,16 @@ class Form(DB.Model):
             .filter(Form.id == self.id)
         return by_email.union(by_creation)
 
+    @property
+    def features(self):
+        return set.union(*[cont.features for cont in self.controllers])
+
+    def controlled_by(self, user):
+        for cont in self.controllers:
+            if cont.id == user.id:
+                return True
+        return False
+
     def has_feature(self, feature):
         c = [user for user in self.controllers if user.has_feature(feature)]
         return len(c) > 0
@@ -126,6 +139,8 @@ class Form(DB.Model):
             'counter': self.counter,
             'email': self.email,
             'host': self.host,
+            'template': self.template,
+            'features': {f: True for f in self.features},
             'confirm_sent': self.confirm_sent,
             'confirmed': self.confirmed,
             'disabled': self.disabled,
@@ -274,6 +289,13 @@ class Form(DB.Model):
             text = render_template('email/form.txt',
                 data=data, host=self.host, keys=keys, now=now,
                 unconfirm_url=unconfirm)
+
+            # if there's a custom email template we should use it
+            if self.template and self.owner.has_feature('whitelabel'):
+                html = self.template.render_body(
+                    data=data, host=self.host, keys=keys, now=now,
+                    unconfirm_url=unconfirm)
+
             # check if the user wants a new or old version of the email
             if format == 'plain':
                 html = render_template('email/plain_form.html',
@@ -484,6 +506,52 @@ class Form(DB.Model):
         DB.session.add(self)
         DB.session.commit()
         return True
+
+
+class EmailTemplate(DB.Model):
+    __tablename__ = 'email_templates'
+
+    id = DB.Column(DB.Integer, primary_key=True)
+    form_id = DB.Column(
+        DB.Integer, DB.ForeignKey('forms.id'),
+        unique=True, nullable=False
+    )
+    subject = DB.Column(DB.Text, nullable=False)
+    from_name = DB.Column(DB.Text, nullable=False)
+    style = DB.Column(DB.Text, nullable=False)
+    body = DB.Column(DB.Text, nullable=False)
+    
+    form = DB.relationship('Form', back_populates='template')
+
+    def __init__(self, form_id):
+        self.submitted_at = datetime.datetime.utcnow()
+        self.form_id = form_id
+
+    def __repr__(self):
+        return '<Email Template %s, form=%s>' % \
+            (self.id or 'with an id to be assigned', self.form_id)
+
+    @classmethod
+    def temporary(cls, style, body):
+        t = cls(0)
+        t.style = style
+        t.body = body
+        return t
+
+    def render_subject(self, data):
+        return pystache.render(self.subject, data)
+
+    def render_body(self, data, host, keys, now, unconfirm_url):
+        data.update({
+            '_fields': [{'field_name': f, 'field_value': data[f]} for f in keys],
+            '_time': now,
+            '_host': host
+        })
+        html = pystache.render(self.body, data)
+        styled = '<style>' + self.style + '</style>' + html
+        inlined = transform(styled)
+        suffixed = inlined + '''<table width="100%"><tr><td>You are receiving this because you confirmed this email address on <a href="{service_url}">{service_name}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {host} or <a href="{unconfirm_url}">click here to unsubscribe</a> from this endpoint.</td></tr></table>'''.format(service_url=settings.SERVICE_URL, service_name=settings.SERVICE_NAME, host=host, unconfirm_url=unconfirm_url)
+        return suffixed
 
 
 class Submission(DB.Model):

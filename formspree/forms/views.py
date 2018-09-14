@@ -496,9 +496,7 @@ def export_submissions(hashid, format=None):
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     form = Form.get_with_hashid(hashid)
-    for cont in form.controllers:
-        if cont.id == current_user.id: break
-    else:
+    if not form.controlled_by(current_user):
         return abort(401)
 
     submissions, fields = form.submissions_with_fields()

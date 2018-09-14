@@ -34,6 +34,7 @@ unicodecsv = "==0.14.1"
 flask-migrate = "==2.2.1"
 premailer = "==3.2.0"
 ptvsd = "==4.1.2"
+pystache = "*"
 
 [pipenv]
 allow_prereleases = true
