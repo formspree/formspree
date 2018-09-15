@@ -6,6 +6,7 @@
     "react": "^16.4.2",
     "react-codemirror2": "^5.1.0",
     "react-dom": "^16.4.2",
+    "react-modal": "^3.5.1",
     "react-router-dom": "^4.3.1",
     "url": "^0.11.0",
     "valid-url": "^1.0.9"

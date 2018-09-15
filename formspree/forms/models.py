@@ -139,7 +139,7 @@ class Form(DB.Model):
             'counter': self.counter,
             'email': self.email,
             'host': self.host,
-            'template': self.template,
+            'template': self.template.serialize() if self.template else None,
             'features': {f: True for f in self.features},
             'confirm_sent': self.confirm_sent,
             'confirmed': self.confirmed,
@@ -193,6 +193,7 @@ class Form(DB.Model):
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
         format = data.get('_format', None)
+        fromname = None
 
         # turn cc emails into array
         if cc:
@@ -291,10 +292,11 @@ class Form(DB.Model):
                 unconfirm_url=unconfirm)
 
             # if there's a custom email template we should use it
-            if self.template and self.owner.has_feature('whitelabel'):
-                html = self.template.render_body(
+            if self.owner.has_feature('whitelabel') and self.template:
+                html, subject = self.template.render_body_and_subject(
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
+                fromname = self.template.from_name
 
             # check if the user wants a new or old version of the email
             if format == 'plain':
@@ -330,6 +332,7 @@ class Form(DB.Model):
                 text=text,
                 html=html,
                 sender=settings.DEFAULT_SENDER,
+                fromname=fromname,
                 reply_to=reply_to,
                 cc=cc,
                 headers={
@@ -532,26 +535,49 @@ class EmailTemplate(DB.Model):
             (self.id or 'with an id to be assigned', self.form_id)
 
     @classmethod
-    def temporary(cls, style, body):
+    def make_sample(cls, style, body,
+               from_name='Formspree Team',
+               subject='New submission from {{ _host }}'):
         t = cls(0)
+        t.from_name = from_name
+        t.subject = subject
         t.style = style
         t.body = body
-        return t
+        return t.sample()
 
-    def render_subject(self, data):
-        return pystache.render(self.subject, data)
+    def sample(self):
+        return self.render_body_and_subject(
+            data={
+                'name': 'Irwin Jones',
+                '_replyto': 'i.jones@example.com',
+                'message': 'Hello!\n\nThis is a preview message!'
+            },
+            host='example.com/',
+            keys=['name', '_replyto', 'message'],
+            now=datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y'),
+            unconfirm_url='#'
+        )
 
-    def render_body(self, data, host, keys, now, unconfirm_url):
+    def serialize(self):
+        return {
+            'subject': self.subject,
+            'from_name': self.from_name,
+            'style': self.style,
+            'body': self.body
+        }
+
+    def render_body_and_subject(self, data, host, keys, now, unconfirm_url):
         data.update({
-            '_fields': [{'field_name': f, 'field_value': data[f]} for f in keys],
+            '_fields': [{'_name': f, '_value': data[f]} for f in keys],
             '_time': now,
             '_host': host
         })
-        html = pystache.render(self.body, data)
-        styled = '<style>' + self.style + '</style>' + html
-        inlined = transform(styled)
+        subject = pystache.render(self.subject, data)
+        html = pystache.render('<style>' + self.style + '</style>' + self.body, data)
+        print(html)
+        inlined = transform(html)
         suffixed = inlined + '''<table width="100%"><tr><td>You are receiving this because you confirmed this email address on <a href="{service_url}">{service_name}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {host} or <a href="{unconfirm_url}">click here to unsubscribe</a> from this endpoint.</td></tr></table>'''.format(service_url=settings.SERVICE_URL, service_name=settings.SERVICE_NAME, host=host, unconfirm_url=unconfirm_url)
-        return suffixed
+        return suffixed, subject
 
 
 class Submission(DB.Model):

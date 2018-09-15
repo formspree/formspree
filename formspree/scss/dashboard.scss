@@ -190,6 +190,13 @@
     overflow-x: auto;
   }
 
+  a.button.export {
+    width: 11em;
+    text-align: center;
+    display: inline-block;
+    margin: 0 0 20px 20px;
+  }
+
   table {
     text-align: left;
     width: 100%;
@@ -375,14 +382,8 @@
       top: -100%;
       z-index: 11;
       width: 770px;
-      -webkit-transform: translate(0, -500%);
-      -ms-transform: translate(0, -500%);
       transform: translate(0, -500%);
-      -webkit-transition: -webkit-transform 0.3s ease-out;
-      -moz-transition: -moz-transform 0.3s ease-out;
-      -o-transition: -o-transform 0.3s ease-out;
-      transition: transform 0.3s ease-out;
-
+      transition: transform 0.5s ease-out;
       padding: 0.3em 1.3em 1.3em 1.3em;
 
       .x a {
@@ -500,20 +501,50 @@
     align-items: baseline;
   }
 
-  #from::after {
+  #from_name::after {
     content: ' submissions@formspree.io';
     color: grey;
   }
 }
 
-a.button.export {
-  width: 11em;
-  text-align: center;
-  display: inline-block;
-  margin: 0 0 20px 20px;
+#whitelabel-preview-modal {
+  .preview {
+    padding: 12px;
+    margin: 12px;
+    border: 5px dotted #444;
+  }
+}
+
+.ReactModal__Overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center;
+
+  .ReactModal__Content {
+    z-index: 11;
+    position: absolute;
+    top: 80px;
+    background: #fefefe;
+    border: #333333 solid 1px;
+    border-radius: 5px;
+    padding: 1.4em 1.4em 0.5em 1.4em;
+    max-width: 900px;
+    transform: translate(0, -500%);
+    transition: transform 0.6s ease-out;
+  }
+
+  &.ReactModal__Overlay--after-open .ReactModal__Content {
+    transform: translate(0, 0);
+  }
 }
 
 .CodeMirror {
+  z-index: 0;
   padding: 10px;
   height: auto;
   font-size: 90%;

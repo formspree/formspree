@@ -118,7 +118,8 @@ def next_url(referrer=None, next=None):
 
 
 def send_email(to=None, subject=None, text=None, html=None,
-               sender=None, cc=None, reply_to=None, headers=None):
+               sender=None, cc=None, reply_to=None, headers=None,
+               fromname=None):
     g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
@@ -141,6 +142,9 @@ def send_email(to=None, subject=None, text=None, html=None,
         })
     except ValueError:
         data.update({'from': sender})
+
+    if fromname:
+        data.update({'fromname': fromname})
 
     if headers:
         data.update({'headers': json.dumps(headers)})

@@ -202,17 +202,23 @@ def custom_template_set(hashid):
     if not form.controlled_by(current_user):
         return jsonerror(401, {'error': "You do not control this form."})
 
-    # TODO catch render exception before deploying
+    template = form.template
+    if not template:
+        template = EmailTemplate(form_id=form.id)
+
+    template.from_name = request.get_json()['from_name']
+    template.subject = request.get_json()['subject']
+    template.style = request.get_json()['style']
+    template.body = request.get_json()['body']
+
     try:
-        pass
-    except:
+        template.sample()
+    except Exception as e:
+        print(e)
         return jsonerror(406, {'error': "Failed to render. The template has errors."})
 
-    print(form.template)
-
-    DB.session.add(form)
+    DB.session.add(template)
     DB.session.commit()
-
     return jsonify({'ok': True})
 
 
@@ -221,22 +227,14 @@ def custom_template_preview_render():
     if not current_user.has_feature('whitelabel'):
         return jsonerror(402, {'error': "Please upgrade your account."})
 
-    template = EmailTemplate.temporary(
+    body, _ = EmailTemplate.make_sample(
+        from_name=request.get_json()['from_name'],
+        subject=request.get_json()['subject'],
         style=request.get_json()['style'],
-        body=request.get_json()['body']
+        body=request.get_json()['body'],
     )
 
-    return template.render_body(
-        data={
-            'name': 'Irwin Jones',
-            '_replyto': 'i.jones@example.com',
-            'message': 'Hello!\n\nThis is a preview message!'
-        },
-        host='example.com/',
-        keys=['name', '_replyto', 'message'],
-        now=datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y'),
-        unconfirm_url='#'
-    )
+    return body
 
 
 @login_required
