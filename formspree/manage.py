@@ -59,5 +59,5 @@ def test(args):
     sys.exit(errno)
 
 
-if __name__ == "__main__":
-    app.run()
+# if __name__ == "__main__":
+#     app.run()
