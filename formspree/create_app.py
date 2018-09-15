@@ -131,7 +131,7 @@ def create_app():
     Limiter(
         app,
         key_func=get_ipaddr,
-        global_limits=[settings.RATE_LIMIT],    
+        global_limits=[settings.RATE_LIMIT],
         storage_uri=settings.REDIS_RATE_LIMIT
     )
 
