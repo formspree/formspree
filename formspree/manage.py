@@ -58,6 +58,3 @@ def test(args):
     errno = pytest.main(argv)
     sys.exit(errno)
 
-
-# if __name__ == "__main__":
-#     app.run()
