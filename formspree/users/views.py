@@ -11,7 +11,8 @@ from formspree import settings
 from formspree.stuff import DB, TEMPLATES
 from formspree.utils import send_email
 from .models import User, Email
-from .helpers import check_password, hash_pwd, send_downgrade_email
+from .helpers import check_password, hash_pwd, send_downgrade_email, \
+                     send_downgrade_reason_email
 
 
 def register():
@@ -272,6 +273,10 @@ def downgrade():
         flash(u"You can't do this. You are not subscribed to any plan.",
               "warning")
         return redirect(url_for('account'))
+
+    reason = request.form.get('why')
+    if reason:
+        send_downgrade_reason_email.delay(current_user.email, reason)
 
     sub = sub.delete(at_period_end=True)
     flash(u"You were unregistered from the {SERVICE_NAME} "

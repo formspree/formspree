@@ -1,0 +1,5 @@
+A customer has downgraded. :( :( :(
+
+Here's the reason he or she gave:
+
+{{reason}}
