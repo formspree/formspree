@@ -20,9 +20,7 @@
 			</form>
 		  {% else %}
 			<p>Your subscription will automatically renew on {{ sub.current_period_end }}.</p>
-			<form action="/account/downgrade" method="POST">
-			  <button type="submit">Cancel subscription</button>
-			</form>
+			<a href="#cancel-feedback" class="button">Cancel subscription</a>
 		  {% endif %}
 
 		{% else %}
@@ -135,8 +133,7 @@
 		  </a>
 		  <div class="modal narrow" id="edit-billing" aria-hidden="true">
 			<div class="container">
-			  <div class="x">
-				<h4>Edit Invoice Address</h4><a href="#">&times;</a></div>
+			  <div class="x"><h4>Edit Invoice Address</h4><a href="#">&times;</a></div>
 			  <form method="POST" action="{{ url_for('update-invoice-address') }}">
 				<textarea rows="4" name="invoice-address">{% if current_user.invoice_address %}{{ current_user.invoice_address }}{% endif %}</textarea>
 				<div class="col-1-1">
@@ -149,5 +146,18 @@
 	  </div>
 	</div>
   </div>
+
+	<div class="modal" id="cancel-feedback" aria-hidden="true">
+		<div class="container">
+			<div class="x">
+				<h4>Why are you cancelling?</h4>
+				<a href="#">&times;</a>
+			</div>
+			<form action="/account/downgrade" method="POST">
+				<textarea name="why" placeholder="Was it a missing feature? Bad service? Just don't need us anymore?"></textarea>
+				<button type="submit">Cancel Subscription</button>
+			</form>
+		</div>
+	</div>
 
 {% endblock %}
