@@ -10,6 +10,10 @@ require('codemirror/mode/css/css')
 
 const FormDescription = require('./FormDescription')
 
+const MODAL_REVERT = 'revert'
+const MODAL_PREVIEW = 'preview'
+const MODAL_SYNTAX = 'syntax'
+
 module.exports = class FormSettings extends React.Component {
   constructor(props) {
     super(props)
@@ -21,6 +25,7 @@ module.exports = class FormSettings extends React.Component {
     this.preview = this.preview.bind(this)
     this.showSyntax = this.showSyntax.bind(this)
     this.closeModal = this.closeModal.bind(this)
+    this.attemptRevert = this.attemptRevert.bind(this)
     this.revert = this.revert.bind(this)
     this.deploy = this.deploy.bind(this)
 
@@ -147,7 +152,7 @@ module.exports = class FormSettings extends React.Component {
             </div>
             <div className="col-1-6">
               <button
-                onClick={this.revert}
+                onClick={this.attemptRevert}
                 disabled={Object.keys(this.state.changes).length === 0}
               >
                 Revert
@@ -164,8 +169,29 @@ module.exports = class FormSettings extends React.Component {
           </div>
         </div>
         <Modal
+          contentLabel="Revert changes"
+          isOpen={this.state.modal === MODAL_REVERT}
+          onRequestClose={this.closeModal}
+          className="dummy"
+          overlayClassName="dummy"
+        >
+          <div>
+            <div className="container">
+              <h2>Are you sure?</h2>
+              <p>
+                Reverting will discard the changes you've made to your email
+                template.
+              </p>
+            </div>
+            <div className="container right">
+              <button onClick={this.closeModal}>Cancel</button>
+              <button onClick={this.revert}>Revert</button>
+            </div>
+          </div>
+        </Modal>
+        <Modal
           contentLabel="Preview"
-          isOpen={this.state.modal === 'preview'}
+          isOpen={this.state.modal === MODAL_PREVIEW}
           onRequestClose={this.closeModal}
           className="dummy"
           overlayClassName="dummy"
@@ -182,7 +208,7 @@ module.exports = class FormSettings extends React.Component {
         </Modal>
         <Modal
           contentLabel="Email Syntax"
-          isOpen={this.state.modal === 'syntax'}
+          isOpen={this.state.modal === MODAL_SYNTAX}
           onRequestClose={this.closeModal}
           className="dummy"
           overlayClassName="dummy"
@@ -269,7 +295,7 @@ module.exports = class FormSettings extends React.Component {
   async preview(e) {
     e.preventDefault()
 
-    this.setState({modal: 'preview'})
+    this.setState({modal: MODAL_PREVIEW})
 
     let template = {
       ...this.defaultValues,
@@ -298,15 +324,21 @@ module.exports = class FormSettings extends React.Component {
     }
   }
 
+  attemptRevert(e) {
+    e.preventDefault()
+
+    this.setState({modal: MODAL_REVERT})
+  }
+
   revert(e) {
     e.preventDefault()
 
-    this.setState({changes: {}})
+    this.setState({changes: {}, modal: null})
   }
 
   showSyntax(e) {
     e.preventDefault()
-    this.setState({modal: 'syntax'})
+    this.setState({modal: MODAL_SYNTAX})
   }
 
   async deploy(e) {
