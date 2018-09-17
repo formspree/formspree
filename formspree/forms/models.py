@@ -292,14 +292,13 @@ class Form(DB.Model):
                 unconfirm_url=unconfirm)
 
             # if there's a custom email template we should use it
+            # otherwise check if the user wants a new or old version of the email
             if self.owner.has_feature('whitelabel') and self.template:
                 html, subject = self.template.render_body_and_subject(
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
                 fromname = self.template.from_name
-
-            # check if the user wants a new or old version of the email
-            if format == 'plain':
+            elif format == 'plain':
                 html = render_template('email/plain_form.html',
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
