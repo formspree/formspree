@@ -200,6 +200,30 @@ class FormItem extends React.Component {
             </Link>
           )}
         </td>
+        {form.features.whitelabel && (
+          <td>
+            <Link
+              to={`/forms/${form.hashid}/whitelabel`}
+              className="no-underline"
+            >
+              {form.template ? (
+                <span
+                  className="tooltip hint--top"
+                  data-hint="Uses a custom email template."
+                >
+                  <span className="ion-document-text" />
+                </span>
+              ) : (
+                <span
+                  className="tooltip hint--top"
+                  data-hint="Doesn't use a custom email template."
+                >
+                  <span className="ion-document" />
+                </span>
+              )}
+            </Link>
+          </td>
+        )}
         <td>
           <Link to={`/forms/${form.hashid}/settings`} className="no-underline">
             <span className="ion-gear-b" />
