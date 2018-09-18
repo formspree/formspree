@@ -17,8 +17,8 @@ class Plan(DB.Enum):
 
     plan_features = {
         'v1_free': set(),
-        'v1_gold': {'dashboard', 'unlimited'},
-        'v1_platinum': {'dashboard', 'unlimited', 'whitelabel'}
+        'v1_gold': {'invisible', 'dashboard', 'unlimited'},
+        'v1_platinum': {'invisible', 'dashboard', 'unlimited', 'whitelabel'}
     }
 
     @classmethod

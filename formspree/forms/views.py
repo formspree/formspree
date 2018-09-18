@@ -99,7 +99,16 @@ def send(email_or_string):
         form = Form.get_with_hashid(hashid)
 
         if form:
-            # Check if it has been assigned about using AJAX or not
+            # forms addressed by their hashids are only allowed for paying users
+            if not form.has_feature('invisible'):
+                if request_wants_json():
+                    return jsonerror(403, {'error': 'Form unavailable at this address.'})
+                else:
+                    return render_template('error.html',
+                                           title='Form unavailable at this address',
+                                           text=f'The form at <span class="code">https://formspree.io/{form.hashid}</span> is only available for Formspree Gold, try resubmitting to <span class="code">https://formspree.io/{form.email}</span>.'), 403
+
+            # check if it has been assigned about using AJAX or not
             assign_ajax(form, request_wants_json())
 
             if form.disabled:
