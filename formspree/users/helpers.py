@@ -6,6 +6,17 @@ from formspree.stuff import celery, TEMPLATES
 from formspree.utils import send_email
 
 
+CARD_MAPPINGS = {
+    'Visa': 'cc-visa',
+    'American Express': 'cc-amex',
+    'MasterCard': 'cc-mastercard',
+    'Discover': 'cc-discover',
+    'JCB': 'cc-jcb',
+    'Diners Club': 'cc-diners-club',
+    'Unknown': 'credit-card'
+}
+
+
 def hash_pwd(password):
     return generate_password_hash(password)
 

@@ -77,7 +77,7 @@ $('a.resend').on('click', function() {
 })
 
 /* scripts at other files */
-require('./forms/main.js')
+require('./react-app.js')
 
 /* toggle the card management menu */
 $(function() {

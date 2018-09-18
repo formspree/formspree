@@ -489,11 +489,6 @@ def confirm_email(nonce):
 
 
 @login_required
-def serve_dashboard(hashid=None, s=None):
-    return render_template('forms/dashboard.html')
-
-
-@login_required
 def custom_template_preview_render():
     body, _ = EmailTemplate.make_sample(
         from_name=request.args.get('from_name'),

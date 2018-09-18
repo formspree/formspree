@@ -85,9 +85,6 @@ export default class FormList extends React.Component {
 
     return (
       <>
-        <Portal to=".menu .item:nth-child(2)">
-          <Link to="/forms">Your forms</Link>
-        </Portal>
         <Portal to="#header .center">
           <h1>Your Forms</h1>
         </Portal>

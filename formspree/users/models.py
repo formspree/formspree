@@ -15,6 +15,12 @@ class Plan(DB.Enum):
     gold = 'v1_gold'
     platinum = 'v1_platinum'
 
+    plan_names = {
+        'v1_free': 'Free',
+        'v1_gold': 'Gold',
+        'v1_platinum': 'Platinum'
+    }
+
     plan_features = {
         'v1_free': set(),
         'v1_gold': {'dashboard', 'unlimited'},
@@ -60,6 +66,15 @@ class User(DB.Model):
         self.password = hash_pwd(password)
         self.plan = Plan.free
         self.registered_on = datetime.utcnow()
+
+    def serialize(self):
+        return {
+            'email': self.email,
+            'plan': Plan.plan_names[self.plan],
+            'registered_on': self.registered_on.strftime('%I:%M %p UTC - %d %B %Y'),
+            'features': {f: True for f in self.features},
+            'invoice_address': self.invoice_address
+        }
 
     @property
     def is_authenticated(self):

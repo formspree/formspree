@@ -12,7 +12,7 @@ from formspree.stuff import DB, TEMPLATES
 from formspree.utils import send_email
 from .models import User, Email, Plan
 from .helpers import check_password, hash_pwd, send_downgrade_email, \
-                     send_downgrade_reason_email
+                     CARD_MAPPINGS
 
 
 def register():
@@ -407,71 +407,6 @@ def delete_card(cardid):
 
 
 @login_required
-def account():
-    emails = {
-        'verified': (e.address for e in current_user.emails.order_by(Email.registered_on.desc())),
-        'pending': filter(bool, request.cookies.get('pending-emails', '').split(',')),
-    }
-    sub = None
-    cards = {}
-    if current_user.stripe_id:
-        try:
-            customer = stripe.Customer.retrieve(current_user.stripe_id)
-            card_mappings = {
-                'Visa': 'cc-visa',
-                'American Express': 'cc-amex',
-                'MasterCard': 'cc-mastercard',
-                'Discover': 'cc-discover',
-                'JCB': 'cc-jcb',
-                'Diners Club': 'cc-diners-club',
-                'Unknown': 'credit-card'
-            }
-            cards = customer.sources.all(object='card').data
-            for card in cards:
-                if customer.default_source == card.id:
-                    card.default = True
-                card.css_name = card_mappings[card.brand]
-            sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
-            if sub:
-                sub.current_period_end = datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')
-        except stripe.error.StripeError:
-            return render_template('error.html', title='Unable to connect', text="We're unable to make a secure connection to verify your account details. Please try again in a little bit. If this problem persists, please contact <strong>%s</strong>" % settings.CONTACT_EMAIL)
-
-    return render_template('users/account.html', emails=emails, cards=cards, sub=sub)
-
-@login_required
-def billing():
-    if current_user.stripe_id:
-        try:
-            customer = stripe.Customer.retrieve(current_user.stripe_id)
-            card_mappings = {
-                'Visa': 'cc-visa',
-                'American Express': 'cc-amex',
-                'MasterCard': 'cc-mastercard',
-                'Discover': 'cc-discover',
-                'JCB': 'cc-jcb',
-                'Diners Club': 'cc-diners-club',
-                'Unknown': 'credit-card'
-            }
-            cards = customer.sources.all(object='card').data
-            for card in cards:
-                if customer.default_source == card.id:
-                    card.default = True
-                card.css_name = card_mappings[card.brand]
-            sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
-            if sub:
-                sub.current_period_end = datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')
-        except stripe.error.StripeError:
-            return render_template('error.html', title='Unable to connect', text="We're unable to make a secure connection to verify your account details. Please try again in a little bit. If this problem persists, please contact <strong>%s</strong>" % settings.CONTACT_EMAIL)
-
-        invoices = stripe.Invoice.list(customer=customer, limit=12)
-        return render_template('users/billing.html', cards=cards, sub=sub, invoices=invoices)
-    else:
-        flash('You have not added your billing information to your Formspree account. '
-              'Please contact us if you believe this is an error', 'error')
-        return redirect(url_for('account'))
-
-@login_required
 def update_invoice_address():
     new_address = request.form.get('invoice-address')
     if len(new_address) == 0:
@@ -496,15 +431,6 @@ def invoice(invoice_id):
         ), 403
     if invoice.charge:
         charge = stripe.Charge.retrieve(invoice.charge)
-        card_mappings = {
-            'Visa': 'cc-visa',
-            'American Express': 'cc-amex',
-            'MasterCard': 'cc-mastercard',
-            'Discover': 'cc-discover',
-            'JCB': 'cc-jcb',
-            'Diners Club': 'cc-diners-club',
-            'Unknown': 'credit-card'
-        }
-        charge.source.css_name = card_mappings[charge.source.brand]
+        charge.source.css_name = CARD_MAPPINGS[charge.source.brand]
         return render_template('users/invoice.html', invoice=invoice, charge=charge)
     return render_template('users/invoice.html', invoice=invoice)

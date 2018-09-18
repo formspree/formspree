@@ -1,6 +1,12 @@
 from flask import request, render_template, g, \
                   redirect, url_for
 from jinja2 import TemplateNotFound
+from flask_login import login_required
+
+
+@login_required
+def serve_dashboard(hashid=None, s=None):
+    return render_template('static_pages/dashboard.html')
 
 
 def default(template='index'):

@@ -3,7 +3,7 @@
 const toastr = window.toastr
 const fetch = window.fetch
 const React = require('react')
-const {Route, Link, NavLink, Redirect} = require('react-router-dom')
+const {Route, NavLink, Redirect} = require('react-router-dom')
 
 import Portal from '../../Portal'
 import Integration from './Integration'
@@ -32,9 +32,6 @@ export default class FormPage extends React.Component {
 
     return (
       <>
-        <Portal to=".menu .item:nth-child(2)">
-          <Link to="/forms">Your forms</Link>
-        </Portal>
         <Portal to="#header .center">
           <h1>Form Details</h1>
           {this.state.form && (
