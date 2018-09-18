@@ -2,6 +2,7 @@
 
 const toastr = window.toastr
 const fetch = window.fetch
+const cs = require('class-set')
 const React = require('react')
 const CodeMirror = require('react-codemirror2')
 const Modal = require('react-modal')
@@ -25,6 +26,7 @@ module.exports = class FormSettings extends React.Component {
     this.preview = this.preview.bind(this)
     this.showSyntax = this.showSyntax.bind(this)
     this.closeModal = this.closeModal.bind(this)
+    this.changeTab = this.changeTab.bind(this)
     this.attemptRevert = this.attemptRevert.bind(this)
     this.revert = this.revert.bind(this)
     this.deploy = this.deploy.bind(this)
@@ -55,10 +57,13 @@ module.exports = class FormSettings extends React.Component {
 <hr>`
     }
 
+    this.availableTabs = ['HTML', 'CSS']
+
     this.state = {
       changes: {},
       modal: null,
-      previewHTML: null
+      previewHTML: null,
+      activeTab: 'HTML'
     }
   }
 
@@ -69,6 +74,35 @@ module.exports = class FormSettings extends React.Component {
       ...this.defaultValues,
       ...form.template,
       ...this.state.changes
+    }
+
+    var shownCode
+    switch (this.state.activeTab) {
+      case 'CSS':
+        shownCode = (
+          <CodeMirror.Controlled
+            value={style}
+            options={{
+              theme: 'oceanic-next',
+              mode: 'css',
+              viewportMargin: Infinity
+            }}
+            onBeforeChange={this.changeStyle}
+          />
+        )
+        break
+      case 'HTML':
+        shownCode = (
+          <CodeMirror.Controlled
+            value={body}
+            options={{
+              theme: 'oceanic-next',
+              mode: 'xml',
+              viewportMargin: Infinity
+            }}
+            onBeforeChange={this.changeBody}
+          />
+        )
     }
 
     return (
@@ -102,69 +136,54 @@ module.exports = class FormSettings extends React.Component {
               </div>
             </div>
           </div>
-          <div className="container">
-            <label className="row">
-              <div className="col-1-1">Style</div>
-              <div className="col-1-1">
-                <CodeMirror.Controlled
-                  value={style}
-                  options={{
-                    theme: 'oceanic-next',
-                    mode: 'css',
-                    viewportMargin: Infinity
-                  }}
-                  onBeforeChange={this.changeStyle}
-                />
-              </div>
-            </label>
+          <div className="col-1-1">
+            <div className="row right">
+              <a href="#" onClick={this.showSyntax}>
+                syntax quick reference
+              </a>
+            </div>
           </div>
-          <div className="container">
-            <label className="row">
-              <div className="row">
-                <div className="col-1-2">Body</div>
-                <div className="col-1-2 right">
-                  <a href="#" onClick={this.showSyntax}>
-                    syntax quick reference
-                  </a>
+          <div className="row">
+            <div className="code-tabs">
+              {this.availableTabs.map(tabName => (
+                <div
+                  key={tabName}
+                  data-tab={tabName}
+                  onClick={this.changeTab}
+                  className={cs({active: this.state.activeTab === tabName})}
+                >
+                  {tabName}
                 </div>
-              </div>
-              <div className="col-1-1">
-                <CodeMirror.Controlled
-                  value={body}
-                  options={{
-                    theme: 'oceanic-next',
-                    mode: 'xml',
-                    viewportMargin: Infinity
-                  }}
-                  onBeforeChange={this.changeBody}
-                />
-              </div>
-            </label>
+              ))}
+            </div>
+            {shownCode}
           </div>
-          <div className="container">
-            <div className="col-1-6">
-              <button onClick={this.preview}>Preview</button>
-            </div>
-            <div className="col-2-3 right">
-              {Object.keys(this.state.changes).length > 0
-                ? 'changes pending'
-                : null}
-            </div>
-            <div className="col-1-6">
-              <button
-                onClick={this.attemptRevert}
-                disabled={Object.keys(this.state.changes).length === 0}
-              >
-                Revert
-              </button>
-            </div>
-            <div className="col-1-6">
-              <button
-                onClick={this.deploy}
-                disabled={Object.keys(this.state.changes).length === 0}
-              >
-                Deploy
-              </button>
+          <div className="row">
+            <div className="container">
+              <div className="col-1-6">
+                <button onClick={this.preview}>Preview</button>
+              </div>
+              <div className="col-2-3 right">
+                {Object.keys(this.state.changes).length > 0
+                  ? 'changes pending'
+                  : null}
+              </div>
+              <div className="col-1-6">
+                <button
+                  onClick={this.attemptRevert}
+                  disabled={Object.keys(this.state.changes).length === 0}
+                >
+                  Revert
+                </button>
+              </div>
+              <div className="col-1-6">
+                <button
+                  onClick={this.deploy}
+                  disabled={Object.keys(this.state.changes).length === 0}
+                >
+                  Deploy
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -256,6 +275,11 @@ module.exports = class FormSettings extends React.Component {
         </Modal>
       </>
     )
+  }
+
+  changeTab(e) {
+    e.preventDefault()
+    this.setState({activeTab: e.target.dataset.tab})
   }
 
   changeFromName(e) {

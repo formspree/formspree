@@ -14,9 +14,10 @@ module.exports = class FormIntegration extends React.Component {
 
     this.changeTab = this.changeTab.bind(this)
 
+    this.availableTabs = ['HTML', 'AJAX']
+
     this.state = {
-      activeTab: 'HTML',
-      availableTabs: ['HTML', 'AJAX']
+      activeTab: 'HTML'
     }
   }
 
@@ -85,13 +86,13 @@ req.send(data)`
       <>
         <div className="col-1-1">
           <div className="container">
-            <div className="integration">
+            <div>
               <p>
                 Paste this code in your HTML, modifying it according to your
                 needs:
               </p>
-              <div className="integration-tabs">
-                {this.state.availableTabs.map(tabName => (
+              <div className="code-tabs">
+                {this.availableTabs.map(tabName => (
                   <div
                     key={tabName}
                     data-tab={tabName}

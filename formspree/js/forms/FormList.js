@@ -200,8 +200,8 @@ class FormItem extends React.Component {
             </Link>
           )}
         </td>
-        {form.features.whitelabel && (
-          <td>
+        <td>
+          {form.features.whitelabel && (
             <Link
               to={`/forms/${form.hashid}/whitelabel`}
               className="no-underline"
@@ -222,8 +222,8 @@ class FormItem extends React.Component {
                 </span>
               )}
             </Link>
-          </td>
-        )}
+          )}
+        </td>
         <td>
           <Link to={`/forms/${form.hashid}/settings`} className="no-underline">
             <span className="ion-gear-b" />
