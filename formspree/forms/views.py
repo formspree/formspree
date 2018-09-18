@@ -383,6 +383,11 @@ def request_unconfirm_form(form_id):
     This endpoints triggers a confirmation email that directs users to the
     GET version of unconfirm_form.
     '''
+
+    # repel bots
+    if not request.user_agent.browser:
+        return ''
+
     form = Form.query.get(form_id)
 
     unconfirm_url = url_for(
