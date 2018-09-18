@@ -32,6 +32,12 @@ def test_unconfirm_process(client, msend):
 
     # this should send a confirmation email
     r = client.get(request_unconfirm_url)
+
+    # actually, it should fail unless the request comes from a browser
+    assert not msend.called
+
+    # now it must work
+    r = client.get(request_unconfirm_url, headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0'})
     assert r.status_code == 200
     assert msend.called
 
