@@ -67,6 +67,11 @@ a {
     text-transform: uppercase;
 }
 
+.subtext {
+    color: $gray;
+    font-size: small;
+}
+
 .h1-seo-hack {
     font-size: $h1_font_size;
     margin: $h1_margin;

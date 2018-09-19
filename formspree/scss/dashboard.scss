@@ -498,13 +498,28 @@
 
 #whitelabel {
   .container {
-    display: flex;
-    align-items: baseline;
+    padding-bottom: 0;    
   }
 
   #from_name::after {
     content: ' submissions@formspree.io';
     color: grey;
+  }
+
+  .syntax_ref {
+    position: relative;
+    top: 2em;
+
+    @media (max-width: 760px) {
+      text-align: left;
+      top: 0;
+    }    
+  }
+
+  .right {
+    @media (max-width: 760px) {
+      text-align: left;
+    }    
   }
 }
 

@@ -105,82 +105,83 @@ module.exports = class FormSettings extends React.Component {
 
     return (
       <>
-        <div className="col-1-1" id="whitelabel">
+        <div id="whitelabel">
           <div className="container">
-            <div className="col-1-6">
-              <label htmlFor="from_name">From</label>
-            </div>
-            <div className="col-5-6">
-              <input
-                id="from_name"
-                onChange={this.changeFromName}
-                value={from_name}
-              />
-            </div>
-          </div>
-          <div className="container">
-            <div className="col-1-6">
-              <label htmlFor="subject">Subject</label>
-            </div>
-            <div className="col-5-6">
-              <input
-                id="subject"
-                onChange={this.changeSubject}
-                value={subject}
-              />
-              <div className="right">
-                Overrides <span className="code">_subject</span> field
+            <form>
+              <div className="col-1-6">
+                <label htmlFor="from_name">From</label>
               </div>
-            </div>
-          </div>
-          <div className="col-1-1">
-            <div className="row right">
-              <a href="#" onClick={this.showSyntax}>
-                syntax quick reference
-              </a>
-            </div>
-          </div>
-          <div className="row">
-            <div className="code-tabs">
-              {this.availableTabs.map(tabName => (
-                <div
-                  key={tabName}
-                  data-tab={tabName}
-                  onClick={this.changeTab}
-                  className={cs({active: this.state.activeTab === tabName})}
-                >
-                  {tabName}
+              <div className="col-5-6">
+                <input
+                  id="from_name"
+                  onChange={this.changeFromName}
+                  value={from_name}
+                />
+              </div>
+              <div className="col-1-6">
+                <label htmlFor="subject">Subject</label>
+              </div>
+              <div className="col-5-6">
+                <input
+                  id="subject"
+                  onChange={this.changeSubject}
+                  value={subject}
+                />
+                <div className="subtext">
+                  Overrides <span className="code">_subject</span> field
                 </div>
-              ))}
-            </div>
-            {shownCode}
+              </div>
+            </form>
           </div>
-          <div className="row">
-            <div className="container">
-              <div className="col-1-6">
-                <button onClick={this.preview}>Preview</button>
+          <div className="container">
+            <div className="col-1-1">
+              <div className="right syntax_ref">
+                <a href="#" onClick={this.showSyntax}>
+                  syntax quick reference
+                </a>
               </div>
-              <div className="col-2-3 right">
-                {Object.keys(this.state.changes).length > 0
-                  ? 'changes pending'
-                  : null}
+            </div>
+            <div className="col-1-1">
+              <div className="code-tabs">
+                {this.availableTabs.map(tabName => (
+                  <div
+                    key={tabName}
+                    data-tab={tabName}
+                    onClick={this.changeTab}
+                    className={cs({active: this.state.activeTab === tabName})}
+                  >
+                    {tabName}
+                  </div>
+                ))}
               </div>
-              <div className="col-1-6">
-                <button
-                  onClick={this.attemptRevert}
-                  disabled={Object.keys(this.state.changes).length === 0}
-                >
-                  Revert
-                </button>
-              </div>
-              <div className="col-1-6">
-                <button
-                  onClick={this.deploy}
-                  disabled={Object.keys(this.state.changes).length === 0}
-                >
-                  Deploy
-                </button>
-              </div>
+              {shownCode}
+            </div>
+          </div>
+
+          <div className="container">
+            <div className="col-1-3">
+              <button onClick={this.preview}>Preview</button>
+            </div>
+            <div className="col-1-3 right">
+              {Object.keys(this.state.changes).length > 0
+                ? 'changes pending'
+                : '\u00A0'}
+            </div>
+            <div className="col-1-6 right">
+              <button
+                onClick={this.attemptRevert}
+                disabled={Object.keys(this.state.changes).length === 0}
+              >
+                Revert
+              </button>
+            </div>
+            <div className="col-1-6 right">
+              <button
+                onClick={this.deploy}
+                disabled={Object.keys(this.state.changes).length === 0}
+              >
+                Deploy
+              </button>
             </div>
           </div>
         </div>
