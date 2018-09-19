@@ -9,8 +9,6 @@ const Modal = require('react-modal')
 require('codemirror/mode/xml/xml')
 require('codemirror/mode/css/css')
 
-const FormDescription = require('./FormDescription')
-
 const MODAL_REVERT = 'revert'
 const MODAL_PREVIEW = 'preview'
 const MODAL_SYNTAX = 'syntax'
@@ -108,7 +106,6 @@ module.exports = class FormSettings extends React.Component {
     return (
       <>
         <div className="col-1-1" id="whitelabel">
-          <FormDescription prefix="Whitelabel settings for" form={form} />
           <div className="container">
             <div className="col-1-6">
               <label htmlFor="from_name">From</label>

@@ -4,8 +4,6 @@ const toastr = window.toastr
 const fetch = window.fetch
 const React = require('react')
 
-const FormDescription = require('./FormDescription')
-
 module.exports = class FormSubmissions extends React.Component {
   constructor(props) {
     super(props)
@@ -23,7 +21,6 @@ module.exports = class FormSubmissions extends React.Component {
 
     return (
       <div className="col-1-1 submissions-col">
-        <FormDescription prefix="Submissions for" form={form} />
         {form.submissions.length ? (
           <>
             <table className="submissions responsive">

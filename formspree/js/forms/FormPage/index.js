@@ -10,6 +10,7 @@ const Integration = require('./Integration')
 const Submissions = require('./Submissions')
 const Settings = require('./Settings')
 const Whitelabel = require('./Whitelabel')
+const FormDescription = require('./FormDescription')
 
 module.exports = class FormPage extends React.Component {
   constructor(props) {
@@ -36,6 +37,9 @@ module.exports = class FormPage extends React.Component {
         </Portal>
         <Portal to="#header .center">
           <h1>Form Details</h1>
+          {this.state.form &&
+            <FormDescription prefix="For " form={this.state.form} />
+          }
         </Portal>
         <Route
           exact
