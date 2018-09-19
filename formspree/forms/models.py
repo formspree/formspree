@@ -37,7 +37,6 @@ class Form(DB.Model):
     counter = DB.Column(DB.Integer)
     owner_id = DB.Column(DB.Integer, DB.ForeignKey('users.id'))
     captcha_disabled = DB.Column(DB.Boolean)
-    uses_ajax = DB.Column(DB.Boolean)
     disable_email = DB.Column(DB.Boolean)
     disable_storage = DB.Column(DB.Boolean)
 
@@ -88,7 +87,6 @@ class Form(DB.Model):
         self.confirmed = False
         self.counter = 0
         self.disabled = False
-        self.uses_ajax = request_wants_json()
         self.captcha_disabled = False
 
     def __repr__(self):

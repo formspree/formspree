@@ -64,9 +64,6 @@ def test_form_creation(client, msend):
     client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
     assert Form.query.first().confirmed
 
-    # Make sure that it marks the first form as AJAX
-    assert Form.query.first().uses_ajax
-
     # send 5 forms (monthly limits should not apply to the gold user)
     assert settings.MONTHLY_SUBMISSIONS_LIMIT == 2
     for i in range(5):

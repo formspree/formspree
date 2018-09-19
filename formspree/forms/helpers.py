@@ -121,13 +121,6 @@ def verify_captcha(form_data, request):
     return r.ok and r.json().get('success')
 
 
-def assign_ajax(form, sent_using_ajax):
-    if form.uses_ajax is None:
-        form.uses_ajax = sent_using_ajax
-        DB.session.add(form)
-        DB.session.commit()
-
-
 def temp_store_hostname(hostname, referrer):
     nonce = uuid.uuid4()
     key = REDIS_HOSTNAME_KEY(nonce=nonce)

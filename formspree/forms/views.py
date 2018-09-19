@@ -19,7 +19,7 @@ from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
 from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
-                    HASH, assign_ajax, KEYS_EXCLUDED_FROM_EMAIL
+                    HASH, KEYS_EXCLUDED_FROM_EMAIL
 from .models import Form, Submission
 
 
@@ -99,9 +99,6 @@ def send(email_or_string):
         form = Form.get_with_hashid(hashid)
 
         if form:
-            # Check if it has been assigned about using AJAX or not
-            assign_ajax(form, request_wants_json())
-
             if form.disabled:
                 # owner has disabled the form, so it should not receive any submissions
                 if request_wants_json():
@@ -174,9 +171,6 @@ def send(email_or_string):
             else:
                 # all good, create form
                 form = Form(email, host)
-
-        # Check if it has been assigned using AJAX or not
-        assign_ajax(form, request_wants_json())
 
         if form.disabled:
             g.log.info('submission rejected. Form is disabled.')
