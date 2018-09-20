@@ -36,18 +36,6 @@ module.exports = class CreateForm extends React.Component {
   }
 
   render() {
-    if (!this.props.user.features.dashboard) {
-      return (
-        <div className="col-1-1 create-form">
-          <h6 className="light">
-            Please <a href="/account">upgrade your account</a> in order to
-            create forms from the dashboard and manage the forms currently
-            associated with your emails.
-          </h6>
-        </div>
-      )
-    }
-
     let {
       email,
       url: urlv,
