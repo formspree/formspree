@@ -134,8 +134,8 @@ module.exports = class FormSettings extends React.Component {
             </form>
           </div>
           <div className="container">
-            <div className="col-1-1">
-              <div className="right syntax_ref">
+            <div className="col-1-1 right">
+              <div className="syntax_ref">
                 <a href="#" onClick={this.showSyntax}>
                   syntax quick reference
                 </a>

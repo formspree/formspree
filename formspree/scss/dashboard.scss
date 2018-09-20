@@ -509,6 +509,7 @@
   .syntax_ref {
     position: relative;
     top: 2em;
+    display: inline-block;
 
     @media (max-width: 760px) {
       text-align: left;
