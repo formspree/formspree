@@ -193,7 +193,7 @@ class Form(DB.Model):
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
         format = data.get('_format', None)
-        fromname = None
+        from_name = None
 
         # turn cc emails into array
         if cc:
@@ -297,7 +297,7 @@ class Form(DB.Model):
                 html, subject = self.template.render_body_and_subject(
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
-                fromname = self.template.from_name
+                from_name = self.template.from_name
             elif format == 'plain':
                 html = render_template('email/plain_form.html',
                     data=data, host=self.host, keys=keys, now=now,
@@ -331,7 +331,7 @@ class Form(DB.Model):
                 text=text,
                 html=html,
                 sender=settings.DEFAULT_SENDER,
-                fromname=fromname,
+                from_name=from_name,
                 reply_to=reply_to,
                 cc=cc,
                 headers={

@@ -119,7 +119,7 @@ def next_url(referrer=None, next=None):
 
 def send_email(to=None, subject=None, text=None, html=None,
                sender=None, cc=None, reply_to=None, headers=None,
-               fromname=None):
+               from_name=None):
     g.log = g.log.new(to=to, sender=sender)
 
     if None in [to, subject, text, sender]:
@@ -132,19 +132,19 @@ def send_email(to=None, subject=None, text=None, html=None,
             'text': text,
             'html': html}
 
-    # parse 'fromname' from 'sender' if it is
+    # parse 'from_name' from 'sender' if it is
     # formatted like "Name <name@email.com>"
     try:
         bracket = sender.index('<')
         data.update({
             'from': sender[bracket+1:-1],
-            'fromname': sender[:bracket].strip()
+            'from_name': sender[:bracket].strip()
         })
     except ValueError:
         data.update({'from': sender})
 
-    if fromname:
-        data.update({'fromname': fromname})
+    if from_name:
+        data.update({'from_name': from_name})
 
     if headers:
         data.update({'headers': json.dumps(headers)})
