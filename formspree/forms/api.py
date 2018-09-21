@@ -223,21 +223,6 @@ def custom_template_set(hashid):
 
 
 @login_required
-def custom_template_preview_render():
-    if not current_user.has_feature('whitelabel'):
-        return jsonerror(402, {'error': "Please upgrade your account."})
-
-    body, _ = EmailTemplate.make_sample(
-        from_name=request.get_json()['from_name'],
-        subject=request.get_json()['subject'],
-        style=request.get_json()['style'],
-        body=request.get_json()['body'],
-    )
-
-    return body
-
-
-@login_required
 def sitewide_check():
     email = request.get_json().get('email')
     url = request.get_json().get('url')

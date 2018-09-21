@@ -4,6 +4,7 @@ import requests
 import datetime
 import io
 from urllib.parse import urljoin
+from lxml.html import rewrite_links
 
 from flask import request, url_for, render_template, redirect, \
                   jsonify, flash, make_response, Response, g, \
@@ -20,7 +21,7 @@ from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
                     HASH, assign_ajax, KEYS_EXCLUDED_FROM_EMAIL
-from .models import Form, Submission
+from .models import Form, Submission, EmailTemplate
 
 
 def thanks():
@@ -488,6 +489,18 @@ def confirm_email(nonce):
 @login_required
 def serve_dashboard(hashid=None, s=None):
     return render_template('forms/dashboard.html')
+
+
+@login_required
+def custom_template_preview_render():
+    body, _ = EmailTemplate.make_sample(
+        from_name=request.args.get('from_name'),
+        subject=request.args.get('subject'),
+        style=request.args.get('style'),
+        body=request.args.get('body'),
+    )
+
+    return rewrite_links(body, lambda x: "#" + x)
 
 
 @login_required

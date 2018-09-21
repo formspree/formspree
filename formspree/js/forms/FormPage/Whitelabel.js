@@ -3,6 +3,7 @@
 const toastr = window.toastr
 const fetch = window.fetch
 const cs = require('class-set')
+const qs = require('query-string')
 const React = require('react')
 const CodeMirror = require('react-codemirror2')
 const Modal = require('react-modal')
@@ -60,7 +61,6 @@ module.exports = class FormSettings extends React.Component {
     this.state = {
       changes: {},
       modal: null,
-      previewHTML: null,
       activeTab: 'HTML'
     }
   }
@@ -214,9 +214,17 @@ module.exports = class FormSettings extends React.Component {
           overlayClassName="dummy"
         >
           <div id="whitelabel-preview-modal">
-            <div
-              className="container preview"
-              dangerouslySetInnerHTML={{__html: this.state.previewHTML}}
+            <iframe
+              className="preview"
+              src={
+                '/forms/whitelabel/preview?' +
+                qs.stringify({
+                  from_name,
+                  subject,
+                  style,
+                  body
+                })
+              }
             />
             <div className="container right">
               <button onClick={this.closeModal}>OK</button>
@@ -316,34 +324,7 @@ module.exports = class FormSettings extends React.Component {
 
   async preview(e) {
     e.preventDefault()
-
     this.setState({modal: MODAL_PREVIEW})
-
-    let template = {
-      ...this.defaultValues,
-      ...this.props.form.template,
-      ...this.state.changes
-    }
-
-    try {
-      let resp = await fetch('/api-int/forms/whitelabel/preview', {
-        method: 'POST',
-        body: JSON.stringify(template),
-        credentials: 'same-origin',
-        headers: {
-          Accept: 'text/html',
-          'Content-Type': 'application/json'
-        }
-      })
-      let html = await resp.text()
-
-      this.setState({previewHTML: html})
-    } catch (e) {
-      console.error(e)
-      toastr.error(
-        'Failed to see render preview. See the console for more details.'
-      )
-    }
   }
 
   attemptRevert(e) {
