@@ -293,7 +293,7 @@ class Form(DB.Model):
 
             # if there's a custom email template we should use it
             # otherwise check if the user wants a new or old version of the email
-            if self.owner and self.owner.has_feature('whitelabel') and self.template:
+            if self.has_feature('whitelabel') and self.template:
                 html, subject = self.template.render_body_and_subject(
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
