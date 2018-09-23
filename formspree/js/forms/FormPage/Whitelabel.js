@@ -32,7 +32,7 @@ module.exports = class FormSettings extends React.Component {
 
     this.defaultValues = {
       from_name: 'Team Formspree',
-      subject: 'New submission from {{ host }}',
+      subject: 'New submission from {{ _host }}',
       style: `h1 {
   color: black;
 }
@@ -264,11 +264,11 @@ module.exports = class FormSettings extends React.Component {
               </p>
               <pre>
                 {`
-{{ _time }}         The formatted date and time of the submission.
-{{ _host }}         The URL (without "https://") of where the form was submitted.
-{{ <fieldname> }}   Any named input value in your form will be displayed.
-{{# _fields }}      A list of all fields can be included.
-  {{ _name }}       Within the _fields block you can access the current field name…
+{{ _time }}         The date and time of the submission.
+{{ _host }}         The URL of the form (without "https://").
+{{ <fieldname> }}   Any named input value in your form.
+{{# _fields }}      Starts a list of all fields.
+  {{ _name }}       Within _fields, the current field name…
   {{ _value }}      … and field value.
 {{/ _fields }}      Closes the _fields block.
                 `.trim()}
