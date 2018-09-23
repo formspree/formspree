@@ -1,5 +1,5 @@
 import os
-from premailer import transform
+from premailer import Premailer
 
 TEMPLATES_DIR = 'formspree/templates/email/pre_inline_style/'
 
@@ -8,7 +8,8 @@ def generate_templates():
     for filename in os.listdir(TEMPLATES_DIR):
         if filename.endswith('.html'):
             with open(os.path.join(TEMPLATES_DIR, filename), 'r') as html:
-                transformed_template = transform(html.read())
+                p = Premailer(html.read(), remove_classes=True)
+                transformed_template = p.transform()
 
                 # weird issue with jinja templates beforehand so we use this hack
                 # see https://github.com/peterbe/premailer/issues/72

@@ -50,6 +50,8 @@ module.exports = class FormList extends React.Component {
   }
 
   render() {
+    let {user, enabled_forms, disabled_forms} = this.state
+
     if (this.state.loading) {
       return (
         <div className="col-1-1">
@@ -69,6 +71,18 @@ module.exports = class FormList extends React.Component {
       )
     }
 
+    if (!user.features.dashboard) {
+      return (
+        <div className="col-1-1">
+          <p>
+            Please <a href="/account">upgrade your account</a> in order to
+            create forms from the dashboard and manage the forms currently
+            associated with your emails.
+          </p>
+        </div>
+      )
+    }
+
     return (
       <>
         <Portal to=".menu .item:nth-child(2)">
@@ -79,10 +93,10 @@ module.exports = class FormList extends React.Component {
         </Portal>
         <div className="col-1-1">
           <h4>Active Forms</h4>
-          {this.state.enabled_forms.length ? (
+          {enabled_forms.length ? (
             <table className="forms responsive">
               <tbody>
-                {this.state.enabled_forms.map(form => (
+                {enabled_forms.map(form => (
                   <FormItem key={form.hashid} {...form} />
                 ))}
               </tbody>
@@ -94,12 +108,12 @@ module.exports = class FormList extends React.Component {
             </p>
           )}
 
-          {this.state.disabled_forms.length ? (
+          {disabled_forms.length ? (
             <>
               <h4>Disabled Forms</h4>
               <table className="forms responsive">
                 <tbody>
-                  {this.state.disabled_forms.map(form => (
+                  {disabled_forms.map(form => (
                     <FormItem key={form.hashid} {...form} />
                   ))}
                 </tbody>
@@ -107,9 +121,9 @@ module.exports = class FormList extends React.Component {
             </>
           ) : null}
 
-          {this.state.enabled_forms.length === 0 &&
-          this.state.disabled_forms.length === 0 &&
-          this.state.user.upgraded ? (
+          {enabled_forms.length === 0 &&
+          disabled_forms.length === 0 &&
+          user.features.dashboard ? (
             <h6 className="light">
               You don't have any forms associated with this account, maybe you
               should <a href="/account">verify your email</a>.
@@ -117,7 +131,7 @@ module.exports = class FormList extends React.Component {
           ) : null}
         </div>
 
-        <CreateForm user={this.state.user} {...this.props} />
+        <CreateForm user={user} {...this.props} />
       </>
     )
   }
@@ -197,6 +211,30 @@ class FormItem extends React.Component {
               className="no-underline"
             >
               {form.counter} submissions
+            </Link>
+          )}
+        </td>
+        <td>
+          {form.features.whitelabel && (
+            <Link
+              to={`/forms/${form.hashid}/whitelabel`}
+              className="no-underline"
+            >
+              {form.template ? (
+                <span
+                  className="tooltip hint--top"
+                  data-hint="Uses a custom email template."
+                >
+                  <span className="ion-document-text" />
+                </span>
+              ) : (
+                <span
+                  className="tooltip hint--top"
+                  data-hint="Doesn't use a custom email template."
+                >
+                  <span className="ion-document" />
+                </span>
+              )}
             </Link>
           )}
         </td>

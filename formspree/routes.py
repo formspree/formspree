@@ -43,6 +43,7 @@ def configure_routes(app):
     app.add_url_rule('/forms/<hashid>', view_func=fv.serve_dashboard, methods=['GET'])
     app.add_url_rule('/forms/<hashid>/<path:s>', view_func=fv.serve_dashboard, methods=['GET'])
     app.add_url_rule('/forms/<hashid>.<format>', view_func=fv.export_submissions, methods=['GET'])
+    app.add_url_rule('/forms/whitelabel/preview', view_func=fv.custom_template_preview_render, methods=['GET'])
     app.add_url_rule('/api-int/forms', view_func=fa.list, methods=['GET'])
     app.add_url_rule('/api-int/forms', view_func=fa.create, methods=['POST'])
     app.add_url_rule('/api-int/forms/<hashid>', view_func=fa.get, methods=['GET'])
@@ -50,6 +51,7 @@ def configure_routes(app):
     app.add_url_rule('/api-int/forms/<hashid>', view_func=fa.delete, methods=['DELETE'])
     app.add_url_rule('/api-int/forms/sitewide-check', view_func=fa.sitewide_check, methods=['POST'])
     app.add_url_rule('/api-int/forms/<hashid>/submissions/<submissionid>', view_func=fa.submission_delete, methods=['DELETE'])
+    app.add_url_rule('/api-int/forms/<hashid>/whitelabel', view_func=fa.custom_template_set, methods=['PUT'])
 
     # Webhooks
     app.add_url_rule('/webhooks/stripe', view_func=uv.stripe_webhook, methods=['POST'])

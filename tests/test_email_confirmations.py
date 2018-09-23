@@ -2,7 +2,7 @@ import json
 
 from formspree import settings
 from formspree.stuff import DB
-from formspree.users.models import User, Email
+from formspree.users.models import User, Email, Plan
 from formspree.forms.models import Form
 
 from .conftest import parse_confirmation_link_sent
@@ -61,7 +61,7 @@ def test_user_gets_previous_forms_assigned_to_him(client, msend):
     link, qs = parse_confirmation_link_sent(msend.call_args[1]['text'])
     client.get(link, query_string=qs)
 
-    # confirm that the user has no access to the form since he is not upgraded
+    # confirm that the user has no access to the form since he is not gold
     r = client.get(
         "/api-int/forms",
         headers={"Accept": "application/json", "Referer": settings.SERVICE_URL},
@@ -71,7 +71,7 @@ def test_user_gets_previous_forms_assigned_to_him(client, msend):
 
     # upgrade user
     user = User.query.filter_by(email=u'márkö@example.com').first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 

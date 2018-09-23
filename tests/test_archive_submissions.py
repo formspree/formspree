@@ -3,7 +3,7 @@ import json
 from formspree import settings
 from formspree.stuff import DB
 from formspree.forms.helpers import HASH
-from formspree.users.models import User
+from formspree.users.models import User, Plan
 from formspree.forms.models import Form, Submission
 
 def test_automatically_created_forms(client, msend):
@@ -147,7 +147,7 @@ def test_automatically_created_forms(client, msend):
     assert newest.data['name'] == 'husserl'
     assert last.data['name'] == 'schelling'
 
-def test_upgraded_user_access(client, msend):
+def test_gold_user_access(client, msend):
     # register user
     r = client.post('/register',
         data={'email': 'colorado@springs.com',
@@ -156,7 +156,7 @@ def test_upgraded_user_access(client, msend):
 
     # upgrade user manually
     user = User.query.filter_by(email='colorado@springs.com').first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 
@@ -209,7 +209,7 @@ def test_upgraded_user_access(client, msend):
     assert '"hi in my name is bruce!"', lines[1]
 
     # test submissions endpoint with the user downgraded
-    user.upgraded = False
+    user.plan = Plan.free
     DB.session.add(user)
     DB.session.commit()
     r = client.get("/api-int/forms/" + form_endpoint)

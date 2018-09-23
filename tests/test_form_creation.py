@@ -3,7 +3,7 @@ import json
 from formspree import settings
 from formspree.stuff import DB
 from formspree.forms.helpers import HASH
-from formspree.users.models import User, Email
+from formspree.users.models import User, Email, Plan
 from formspree.forms.models import Form, Submission
 
 def test_form_creation(client, msend):
@@ -27,7 +27,7 @@ def test_form_creation(client, msend):
 
     # upgrade user manually
     user = User.query.filter_by(email='colorado@springs.com').first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 
@@ -67,7 +67,7 @@ def test_form_creation(client, msend):
     # Make sure that it marks the first form as AJAX
     assert Form.query.first().uses_ajax
 
-    # send 5 forms (monthly limits should not apply to the upgraded user)
+    # send 5 forms (monthly limits should not apply to the gold user)
     assert settings.MONTHLY_SUBMISSIONS_LIMIT == 2
     for i in range(5):
         r = client.post(
@@ -98,7 +98,7 @@ def test_form_creation_with_a_registered_email(client, msend):
     )
     # upgrade user manually
     user = User.query.filter_by(email="user@testsite.com").first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 
@@ -180,7 +180,7 @@ def test_sitewide_forms(client, msend, mocker):
     )
     # upgrade user manually
     user = User.query.filter_by(email="user@testsite.com").first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 
@@ -330,7 +330,7 @@ def test_form_settings(client, msend):
     # register and upgrade user
     client.post("/register", data={"email": "texas@springs.com", "password": "water"})
     user = User.query.filter_by(email="texas@springs.com").first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 

@@ -2,18 +2,23 @@ import hmac
 import random
 import hashlib
 import datetime
+import pystache
 
 from flask import url_for, render_template, render_template_string, g
 from sqlalchemy.sql import table
 from sqlalchemy.sql.expression import delete
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy import func
 from werkzeug.datastructures import ImmutableMultiDict, \
                                     ImmutableOrderedMultiDict
+from premailer import transform
 
 from formspree import settings
 from formspree.stuff import DB, redis_store, TEMPLATES
 from formspree.utils import send_email, unix_time_for_12_months_from_now, \
                             next_url, IS_VALID_EMAIL, request_wants_json
+from formspree.users.models import Plan
 from .helpers import HASH, HASHIDS_CODEC, REDIS_COUNTER_KEY, \
                     http_form_to_dict, referrer_to_path, \
                     store_first_submission, fetch_first_submission, \
@@ -40,6 +45,7 @@ class Form(DB.Model):
 
     owner = DB.relationship('User') # direct owner, defined by 'owner_id'
                                     # this property is basically useless. use .controllers
+    template = DB.relationship('EmailTemplate', uselist=False, back_populates='form')
     submissions = DB.relationship('Submission',
         backref='form', lazy='dynamic', order_by=lambda: Submission.id.desc())
 
@@ -104,9 +110,18 @@ class Form(DB.Model):
         return by_email.union(by_creation)
 
     @property
-    def upgraded(self):
-        upgraded_controllers = [i for i in self.controllers if i.upgraded]
-        return len(upgraded_controllers) > 0
+    def features(self):
+        return set.union(*[cont.features for cont in self.controllers])
+
+    def controlled_by(self, user):
+        for cont in self.controllers:
+            if cont.id == user.id:
+                return True
+        return False
+
+    def has_feature(self, feature):
+        c = [user for user in self.controllers if user.has_feature(feature)]
+        return len(c) > 0
 
     @classmethod
     def get_with_hashid(cls, hashid):
@@ -124,6 +139,8 @@ class Form(DB.Model):
             'counter': self.counter,
             'email': self.email,
             'host': self.host,
+            'template': self.template.serialize() if self.template else None,
+            'features': {f: True for f in self.features},
             'confirm_sent': self.confirm_sent,
             'confirmed': self.confirmed,
             'disabled': self.disabled,
@@ -176,6 +193,7 @@ class Form(DB.Model):
         next = next_url(referrer, data.get('_next'))
         spam = data.get('_gotcha', None)
         format = data.get('_format', None)
+        from_name = None
 
         # turn cc emails into array
         if cc:
@@ -207,8 +225,8 @@ class Form(DB.Model):
         # increment the forms counter
         self.counter = Form.counter + 1
 
-        # if submission storage is disabled and form is upgraded, don't store submission
-        if self.disable_storage and self.upgraded:
+        # if submission storage is disabled, don't store submission
+        if self.disable_storage and self.has_feature('dashboard'):
             pass
         else:
             DB.session.add(self)
@@ -239,17 +257,18 @@ class Form(DB.Model):
         # url to request_unconfirm_form page
         unconfirm = url_for('request_unconfirm_form', form_id=self.id, _external=True)
 
-        # check if the forms are over the counter and the user is not upgraded
+        # check if the forms are over the counter and the user has unlimited submissions
         overlimit = False
         monthly_counter = self.get_monthly_counter()
         monthly_limit = settings.MONTHLY_SUBMISSIONS_LIMIT \
                 if self.id > settings.FORM_LIMIT_DECREASE_ACTIVATION_SEQUENCE \
                 else settings.GRANDFATHER_MONTHLY_LIMIT
 
-        if monthly_counter > monthly_limit and not self.upgraded:
+        if monthly_counter > monthly_limit and not self.has_feature('unlimited'):
             overlimit = True
 
-        if monthly_counter == int(monthly_limit * 0.9) and not self.upgraded:
+        if monthly_counter == int(monthly_limit * 0.9) and \
+                        not self.has_feature('unlimited'):
             # send email notification
             send_email(
                 to=self.email,
@@ -271,8 +290,15 @@ class Form(DB.Model):
             text = render_template('email/form.txt',
                 data=data, host=self.host, keys=keys, now=now,
                 unconfirm_url=unconfirm)
-            # check if the user wants a new or old version of the email
-            if format == 'plain':
+
+            # if there's a custom email template we should use it
+            # otherwise check if the user wants a new or old version of the email
+            if self.owner and self.owner.has_feature('whitelabel') and self.template:
+                html, subject = self.template.render_body_and_subject(
+                    data=data, host=self.host, keys=keys, now=now,
+                    unconfirm_url=unconfirm)
+                from_name = self.template.from_name
+            elif format == 'plain':
                 html = render_template('email/plain_form.html',
                     data=data, host=self.host, keys=keys, now=now,
                     unconfirm_url=unconfirm)
@@ -295,8 +321,8 @@ class Form(DB.Model):
             else:
                 return {'code': Form.STATUS_OVERLIMIT}
 
-        # if emails are disabled and form is upgraded, don't send email notification
-        if self.disable_email and self.upgraded:
+        # if emails are disabled, don't send email notification
+        if self.disable_email and self.has_feature('dashboard'):
             return {'code': Form.STATUS_NO_EMAIL, 'next': next}
         else:
             result = send_email(
@@ -305,6 +331,7 @@ class Form(DB.Model):
                 text=text,
                 html=html,
                 sender=settings.DEFAULT_SENDER,
+                from_name=from_name,
                 reply_to=reply_to,
                 cc=cc,
                 headers={
@@ -483,15 +510,81 @@ class Form(DB.Model):
         return True
 
 
-from sqlalchemy.dialects.postgresql import JSON
-from sqlalchemy.ext.mutable import MutableDict
+class EmailTemplate(DB.Model):
+    __tablename__ = 'email_templates'
+
+    id = DB.Column(DB.Integer, primary_key=True)
+    form_id = DB.Column(
+        DB.Integer, DB.ForeignKey('forms.id'),
+        unique=True, nullable=False
+    )
+    subject = DB.Column(DB.Text, nullable=False)
+    from_name = DB.Column(DB.Text, nullable=False)
+    style = DB.Column(DB.Text, nullable=False)
+    body = DB.Column(DB.Text, nullable=False)
+    
+    form = DB.relationship('Form', back_populates='template')
+
+    def __init__(self, form_id):
+        self.submitted_at = datetime.datetime.utcnow()
+        self.form_id = form_id
+
+    def __repr__(self):
+        return '<Email Template %s, form=%s>' % \
+            (self.id or 'with an id to be assigned', self.form_id)
+
+    @classmethod
+    def make_sample(cls, style, body,
+               from_name='Formspree Team',
+               subject='New submission from {{ _host }}'):
+        t = cls(0)
+        t.from_name = from_name
+        t.subject = subject
+        t.style = style
+        t.body = body
+        return t.sample()
+
+    def sample(self):
+        return self.render_body_and_subject(
+            data={
+                'name': 'Irwin Jones',
+                '_replyto': 'i.jones@example.com',
+                'message': 'Hello!\n\nThis is a preview message!'
+            },
+            host='example.com/',
+            keys=['name', '_replyto', 'message'],
+            now=datetime.datetime.utcnow().strftime('%I:%M %p UTC - %d %B %Y'),
+            unconfirm_url='#'
+        )
+
+    def serialize(self):
+        return {
+            'subject': self.subject,
+            'from_name': self.from_name,
+            'style': self.style,
+            'body': self.body
+        }
+
+    def render_body_and_subject(self, data, host, keys, now, unconfirm_url):
+        data.update({
+            '_fields': [{'_name': f, '_value': data[f]} for f in keys],
+            '_time': now,
+            '_host': host
+        })
+        subject = pystache.render(self.subject, data)
+        html = pystache.render('<style>' + self.style + '</style>' + self.body, data)
+        print(html)
+        inlined = transform(html)
+        suffixed = inlined + '''<table width="100%"><tr><td>You are receiving this because you confirmed this email address on <a href="{service_url}">{service_name}</a>. If you don't remember doing that, or no longer wish to receive these emails, please remove the form on {host} or <a href="{unconfirm_url}">click here to unsubscribe</a> from this endpoint.</td></tr></table>'''.format(service_url=settings.SERVICE_URL, service_name=settings.SERVICE_NAME, host=host, unconfirm_url=unconfirm_url)
+        return suffixed, subject
+
 
 class Submission(DB.Model):
     __tablename__ = 'submissions'
 
     id = DB.Column(DB.Integer, primary_key=True)
     submitted_at = DB.Column(DB.DateTime)
-    form_id = DB.Column(DB.Integer, DB.ForeignKey('forms.id'))
+    form_id = DB.Column(DB.Integer, DB.ForeignKey('forms.id'), nullable=False)
     data = DB.Column(MutableDict.as_mutable(JSON))
 
     def __init__(self, form_id):

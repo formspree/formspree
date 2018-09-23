@@ -4,6 +4,7 @@ import requests
 import datetime
 import io
 from urllib.parse import urljoin
+from lxml.html import rewrite_links
 
 from flask import request, url_for, render_template, redirect, \
                   jsonify, flash, make_response, Response, g, \
@@ -20,7 +21,7 @@ from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
                     remove_www, referrer_to_baseurl, sitewide_file_check, \
                     verify_captcha, temp_store_hostname, get_temp_hostname, \
                     HASH, assign_ajax, KEYS_EXCLUDED_FROM_EMAIL
-from .models import Form, Submission
+from .models import Form, Submission, EmailTemplate
 
 
 def thanks():
@@ -195,8 +196,8 @@ def send(email_or_string):
                              captcha_verified or
                              settings.TESTING)
 
-        # if form is upgraded check if captcha is disabled
-        if form.upgraded:
+        # check if captcha is disabled
+        if form.has_feature('dashboard'):
             needs_captcha = needs_captcha and not form.captcha_disabled
 
         if needs_captcha:
@@ -491,14 +492,24 @@ def serve_dashboard(hashid=None, s=None):
 
 
 @login_required
+def custom_template_preview_render():
+    body, _ = EmailTemplate.make_sample(
+        from_name=request.args.get('from_name'),
+        subject=request.args.get('subject'),
+        style=request.args.get('style'),
+        body=request.args.get('body'),
+    )
+
+    return rewrite_links(body, lambda x: "#" + x)
+
+
+@login_required
 def export_submissions(hashid, format=None):
-    if not current_user.upgraded:
+    if not current_user.has_feature('dashboard'):
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     form = Form.get_with_hashid(hashid)
-    for cont in form.controllers:
-        if cont.id == current_user.id: break
-    else:
+    if not form.controlled_by(current_user):
         return abort(401)
 
     submissions, fields = form.submissions_with_fields()

@@ -26,7 +26,9 @@
   }
 
   .switch-row {
-    margin: auto;
+    // margin: auto;
+    // carefully placed to work within formspree grid
+    margin: 14px 0 0 -20px;
     position: relative;
     text-align: right;
     .switch {

@@ -1,3 +1,5 @@
+import datetime
+
 from urllib.parse import urljoin
 
 from flask import request, jsonify, g
@@ -8,13 +10,13 @@ from formspree.stuff import DB
 from formspree.utils import jsonerror, IS_VALID_EMAIL
 from .helpers import referrer_to_path, sitewide_file_check, remove_www, \
                      referrer_to_baseurl
-from .models import Form, Submission
+from .models import Form, Submission, EmailTemplate
 
 
 @login_required
 def list():
     # grab all the forms this user controls
-    if current_user.upgraded:
+    if current_user.has_feature('dashboard'):
         forms = current_user.forms.order_by(Form.id.desc()).all()
     else:
         forms = []
@@ -22,8 +24,8 @@ def list():
     return jsonify({
         'ok': True,
         'user': {
-           'upgraded': current_user.upgraded,
-           'email': current_user.email
+            'features': {f: True for f in current_user.features},
+            'email': current_user.email
         },
         'forms': [f.serialize() for f in forms]
     })
@@ -37,8 +39,8 @@ def create():
     if referrer != service:
         return jsonerror(400, {'error': 'Improper request.'})
 
-    if not current_user.upgraded:
-        g.log.info('Failed to create form from dashboard. User is not upgraded.')
+    if not current_user.has_feature('dashboard'):
+        g.log.info('Failed to create form from dashboard. Forbidden.')
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     email = request.get_json().get('email')
@@ -97,16 +99,14 @@ def create():
 
 @login_required
 def get(hashid):
-    if not current_user.upgraded:
+    if not current_user.has_feature('dashboard'):
         return jsonerror(402, {'error': "Please upgrade your account."})
 
     form = Form.get_with_hashid(hashid)
     if not form:
         return jsonerror(404, {'error': "Form not found."})
 
-    for cont in form.controllers:
-        if cont.id == current_user.id: break
-    else:
+    if not form.controlled_by(current_user):
         return jsonerror(401, {'error': "You do not control this form."})
 
     submissions, fields = form.submissions_with_fields()
@@ -189,6 +189,35 @@ def submission_delete(hashid, submissionid):
     DB.session.delete(submission)
     form.counter -= 1
     DB.session.add(form)
+    DB.session.commit()
+    return jsonify({'ok': True})
+
+
+@login_required
+def custom_template_set(hashid):
+    form = Form.get_with_hashid(hashid)
+    if not form:
+        return jsonerror(404, {'error': "Form not found."})
+
+    if not form.controlled_by(current_user):
+        return jsonerror(401, {'error': "You do not control this form."})
+
+    template = form.template
+    if not template:
+        template = EmailTemplate(form_id=form.id)
+
+    template.from_name = request.get_json()['from_name']
+    template.subject = request.get_json()['subject']
+    template.style = request.get_json()['style']
+    template.body = request.get_json()['body']
+
+    try:
+        template.sample()
+    except Exception as e:
+        print(e)
+        return jsonerror(406, {'error': "Failed to render. The template has errors."})
+
+    DB.session.add(template)
     DB.session.commit()
     return jsonify({'ok': True})
 

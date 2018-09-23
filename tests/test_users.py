@@ -5,7 +5,7 @@ import stripe
 from formspree import settings
 from formspree.stuff import DB
 from formspree.forms.helpers import HASH
-from formspree.users.models import User, Email
+from formspree.users.models import User, Email, Plan
 from formspree.forms.models import Form, Submission
 
 from .conftest import parse_confirmation_link_sent
@@ -123,7 +123,7 @@ def test_form_creation(client, msend):
 
     # upgrade user manually
     user = User.query.filter_by(email='colorado@springs.com').first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 
@@ -156,7 +156,7 @@ def test_form_creation(client, msend):
     client.get('/confirm/%s:%s' % (HASH(form.email, str(form.id)), form.hashid))
     assert Form.query.first().confirmed
 
-    # send 5 forms (monthly limits should not apply to the upgraded user)
+    # send 5 forms (monthly limits should not apply to the gold user)
     assert settings.MONTHLY_SUBMISSIONS_LIMIT == 2
     for i in range(5):
         r = client.post('/' + form_endpoint,
@@ -192,7 +192,7 @@ def test_form_toggle(client, msend):
 
     # upgrade user
     user = User.query.filter_by(email='hello@world.com').first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 
@@ -281,7 +281,7 @@ def test_form_and_submission_deletion(client, msend):
 
     # upgrade user
     user = User.query.filter_by(email='hello@world.com').first()
-    user.upgraded = True
+    user.plan = Plan.gold
     DB.session.add(user)
     DB.session.commit()
 
@@ -399,7 +399,7 @@ def test_user_upgrade_and_downgrade(client, msend, mocker):
     msend.reset_mock()
 
     user = User.query.filter_by(email='maria@example.com').first()
-    assert user.upgraded == False
+    assert user.plan == Plan.free
     
     # subscribe with card through stripe
     token = stripe.Token.create(card={
@@ -414,7 +414,7 @@ def test_user_upgrade_and_downgrade(client, msend, mocker):
     })
 
     user = User.query.filter_by(email='maria@example.com').first()
-    assert user.upgraded == True
+    assert user.plan == Plan.gold
 
     # downgrade back to the free plan
     r = client.post('/account/downgrade', follow_redirects=True)
@@ -424,7 +424,7 @@ def test_user_upgrade_and_downgrade(client, msend, mocker):
     assert "You've cancelled your subscription and it is ending on" in r.data.decode('utf-8')
 
     user = User.query.filter_by(email='maria@example.com').first()
-    assert user.upgraded == True
+    assert user.plan == Plan.gold
 
     customer = stripe.Customer.retrieve(user.stripe_id)
     assert customer.subscriptions.data[0].cancel_at_period_end == True
@@ -445,7 +445,7 @@ def test_user_upgrade_and_downgrade(client, msend, mocker):
     }), headers={'Content-type': 'application/json'})
 
     user = User.query.filter_by(email='maria@example.com').first()
-    assert user.upgraded == False
+    assert user.plan == Plan.free
     assert m_senddowngraded.called
 
     # delete the stripe customer
@@ -465,7 +465,7 @@ def test_user_card_management(client, msend):
     assert r.status_code == 302
 
     user = User.query.filter_by(email='maria@example.com').first()
-    assert user.upgraded == False
+    assert user.plan == Plan.free
     
     # subscribe with card through stripe
     token = stripe.Token.create(card={
@@ -479,7 +479,7 @@ def test_user_card_management(client, msend):
     })
 
     user = User.query.filter_by(email='maria@example.com').first()
-    assert user.upgraded == True
+    assert user.plan == Plan.gold
 
     # add another card
     token = stripe.Token.create(card={
