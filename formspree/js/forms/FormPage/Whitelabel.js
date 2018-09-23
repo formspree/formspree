@@ -244,8 +244,8 @@ module.exports = class FormSettings extends React.Component {
               <p>
                 the email body can contain simple HTML that's valid in an email.
                 No <span className="code">&lt;script&gt;</span> or{' '}
-                <span className="code">&lt;style&gt;</span>
-                tags can be included. For a list of recommended HTML tags see{' '}
+                <span className="code">&lt;style&gt;</span> tags can be
+                included. For a list of recommended HTML tags see{' '}
                 <a href="" target="_blank">
                   the ContantContact guide to HTML in email
                 </a>
