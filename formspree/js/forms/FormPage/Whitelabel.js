@@ -6,9 +6,10 @@ const cs = require('class-set')
 const qs = require('query-string')
 const React = require('react')
 const CodeMirror = require('react-codemirror2')
-const Modal = require('react-modal')
 require('codemirror/mode/xml/xml')
 require('codemirror/mode/css/css')
+
+import Modal from '../../Modal'
 
 const MODAL_REVERT = 'revert'
 const MODAL_PREVIEW = 'preview'
@@ -186,11 +187,9 @@ export default class FormSettings extends React.Component {
           </div>
         </div>
         <Modal
-          contentLabel="Revert changes"
-          isOpen={this.state.modal === MODAL_REVERT}
-          onRequestClose={this.closeModal}
-          className="dummy"
-          overlayClassName="dummy"
+          title="Revert changes"
+          opened={this.state.modal === MODAL_REVERT}
+          onClose={this.closeModal}
         >
           <div>
             <div className="container">
@@ -207,11 +206,9 @@ export default class FormSettings extends React.Component {
           </div>
         </Modal>
         <Modal
-          contentLabel="Preview"
-          isOpen={this.state.modal === MODAL_PREVIEW}
-          onRequestClose={this.closeModal}
-          className="dummy"
-          overlayClassName="dummy"
+          title="Preview"
+          opened={this.state.modal === MODAL_PREVIEW}
+          onClose={this.closeModal}
         >
           <div id="whitelabel-preview-modal">
             <iframe
@@ -232,11 +229,9 @@ export default class FormSettings extends React.Component {
           </div>
         </Modal>
         <Modal
-          contentLabel="Email Syntax"
-          isOpen={this.state.modal === MODAL_SYNTAX}
-          onRequestClose={this.closeModal}
-          className="dummy"
-          overlayClassName="dummy"
+          title="Email Syntax"
+          opened={this.state.modal === MODAL_SYNTAX}
+          onClose={this.closeModal}
         >
           <div>
             <div>
