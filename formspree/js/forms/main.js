@@ -4,7 +4,7 @@ const render = require('react-dom').render
 const React = require('react') // eslint-disable-line no-unused-vars
 const Modal = require('react-modal')
 
-const Dashboard = require('./Dashboard')
+import Dashboard from './Dashboard'
 
 if (document.querySelector('body.forms.dashboard')) {
   let el = document.querySelector('.container.block')

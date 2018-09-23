@@ -3,12 +3,11 @@
 const React = require('react')
 const CodeMirror = require('react-codemirror2')
 const cs = require('class-set')
+const {Link} = require('react-router-dom')
 require('codemirror/mode/xml/xml')
 require('codemirror/mode/javascript/javascript')
 
-const {Link} = require('react-router-dom')
-
-module.exports = class FormIntegration extends React.Component {
+export default class FormIntegration extends React.Component {
   constructor(props) {
     super(props)
 

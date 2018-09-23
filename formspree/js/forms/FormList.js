@@ -6,10 +6,10 @@ const React = require('react')
 const cs = require('class-set')
 const {Link} = require('react-router-dom')
 
-const CreateForm = require('./CreateForm')
-const Portal = require('../Portal')
+import CreateForm from './CreateForm'
+import Portal from '../Portal'
 
-module.exports = class FormList extends React.Component {
+export default class FormList extends React.Component {
   constructor(props) {
     super(props)
 

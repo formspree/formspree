@@ -3,10 +3,10 @@
 const React = require('react')
 const {BrowserRouter: Router, Route} = require('react-router-dom')
 
-const FormList = require('./FormList')
-const FormPage = require('./FormPage')
+import FormList from './FormList'
+import FormPage from './FormPage'
 
-module.exports = class Dashboard extends React.Component {
+export default class Dashboard extends React.Component {
   render() {
     return (
       <Router>

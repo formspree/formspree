@@ -4,7 +4,7 @@ const toastr = window.toastr
 const fetch = window.fetch
 const React = require('react')
 
-module.exports = class FormSubmissions extends React.Component {
+export default class FormSubmissions extends React.Component {
   constructor(props) {
     super(props)
 

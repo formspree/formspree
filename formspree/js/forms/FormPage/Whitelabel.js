@@ -14,7 +14,7 @@ const MODAL_REVERT = 'revert'
 const MODAL_PREVIEW = 'preview'
 const MODAL_SYNTAX = 'syntax'
 
-module.exports = class FormSettings extends React.Component {
+export default class FormSettings extends React.Component {
   constructor(props) {
     super(props)
 

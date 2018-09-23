@@ -7,9 +7,9 @@ const React = require('react')
 const toastr = window.toastr
 const fetch = window.fetch
 
-const modals = require('../modals')
+import Modal from '../Modal'
 
-module.exports = class CreateForm extends React.Component {
+export default class CreateForm extends React.Component {
   constructor(props) {
     super(props)
 
