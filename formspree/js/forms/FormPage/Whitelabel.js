@@ -192,7 +192,7 @@ export default class FormSettings extends React.Component {
           onClose={this.closeModal}
         >
           <div>
-            <div className="container">
+            <div>
               <h2>Are you sure?</h2>
               <p>
                 Reverting will discard the changes you've made to your email
@@ -234,31 +234,29 @@ export default class FormSettings extends React.Component {
           onClose={this.closeModal}
         >
           <div>
-            <div>
-              <h2>Email Syntax</h2>
-              <p>
-                the email body can contain simple HTML that's valid in an email.
-                No <span className="code">&lt;script&gt;</span> or{' '}
-                <span className="code">&lt;style&gt;</span> tags can be
-                included. For a list of recommended HTML tags see{' '}
-                <a href="" target="_blank">
-                  the ContantContact guide to HTML in email
-                </a>
-                .
-              </p>
-              <p>
-                The following special variables are recognized by Formspree,
-                using the{' '}
-                <a
-                  href="https://mustache.github.io/mustache.5.html"
-                  target="_blank"
-                >
-                  mustache
-                </a>{' '}
-                template language.
-              </p>
-              <pre>
-                {`
+            <p>
+              the email body can contain simple HTML that's valid in an email.
+              No <span className="code">&lt;script&gt;</span> or{' '}
+              <span className="code">&lt;style&gt;</span> tags can be included.
+              For a list of recommended HTML tags see{' '}
+              <a href="" target="_blank">
+                the ContantContact guide to HTML in email
+              </a>
+              .
+            </p>
+            <p>
+              The following special variables are recognized by Formspree, using
+              the{' '}
+              <a
+                href="https://mustache.github.io/mustache.5.html"
+                target="_blank"
+              >
+                mustache
+              </a>{' '}
+              template language.
+            </p>
+            <pre>
+              {`
 {{ _time }}         The formatted date and time of the submission.
 {{ _host }}         The URL (without "https://") of where the form was submitted.
 {{ <fieldname> }}   Any named input value in your form will be displayed.
@@ -267,8 +265,7 @@ export default class FormSettings extends React.Component {
   {{ _value }}      … and field value.
 {{/ _fields }}      Closes the _fields block.
                 `.trim()}
-              </pre>
-            </div>
+            </pre>
             <div className="container right">
               <button onClick={this.closeModal}>OK</button>
             </div>

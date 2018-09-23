@@ -12,21 +12,29 @@ export default class Modal extends React.Component {
 
   render() {
     return (
-      <div className={cs({modal: true, target: this.props.opened})}>
-        <div className="container">
-          {this.props.opened ? (
-            <>
-              <div className="x">
-                <h4>{this.props.title}</h4>
-                <a href="#" onClick={this.close}>
-                  &times;
-                </a>
-              </div>
-              {this.props.children}
-            </>
-          ) : null}
+      <>
+        <div
+          className={cs({'modal-overlay': true, open: this.props.opened})}
+          onClick={this.close}
+        />
+        <div
+          className={cs({modal: true, react: true, target: this.props.opened})}
+        >
+          <div className="container">
+            {this.props.opened ? (
+              <>
+                <div className="x">
+                  <h4>{this.props.title}</h4>
+                  <a href="#" onClick={this.close}>
+                    &times;
+                  </a>
+                </div>
+                {this.props.children}
+              </>
+            ) : null}
+          </div>
         </div>
-      </div>
+      </>
     )
   }
 

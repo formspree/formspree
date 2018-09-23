@@ -29,8 +29,11 @@
   margin: 0 !important;
 }
 
-.invoice {
+button + button {
+  margin-left: 11px;
+}
 
+.invoice {
   .middle > * {
     vertical-align: middle;
   }
@@ -340,9 +343,13 @@
   .create-form {
     margin: 3em 0;
 
-    form {
-      clear: both;
+    h4 {
+      margin: 0;
+      padding: 0;
+      margin-top: 13px;
+      float: left;
     }
+
     form input:not([type="checkbox"]):not([type="radio"]) {
       margin-top: 0;
       clear: both;
@@ -360,15 +367,8 @@
       text-align: right;
     }
 
-    .modal:not(.js):target > *,
     .modal.target > * {
       top: 20%;
-    }
-  }
-
-  .modal[id^="form-"] {
-    textarea {
-      font-size: 15px;
     }
   }
 
@@ -387,16 +387,19 @@
       transition: transform 0.5s ease-out;
       padding: 0.3em 1.3em 1.3em 1.3em;
 
-      .x a {
-        float: right;
-        padding: 10px;
-        font-size: 1.7em;
-      }
-      h4 {
-        margin: 0;
-        padding: 0;
-        margin-top: 13px;
-        float: left;
+      .x {
+        a {
+          float: right;
+          padding: 10px;
+          font-size: 1.7em;
+        }
+        h4 {
+          margin: 0;
+          padding: 0;
+          margin-top: 13px;
+          float: left;
+        }
+        & + * { clear: both; }
       }
     }
 
@@ -458,7 +461,6 @@
         color: #2A735B;
       }
     }
-    &:not(.js):target > *,
     &.target > * {
       -webkit-transform: translate(0, 0);
       -ms-transform: translate(0, 0);
@@ -466,25 +468,27 @@
       top: 10%;
     }
 
-    &:before {
-      content: "";
-      display: none;
-      background: rgba(0, 0, 0, 0.6);
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 10;
-    }
-    &:not(.js):target:before,
-    &.target:before {
-      display: block;
-    }
-
     .red {
       color: $red;
     }
+  }
+
+  .modal:not(.react):before,
+  .modal-overlay {
+    content: "";
+    display: none;
+    background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+  }
+
+  .modal.target:not(.react):before,
+  .modal-overlay.open {
+    display: block;
   }
 
   /* icon morphing */
