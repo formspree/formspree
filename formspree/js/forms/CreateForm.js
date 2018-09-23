@@ -7,12 +7,14 @@ const React = require('react')
 const toastr = window.toastr
 const fetch = window.fetch
 
-const modals = require('../modals')
+import Modal from '../Modal'
 
-module.exports = class CreateForm extends React.Component {
+export default class CreateForm extends React.Component {
   constructor(props) {
     super(props)
 
+    this.openModal = this.openModal.bind(this)
+    this.closeModal = this.closeModal.bind(this)
     this.setEmail = this.setEmail.bind(this)
     this.setURL = this.setURL.bind(this)
     this.setSitewide = this.setSitewide.bind(this)
@@ -21,6 +23,8 @@ module.exports = class CreateForm extends React.Component {
     this.checkSitewide = this.checkSitewide.bind(this)
 
     this.state = {
+      modalOpened: false,
+
       url: '',
       email: '',
       sitewide: false,
@@ -29,10 +33,6 @@ module.exports = class CreateForm extends React.Component {
       verified: false,
       disableVerification: false
     }
-  }
-
-  componentDidMount() {
-    modals()
   }
 
   render() {
@@ -48,16 +48,16 @@ module.exports = class CreateForm extends React.Component {
     return (
       <div className="col-1-1">
         <div className="create-form">
-          <a href="#create-form" className="button">
+          <a href="#" onClick={this.openModal} className="button">
             Create a form
           </a>
 
-          <div className="modal" id="create-form" aria-hidden="true">
+          <Modal
+            opened={this.state.modalOpened}
+            onClose={this.closeModal}
+            title="Create form"
+          >
             <div className="container">
-              <div className="x">
-                <h4>Create form</h4>
-                <a href="#">&times;</a>
-              </div>
               <form onSubmit={this.create}>
                 <div className="col-1-1">
                   <h4>Send email to:</h4>
@@ -149,7 +149,7 @@ module.exports = class CreateForm extends React.Component {
                 </div>
               </form>
             </div>
-          </div>
+          </Modal>
         </div>
       </div>
     )
@@ -262,5 +262,15 @@ module.exports = class CreateForm extends React.Component {
       console.error(e)
       toastr.error('Failed to create form, see the console for more details.')
     }
+  }
+
+  openModal(e) {
+    e.preventDefault()
+    this.setState({modalOpened: true})
+  }
+
+  closeModal(e) {
+    e.preventDefault()
+    this.setState({modalOpened: false})
   }
 }

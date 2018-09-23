@@ -5,14 +5,14 @@ const fetch = window.fetch
 const React = require('react')
 const {Route, Link, NavLink, Redirect} = require('react-router-dom')
 
-const Portal = require('../../Portal')
-const Integration = require('./Integration')
-const Submissions = require('./Submissions')
-const Settings = require('./Settings')
-const Whitelabel = require('./Whitelabel')
-const FormDescription = require('./FormDescription')
+import Portal from '../../Portal'
+import Integration from './Integration'
+import Submissions from './Submissions'
+import Settings from './Settings'
+import Whitelabel from './Whitelabel'
+import FormDescription from './FormDescription'
 
-module.exports = class FormPage extends React.Component {
+export default class FormPage extends React.Component {
   constructor(props) {
     super(props)
 
@@ -37,9 +37,9 @@ module.exports = class FormPage extends React.Component {
         </Portal>
         <Portal to="#header .center">
           <h1>Form Details</h1>
-          {this.state.form &&
+          {this.state.form && (
             <FormDescription prefix="For " form={this.state.form} />
-          }
+          )}
         </Portal>
         <Route
           exact

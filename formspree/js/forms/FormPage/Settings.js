@@ -4,9 +4,9 @@ const toastr = window.toastr
 const fetch = window.fetch
 const React = require('react')
 
-const SettingsSwitch = require('./SettingsSwitch')
+import SettingsSwitch from './SettingsSwitch'
 
-module.exports = class FormSettings extends React.Component {
+export default class FormSettings extends React.Component {
   constructor(props) {
     super(props)
 
@@ -27,18 +27,16 @@ module.exports = class FormSettings extends React.Component {
     return (
       <>
         <div className="container" id="settings">
-          <SettingsSwitch 
-            title="Form Enabled" 
+          <SettingsSwitch
+            title="Form Enabled"
             fieldName="disabled"
             description="You can disable this form to cause it to stop receiving new
               submissions temporarily or permanently."
             onChangeFn={() => this.update}
             checkedFn={() =>
-              'disabled' in tmp 
-                ? !tmp.disabled 
-                : !form.disabled
+              'disabled' in tmp ? !tmp.disabled : !form.disabled
             }
-          ></SettingsSwitch>
+          />
           <SettingsSwitch
             title="reCAPTCHA"
             fieldName="captcha_disabled"
@@ -50,7 +48,7 @@ module.exports = class FormSettings extends React.Component {
                 ? !tmp.captcha_disabled
                 : !form.captcha_disabled
             }
-          ></SettingsSwitch>
+          />
           <SettingsSwitch
             title="Email Notifications"
             fieldName="disable_email"
@@ -58,11 +56,9 @@ module.exports = class FormSettings extends React.Component {
               download the submissions from the dashboard."
             onChangeFn={() => this.update}
             checkedFn={() =>
-              'disable_email' in tmp
-                ? !tmp.disable_email
-                : !form.disable_email
+              'disable_email' in tmp ? !tmp.disable_email : !form.disable_email
             }
-          ></SettingsSwitch>
+          />
           <SettingsSwitch
             title="Submission Archive"
             fieldName="disable_storage"
@@ -74,8 +70,8 @@ module.exports = class FormSettings extends React.Component {
                 ? !tmp.disable_storage
                 : !form.disable_storage
             }
-          ></SettingsSwitch>
-          
+          />
+
           <div className="row">
             <div className={this.state.deleting ? 'col-1-2' : 'col-5-6'}>
               <h4>
@@ -92,8 +88,8 @@ module.exports = class FormSettings extends React.Component {
                   </span>
                 ) : (
                   <span>
-                    Deleting the form will erase all traces of this form on
-                    our databases, including all the submissions.
+                    Deleting the form will erase all traces of this form on our
+                    databases, including all the submissions.
                   </span>
                 )}
               </p>

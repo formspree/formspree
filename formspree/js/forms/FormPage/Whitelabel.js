@@ -6,15 +6,16 @@ const cs = require('class-set')
 const qs = require('query-string')
 const React = require('react')
 const CodeMirror = require('react-codemirror2')
-const Modal = require('react-modal')
 require('codemirror/mode/xml/xml')
 require('codemirror/mode/css/css')
+
+import Modal from '../../Modal'
 
 const MODAL_REVERT = 'revert'
 const MODAL_PREVIEW = 'preview'
 const MODAL_SYNTAX = 'syntax'
 
-module.exports = class FormSettings extends React.Component {
+export default class FormSettings extends React.Component {
   constructor(props) {
     super(props)
 
@@ -186,14 +187,12 @@ module.exports = class FormSettings extends React.Component {
           </div>
         </div>
         <Modal
-          contentLabel="Revert changes"
-          isOpen={this.state.modal === MODAL_REVERT}
-          onRequestClose={this.closeModal}
-          className="dummy"
-          overlayClassName="dummy"
+          title="Revert changes"
+          opened={this.state.modal === MODAL_REVERT}
+          onClose={this.closeModal}
         >
           <div>
-            <div className="container">
+            <div>
               <h2>Are you sure?</h2>
               <p>
                 Reverting will discard the changes you've made to your email
@@ -207,11 +206,9 @@ module.exports = class FormSettings extends React.Component {
           </div>
         </Modal>
         <Modal
-          contentLabel="Preview"
-          isOpen={this.state.modal === MODAL_PREVIEW}
-          onRequestClose={this.closeModal}
-          className="dummy"
-          overlayClassName="dummy"
+          title="Preview"
+          opened={this.state.modal === MODAL_PREVIEW}
+          onClose={this.closeModal}
         >
           <div id="whitelabel-preview-modal">
             <iframe
@@ -232,22 +229,22 @@ module.exports = class FormSettings extends React.Component {
           </div>
         </Modal>
         <Modal
-          contentLabel="Email Syntax"
-          isOpen={this.state.modal === MODAL_SYNTAX}
-          onRequestClose={this.closeModal}
-          className="dummy"
-          overlayClassName="dummy"
+          title="Email Syntax"
+          opened={this.state.modal === MODAL_SYNTAX}
+          onClose={this.closeModal}
         >
           <div>
             <div>
-              <h2>Email Syntax</h2>
               <p>
                 the email body can contain simple HTML that's valid in an email.
                 No <span className="code">&lt;script&gt;</span> or{' '}
-                <span className="code">&lt;style&gt;</span> tags can be
+                <span className="code">&lt;style&gt;</span> tags can be{' '}
                 included. For a list of recommended HTML tags see{' '}
-                <a href="" target="_blank">
-                  the ContantContact guide to HTML in email
+                <a
+                  href="https://explore.reallygoodemails.com/new-to-email-coding-heres-where-to-start-2494422f0bd4"
+                  target="_blank"
+                >
+                  this guide to HTML in email
                 </a>
                 .
               </p>
@@ -273,9 +270,9 @@ module.exports = class FormSettings extends React.Component {
 {{/ _fields }}      Closes the _fields block.
                 `.trim()}
               </pre>
-            </div>
-            <div className="container right">
-              <button onClick={this.closeModal}>OK</button>
+              <div className="container right">
+                <button onClick={this.closeModal}>OK</button>
+              </div>
             </div>
           </div>
         </Modal>
