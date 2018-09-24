@@ -217,6 +217,6 @@ def invoice(invoice_id):
         ), 403
     if invoice.charge:
         charge = stripe.Charge.retrieve(invoice.charge)
-        charge.source.css_name = CARD_MAPPINGS[charge.source.brand]
+        charge.source.css_name = CARD_MAPPINGS[charge.source.card.brand]
         return render_template('users/invoice.html', invoice=invoice, charge=charge)
     return render_template('users/invoice.html', invoice=invoice)
