@@ -1,5 +1,7 @@
 /** @format */
 
+const toastr = window.toastr
+const fetch = window.fetch
 const React = require('react')
 
 import {ConfigContext, AccountContext} from '../Dashboard'
@@ -11,11 +13,14 @@ class Account extends React.Component {
 
     this.addEmailAddress = this.addEmailAddress.bind(this)
 
-    this.state = {}
+    this.state = {
+      newPending: []
+    }
   }
 
   render() {
     let {user, sub, emails, config} = this.props
+    let {newPending} = this.state
 
     return (
       <div className="row">
@@ -35,6 +40,7 @@ class Account extends React.Component {
                       <input
                         name="address"
                         placeholder="Add an email to your account"
+                        key={newPending.length}
                       />
                       <button
                         type="submit"
@@ -45,7 +51,7 @@ class Account extends React.Component {
                     </form>
                   </td>
                 </tr>
-                {emails.pending.map(email => (
+                {newPending.concat(emails.pending).map(email => (
                   <tr key={email} className="waiting_confirmation">
                     <td>{email}</td>
                     <td>
@@ -82,8 +88,46 @@ class Account extends React.Component {
     )
   }
 
-  addEmailAddress(e) {
+  async addEmailAddress(e) {
     e.preventDefault()
+
+    let address = e.target.address.value
+
+    try {
+      let resp = await fetch(`/api-int/account/add-email`, {
+        method: 'POST',
+        body: JSON.stringify({address}),
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
+
+      switch (resp.status) {
+        case 200:
+          toastr.info(`${address} is already registered for your account.`)
+          break
+        case 202:
+          toastr.success(
+            `We've sent a message with a verification link to ${address}`
+          )
+          this.setState(st => {
+            st.newPending.unshift(address)
+            return st
+          })
+          break
+        default:
+          let r = await resp.json()
+          toastr.error(r.error)
+          break
+      }
+    } catch (e) {
+      console.error(e)
+      toastr.error(
+        'Failed add email to your account, see the console for more details.'
+      )
+    }
   }
 }
 

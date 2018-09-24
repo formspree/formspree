@@ -37,17 +37,17 @@ def configure_routes(app):
     app.add_url_rule('/logout', 'logout', view_func=uv.logout, methods=['GET'])
 
     # users
-    app.add_url_rule('/account/upgrade', 'account-upgrade', view_func=uv.upgrade, methods=['POST'])
-    app.add_url_rule('/account/downgrade', view_func=uv.downgrade, methods=['POST'])
-    app.add_url_rule('/account/resubscribe', view_func=uv.resubscribe, methods=['POST'])
-    app.add_url_rule('/card/add', 'add-card', view_func=uv.add_card, methods=['POST'])
-    app.add_url_rule('/card/<cardid>/default', 'change-default-card', view_func=uv.change_default_card, methods=['POST'])
-    app.add_url_rule('/card/<cardid>/delete', 'delete-card', view_func=uv.delete_card, methods=['POST'])
-    app.add_url_rule('/account/billing/invoice/update-invoice-address', 'update-invoice-address', view_func=uv.update_invoice_address, methods=['POST'])
     app.add_url_rule('/account/billing/invoice/<invoice_id>', view_func=uv.invoice, methods=['GET'])
-    app.add_url_rule('/account/add-email', 'add-account-email', view_func=uv.add_email, methods=['POST'])
-    app.add_url_rule('/account/confirm/<digest>', 'confirm-account-email', view_func=uv.confirm_email, methods=['GET'])
+    app.add_url_rule('/account/confirm/<digest>', 'confirm-account-email', view_func=uv.confirm_account_email, methods=['GET'])
     app.add_url_rule('/api-int/account', view_func=ua.get_account, methods=['GET'])
+    app.add_url_rule('/api-int/account/billing', view_func=ua.update_invoice_address, methods=['PATCH'])
+    app.add_url_rule('/api-int/account/add-email', view_func=ua.add_email, methods=['POST'])
+    app.add_url_rule('/api-int/account/upgrade', view_func=ua.upgrade, methods=['POST'])
+    app.add_url_rule('/api-int/account/downgrade', view_func=ua.downgrade, methods=['POST'])
+    app.add_url_rule('/api-int/account/resubscribe', view_func=ua.resubscribe, methods=['POST'])
+    app.add_url_rule('/api-int/cards', view_func=ua.add_card, methods=['PUT'])
+    app.add_url_rule('/api-int/cards/<cardid>/default', view_func=ua.change_default_card, methods=['PUT'])
+    app.add_url_rule('/api-int/cards/<cardid>', view_func=ua.delete_card, methods=['DELETE'])
 
     # users' forms
     app.add_url_rule('/forms/<hashid>.<format>', view_func=fv.export_submissions, methods=['GET'])
