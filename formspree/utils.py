@@ -138,13 +138,13 @@ def send_email(to=None, subject=None, text=None, html=None,
         bracket = sender.index('<')
         data.update({
             'from': sender[bracket+1:-1],
-            'from_name': sender[:bracket].strip()
+            'fromname': sender[:bracket].strip()
         })
     except ValueError:
         data.update({'from': sender})
 
     if from_name:
-        data.update({'from_name': from_name})
+        data.update({'fromname': from_name})
 
     if headers:
         data.update({'headers': json.dumps(headers)})

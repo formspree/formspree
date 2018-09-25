@@ -315,6 +315,8 @@ def resend_confirmation(email):
         # ~~~
         # if there's no bounce, we proceed to resend the confirmation.
 
+        # BUG: What if this is an owned form with hashid??
+
         form = Form.query.filter_by(hash=HASH(email, request.form['host'])).first()
         if not form:
             if request_wants_json():
