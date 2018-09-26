@@ -1,23 +1,24 @@
-<div class="create-form">
-    <a href="#add-card" class="button">
-      Add Card
-    </a>
-    <div class="modal narrow" id="add-card" aria-hidden="true">
-        <div class="container">
-            <div class="x">
-                <h4>Add Card</h4><a href="#">&times;</a></div>
-            <form method="POST" action="{{ url_for('add-card') }}" id="payment-form">
-                <div id="card-element" class="field"></div>
-                <div class="col-1-1">
-                    <input type="submit" class="submit card" value="Add Card">
-                </div>
-            </form>
-            <div class="col-1-1 small">
-                <p>Secured with <i class="fa fa-cc-stripe" aria-hidden="true"></i>. {{ config.SERVICE_NAME }} never sees your card number</p>
+<div class="modal narrow" id="add-card" aria-hidden="true">
+    <div class="container">
+        <div class="x">
+            <h4>Add Card</h4><a href="#">&times;</a>
+        </div>
+        <form method="POST" action="{{ url_for('add-card') }}" id="payment-form">
+            <div id="card-element" class="field"></div>
+            <div class="col-1-1">
+                <input type="submit" class="submit card" value="Add Card">
             </div>
+        </form>
+        <div class="col-1-1 small">
+            <p>Secured with <i class="fa fa-cc-stripe" aria-hidden="true"></i>. {{ config.SERVICE_NAME }} never sees your card number</p>
         </div>
     </div>
 </div>
+
+<a href="#add-card" class="button">
+    Add Card
+</a>
+
 <script>
   var stripe = Stripe('{{ config.STRIPE_PUBLISHABLE_KEY }}');
   var elements = stripe.elements();

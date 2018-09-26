@@ -66,15 +66,123 @@ export default class FormSettings extends React.Component {
     }
   }
 
-  render() {
-    let {form} = this.props
+  renderSyntaxModal() {
+    return (
+      <>
+        <Modal
+          title="Email Syntax"
+          opened={this.state.modal === MODAL_SYNTAX}
+          onClose={this.closeModal}
+        >
+          <div>
+            <div>
+              <p>
+                the email body can contain simple HTML that's valid in an email.
+                No <span className="code">&lt;script&gt;</span> or{' '}
+                <span className="code">&lt;style&gt;</span> tags can be{' '}
+                included. For a list of recommended HTML tags see{' '}
+                <a
+                  href="https://explore.reallygoodemails.com/new-to-email-coding-heres-where-to-start-2494422f0bd4"
+                  target="_blank"
+                >
+                  this guide to HTML in email
+                </a>
+                .
+              </p>
+              <p>
+                The following special variables are recognized by Formspree,
+                using the{' '}
+                <a
+                  href="https://mustache.github.io/mustache.5.html"
+                  target="_blank"
+                >
+                  mustache
+                </a>{' '}
+                template language.
+              </p>
+              <pre>
+                {`
+{{ _time }}         The date and time of the submission.
+{{ _host }}         The URL of the form (without "https://").
+{{ <fieldname> }}   Any named input value in your form.
+{{# _fields }}      Starts a list of all fields.
+  {{ _name }}       Within _fields, the current field name…
+  {{ _value }}      … and field value.
+{{/ _fields }}      Closes the _fields block.
+                `.trim()}
+              </pre>
+              <div className="container right">
+                <button onClick={this.closeModal}>OK</button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      </>
+    )
+  }
 
+  renderRevertModal() {
+    return (
+      <>
+        <Modal
+          title="Revert changes"
+          opened={this.state.modal === MODAL_REVERT}
+          onClose={this.closeModal}
+        >
+          <div>
+            <div>
+              <h2>Are you sure?</h2>
+              <p>
+                Reverting will discard the changes you've made to your email
+                template.
+              </p>
+            </div>
+            <div className="container right">
+              <button onClick={this.closeModal}>Cancel</button>
+              <button onClick={this.revert}>Revert</button>
+            </div>
+          </div>
+        </Modal>      
+      </>
+    )
+  }
+
+  renderPreviewModal(from_name, subject, style, body) {
+    return (
+      <>
+        <Modal
+          title="Preview"
+          opened={this.state.modal === MODAL_PREVIEW}
+          onClose={this.closeModal}
+        >
+          <div id="whitelabel-preview-modal">
+            <iframe
+              className="preview"
+              src={
+                '/forms/whitelabel/preview?' +
+                qs.stringify({
+                  from_name,
+                  subject,
+                  style,
+                  body
+                })
+              }
+            />
+            <div className="container right">
+              <button onClick={this.closeModal}>OK</button>
+            </div>
+          </div>
+        </Modal>
+      </>
+    )
+  }
+
+  render() {
     let {from_name, subject, style, body} = {
       ...this.defaultValues,
-      ...form.template,
+      ...this.props.template,
       ...this.state.changes
     }
-
     var shownCode
     switch (this.state.activeTab) {
       case 'CSS':
@@ -142,6 +250,7 @@ export default class FormSettings extends React.Component {
                 </a>
               </div>
             </div>
+            {this.renderSyntaxModal()}
             <div className="col-1-1">
               <div className="code-tabs">
                 {this.availableTabs.map(tabName => (
@@ -160,6 +269,7 @@ export default class FormSettings extends React.Component {
           </div>
 
           <div className="container">
+            {this.renderPreviewModal(from_name, subject, style, body)}
             <div className="col-1-3">
               <button onClick={this.preview}>Preview</button>
             </div>
@@ -169,6 +279,7 @@ export default class FormSettings extends React.Component {
                 : '\u00A0'}
             </div>
             <div className="col-1-6 right">
+              {this.renderRevertModal()}
               <button
                 onClick={this.attemptRevert}
                 disabled={Object.keys(this.state.changes).length === 0}
@@ -185,97 +296,7 @@ export default class FormSettings extends React.Component {
               </button>
             </div>
           </div>
-        </div>
-        <Modal
-          title="Revert changes"
-          opened={this.state.modal === MODAL_REVERT}
-          onClose={this.closeModal}
-        >
-          <div>
-            <div>
-              <h2>Are you sure?</h2>
-              <p>
-                Reverting will discard the changes you've made to your email
-                template.
-              </p>
-            </div>
-            <div className="container right">
-              <button onClick={this.closeModal}>Cancel</button>
-              <button onClick={this.revert}>Revert</button>
-            </div>
-          </div>
-        </Modal>
-        <Modal
-          title="Preview"
-          opened={this.state.modal === MODAL_PREVIEW}
-          onClose={this.closeModal}
-        >
-          <div id="whitelabel-preview-modal">
-            <iframe
-              className="preview"
-              src={
-                '/forms/whitelabel/preview?' +
-                qs.stringify({
-                  from_name,
-                  subject,
-                  style,
-                  body
-                })
-              }
-            />
-            <div className="container right">
-              <button onClick={this.closeModal}>OK</button>
-            </div>
-          </div>
-        </Modal>
-        <Modal
-          title="Email Syntax"
-          opened={this.state.modal === MODAL_SYNTAX}
-          onClose={this.closeModal}
-        >
-          <div>
-            <div>
-              <p>
-                the email body can contain simple HTML that's valid in an email.
-                No <span className="code">&lt;script&gt;</span> or{' '}
-                <span className="code">&lt;style&gt;</span> tags can be{' '}
-                included. For a list of recommended HTML tags see{' '}
-                <a
-                  href="https://explore.reallygoodemails.com/new-to-email-coding-heres-where-to-start-2494422f0bd4"
-                  target="_blank"
-                >
-                  this guide to HTML in email
-                </a>
-                .
-              </p>
-              <p>
-                The following special variables are recognized by Formspree,
-                using the{' '}
-                <a
-                  href="https://mustache.github.io/mustache.5.html"
-                  target="_blank"
-                >
-                  mustache
-                </a>{' '}
-                template language.
-              </p>
-              <pre>
-                {`
-{{ _time }}         The date and time of the submission.
-{{ _host }}         The URL of the form (without "https://").
-{{ <fieldname> }}   Any named input value in your form.
-{{# _fields }}      Starts a list of all fields.
-  {{ _name }}       Within _fields, the current field name…
-  {{ _value }}      … and field value.
-{{/ _fields }}      Closes the _fields block.
-                `.trim()}
-              </pre>
-              <div className="container right">
-                <button onClick={this.closeModal}>OK</button>
-              </div>
-            </div>
-          </div>
-        </Modal>
+        </div>        
       </>
     )
   }

@@ -114,10 +114,6 @@ body#card {
     padding-top: 1em;
     padding-bottom: 1em;
 
-    @media (max-width: 760px) {
-        padding-bottom: 0 !important;
-    }
-
     &.block {
         padding-bottom: 1.5em;
         padding-top: 1.5em;
