@@ -16,6 +16,7 @@ import FormList from './forms/FormList'
 import FormPage from './forms/FormPage'
 import Account from './users/Account'
 import Billing from './users/Billing'
+import Plans from './users/Plans'
 
 export const ConfigContext = React.createContext()
 export const AccountContext = React.createContext()
@@ -50,6 +51,11 @@ export default class Dashboard extends React.Component {
         }
       })(),
       (async () => {
+        if (location.pathname === '/plans') {
+          this.setState({account: {}})
+          return
+        }
+
         try {
           let resp = await fetch('/api-int/account', {
             credentials: 'same-origin',
@@ -90,14 +96,15 @@ export default class Dashboard extends React.Component {
       <Router>
         <ConfigContext.Provider value={this.state.config}>
           <AccountContext.Provider value={this.state.account}>
-            <Portal to=".menu .item:nth-child(2)">
+            <Portal to="#forms-menu-item">
               <Link to="/forms">Your forms</Link>
             </Portal>
-            <Portal to=".menu .item:nth-child(3)">
+            <Portal to="#account-menu-item">
               <Link to="/account">Your account</Link>
             </Portal>
             <Switch>
               <Redirect from="/dashboard" to="/forms" />
+              <Route exact path="/plans" component={Plans} />
               <Route exact path="/account" component={Account} />
               <Route exact path="/account/billing" component={Billing} />
               <Route exact path="/forms" component={FormList} />

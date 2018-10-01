@@ -21,6 +21,7 @@ def configure_routes(app):
     app.add_url_rule('/thanks', 'thanks', view_func=fv.thanks, methods=['GET'])
 
     # dashboard
+    app.add_url_rule('/plans', view_func=sv.serve_plans, methods=['GET'])
     app.add_url_rule('/dashboard', 'dashboard', view_func=sv.serve_dashboard, methods=['GET'])
     app.add_url_rule('/forms', view_func=sv.serve_dashboard, methods=['GET'])
     app.add_url_rule('/forms/<hashid>', view_func=sv.serve_dashboard, methods=['GET'])

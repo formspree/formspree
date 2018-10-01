@@ -62,9 +62,11 @@
         </h4>
       </div>
       <div class="menu">
-        {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
-        <span class="item"><a href="{{ url_for('dashboard') }}">Your forms</a></span>
-        <span class="item"><a href="{{ url_for('account') }}">{% if current_user.has_feature('dashboard') %}Your{% else %}Upgrade{% endif %} account</a></span>
+        {% if request.path != '/' %}
+          <span class="item"><a href="/">Home</a></span>
+        {% endif %}
+        <span class="item" id="forms-menu-item"><a href="{{ url_for('dashboard') }}">Your forms</a></span>
+        <span class="item" id="account-menu-item"><a href="{{ url_for('account') }}">{% if current_user.has_feature('dashboard') %}Your{% else %}Upgrade{% endif %} account</a></span>
     {% else %}
       <div class="greetings">
         <h4 class="light">
@@ -73,7 +75,7 @@
       </div>
       <div class="menu">
         {% if request.path != '/' %}<span class="item"><a href="/">Home</a></span>{% endif %}
-        {% if request.path != '/login' %}<span class="item"><a href="{{ url_for('login') }}" class="login">{{ config.UPGRADED_PLAN_NAME }} account login</a></span>{% endif %}
+        {% if request.path != '/login' %}<span class="item"><a href="{{ url_for('login') }}" class="login">Account login</a></span>{% endif %}
     {% endif %}
       </div>
   </nav>

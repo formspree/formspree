@@ -6,9 +6,13 @@ const React = require('react') // eslint-disable-line no-unused-vars
 import Dashboard from './Dashboard'
 
 if (document.querySelector('body.dashboard')) {
-  let el = document.querySelector('.container.block')
+  if (location.pathname !== '/plan') {
+    let fmi = document.getElementById('forms-menu-item')
+    let ami = document.getElementById('account-menu-item')
+    if (fmi) fmi.innerHTML = ''
+    if (ami) ami.innerHTML = ''
+  }
 
-  document.querySelector('.menu .item:nth-child(2)').innerHTML = ''
-  document.querySelector('.menu .item:nth-child(3)').innerHTML = ''
+  let el = document.getElementById('react-app')
   render(<Dashboard />, el)
 }

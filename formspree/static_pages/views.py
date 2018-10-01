@@ -9,6 +9,10 @@ def serve_dashboard(hashid=None, s=None):
     return render_template('static_pages/dashboard.html')
 
 
+def serve_plans():
+    return render_template('static_pages/plans.html')
+
+
 def default(template='index'):
     template = template if template.endswith('.html') else template+'.html'
     try:
