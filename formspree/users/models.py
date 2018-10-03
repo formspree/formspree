@@ -13,23 +13,30 @@ from .helpers import hash_pwd
 class Plan(DB.Enum):
     free = 'v1_free'
     gold = 'v1_gold'
+    gold_yearly = 'v1_gold_yearly'
     platinum = 'v1_platinum'
+    platinum_yearly = 'v1_platinum_yearly'
 
-    plan_names = {
-        'v1_free': 'Free',
-        'v1_gold': 'Gold',
-        'v1_platinum': 'Platinum'
+    product_names = ['Gold', 'Platinum']
+
+    plan_defs = {
+        'v1_free': {'price': 0,'product': 'Free'},
+        'v1_gold': {'price': 10,'product': 'Gold'},
+        'v1_gold_yearly': {'price': 100,'product': 'Gold'},
+        'v1_platinum': {'price': 25,'product': 'Platinum'},
+        'v1_platinum_yearly': {'price': 250,'product': 'Platinum'}
     }
 
-    plan_features = {
-        'v1_free': set(),
-        'v1_gold': {'dashboard', 'unlimited'},
-        'v1_platinum': {'dashboard', 'unlimited', 'whitelabel'}
+    product_features = {
+        'Free': set(),
+        'Gold': {'dashboard', 'unlimited'},
+        'Platinum': {'dashboard', 'unlimited', 'whitelabel'}
     }
 
     @classmethod
     def has_feature(cls, plan, feature_id):
-        return feature_id in cls.plan_features[plan]
+        product = cls.plan_defs[plan]['product']
+        return feature_id in cls.product_features[product]
 
 
 class User(DB.Model):
@@ -38,7 +45,7 @@ class User(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)
     email = DB.Column(DB.Text, unique=True, index=True)
     password = DB.Column(DB.String(100))
-    plan = DB.Column(DB.Enum(*Plan.plan_features.keys(), name='plans'), nullable=False)
+    plan = DB.Column(DB.Enum(*Plan.plan_defs.keys(), name='plans'), nullable=False)
     stripe_id = DB.Column(DB.String(50))
     registered_on = DB.Column(DB.DateTime)
     invoice_address = DB.Column(DB.Text)
@@ -70,7 +77,7 @@ class User(DB.Model):
     def serialize(self):
         return {
             'email': self.email,
-            'plan': Plan.plan_names[self.plan],
+            'product': Plan.plan_defs[self.plan]['product'],
             'registered_on': self.registered_on.strftime('%I:%M %p UTC - %d %B %Y'),
             'features': {f: True for f in self.features},
             'invoice_address': self.invoice_address

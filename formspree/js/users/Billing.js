@@ -3,10 +3,11 @@
 const React = require('react')
 const toastr = window.toastr
 const fetch = window.fetch
+const formspree = window.formspree
 
 const {Link} = require('react-router-dom')
 
-import {ConfigContext, AccountContext} from '../Dashboard'
+import {AccountContext} from '../Dashboard'
 
 class Billing extends React.Component {
   constructor(props) {
@@ -16,7 +17,7 @@ class Billing extends React.Component {
   }
 
   render() {
-    let {config, user, sub, cards, invoices} = this.props
+    let {user, sub, cards, invoices} = this.props
 
     return (
       <>
@@ -175,7 +176,7 @@ class Billing extends React.Component {
                     <p>
                       Secured with{' '}
                       <i className="fa fa-cc-stripe" aria-hidden="true" />.{' '}
-                      {config.SERVICE_NAME} never sees your card number.
+                      {formspree.SERVICE_NAME} never sees your card number.
                     </p>
                   </div>
                 </div>
@@ -260,13 +261,13 @@ class Billing extends React.Component {
   }
 }
 
-export const PlanView = ({user, sub, config}) => (
+export const PlanView = ({user, sub}) => (
   <div className="card">
     <h3>Plan</h3>
     {user.features.dashboard ? (
       <>
         <p>
-          You are a {config.SERVICE_NAME} {user.plan} user.
+          You are a {formspree.SERVICE_NAME} {user.product} user.
         </p>
 
         {sub &&
@@ -311,11 +312,11 @@ export const PlanView = ({user, sub, config}) => (
         <form method="post" action="/account/upgrade">
           <button
             id="stripe-upgrade"
-            data-key={config.STRIPE_PUBLISHABLE_KEY}
+            data-key={formspree.STRIPE_PUBLISHABLE_KEY}
             data-image="/static/img/logo.png"
-            data-name={config.SERVICE_NAME}
-            data-description={`${config.SERVICE_NAME} ${
-              config.UPGRADED_PLAN_NAME
+            data-name={formspree.SERVICE_NAME}
+            data-description={`${formspree.SERVICE_NAME} ${
+              formspree.UPGRADED_PLAN_NAME
             } monthly subscription`}
             data-amount="999"
             data-email={user.email}
@@ -335,21 +336,16 @@ export const PlanView = ({user, sub, config}) => (
 
 export default props => (
   <>
-    <ConfigContext.Consumer>
-      {config => (
-        <AccountContext.Consumer>
-          {({user, sub, cards, invoices}) => (
-            <Billing
-              {...props}
-              config={config}
-              user={user}
-              sub={sub}
-              cards={cards}
-              invoices={invoices}
-            />
-          )}
-        </AccountContext.Consumer>
+    <AccountContext.Consumer>
+      {({user, sub, cards, invoices}) => (
+        <Billing
+          {...props}
+          user={user}
+          sub={sub}
+          cards={cards}
+          invoices={invoices}
+        />
       )}
-    </ConfigContext.Consumer>
+    </AccountContext.Consumer>
   </>
 )

@@ -3,7 +3,6 @@ import formspree.forms.api as fa
 import formspree.users.views as uv
 import formspree.users.api as ua
 import formspree.static_pages.views as sv
-import formspree.static_pages.api as sa
 
 def configure_routes(app):
     app.add_url_rule('/', 'index', view_func=sv.default, methods=['GET'])
@@ -28,7 +27,6 @@ def configure_routes(app):
     app.add_url_rule('/forms/<hashid>/<path:s>', view_func=sv.serve_dashboard, methods=['GET'])
     app.add_url_rule('/account', 'account', view_func=sv.serve_dashboard, methods=['GET'])
     app.add_url_rule('/account/billing', view_func=sv.serve_dashboard, methods=['GET'])
-    app.add_url_rule('/api-int/config', view_func=sa.config, methods=['GET'])
 
     # login stuff
     app.add_url_rule('/register', 'register', view_func=uv.register, methods=['GET', 'POST'])

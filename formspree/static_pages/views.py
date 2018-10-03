@@ -3,14 +3,17 @@ from flask import request, render_template, g, \
 from jinja2 import TemplateNotFound
 from flask_login import login_required
 
+from .helpers import PUBLIC_PARAMS
+
 
 @login_required
 def serve_dashboard(hashid=None, s=None):
-    return render_template('static_pages/dashboard.html')
+    return render_template('static_pages/dashboard.html', params=PUBLIC_PARAMS)
 
 
 def serve_plans():
-    return render_template('static_pages/plans.html')
+    g.plans = True
+    return render_template('static_pages/dashboard.html', params=PUBLIC_PARAMS)
 
 
 def default(template='index'):

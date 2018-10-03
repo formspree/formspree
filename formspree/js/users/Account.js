@@ -4,7 +4,7 @@ const toastr = window.toastr
 const fetch = window.fetch
 const React = require('react')
 
-import {ConfigContext, AccountContext} from '../Dashboard'
+import {AccountContext} from '../Dashboard'
 import {PlanView} from './Billing'
 
 class Account extends React.Component {
@@ -19,7 +19,7 @@ class Account extends React.Component {
   }
 
   render() {
-    let {user, sub, emails, config} = this.props
+    let {user, sub, emails} = this.props
     let {newPending} = this.state
 
     return (
@@ -82,7 +82,7 @@ class Account extends React.Component {
           </div>
         </div>
         <div className="col-1-2">
-          <PlanView user={user} sub={sub} config={config} />
+          <PlanView user={user} sub={sub} />
         </div>
       </div>
     )
@@ -133,20 +133,10 @@ class Account extends React.Component {
 
 export default props => (
   <>
-    <ConfigContext.Consumer>
-      {config => (
-        <AccountContext.Consumer>
-          {({user, sub, emails}) => (
-            <Account
-              {...props}
-              config={config}
-              user={user}
-              sub={sub}
-              emails={emails}
-            />
-          )}
-        </AccountContext.Consumer>
+    <AccountContext.Consumer>
+      {({user, sub, emails}) => (
+        <Account {...props} user={user} sub={sub} emails={emails} />
       )}
-    </ConfigContext.Consumer>
+    </AccountContext.Consumer>
   </>
 )

@@ -29,7 +29,6 @@
   <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/v4-shims.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script type="text/javascript" src="https://js.stripe.com/v3/"></script>
   {% block head_scripts %}{% endblock %}
   <link rel="stylesheet" href="{{ url_for('static', filename='main.css' if config.DEBUG else 'main.min.css') }}">
 </head>
@@ -98,11 +97,6 @@
   <script>
     /* turning flask flash messages into js popup notifications */
     window.popupMessages = {{ get_flashed_messages(with_categories=True) | json | safe }}
-  </script>
-  <script src="https://checkout.stripe.com/checkout.js"></script>
-  <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-  <script type="text/javascript">
-    Stripe.setPublishableKey('{{config.STRIPE_PUBLISHABLE_KEY}}');
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.min.js"></script>
   <script src="{{ url_for('static', filename='bundle.js' if config.DEBUG else 'bundle.min.js') }}"></script>

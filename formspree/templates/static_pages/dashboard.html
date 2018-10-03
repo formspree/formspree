@@ -3,6 +3,10 @@
 {% block head_scripts %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/codemirror.min.css" rel="stylesheet"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.2/theme/oceanic-next.css" rel="stylesheet"></script>
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+window.formspree = {{ params|tojson|safe }}
+</script>
 {% endblock %}
 
 {% block bodyclass %}dashboard{% endblock%}
@@ -23,13 +27,13 @@
 
   <div class="row section grey">
     <div class="container narrow block">
-      {% if current_user.has_feature('dashboard') %}
+      {% if not g.plans and current_user.has_feature('dashboard') %}
         <div class="col-1-2">
           <p>{{config.SERVICE_NAME}} is a tool <a href="https://github.com/formspree/formspree">managed on GitHub</a>. For fastest support check out our <a href="https://help.formspree.io">knowledge base</a> or use the form on the right.</p>
         </div>
         <div class="col-1-2">
           <form method="POST" action="{{config.API_ROOT}}/{{config.CONTACT_FORM_HASHID}}">
-            <input type="email" name="_replyto" placeholder="Your email" value="{{current_user.email}}"
+            <input type="email" name="_replyto" placeholder="Your email" value="{{current_user and current_user.email}}"
                    required/>
             <textarea name="message" rows="5" placeholder="Your message" required></textarea>
             <input type="text" name="_gotcha" style="display:none">
@@ -54,5 +58,4 @@
       {% endif %}
     </div>
   </div>
-
 {% endblock base %}
