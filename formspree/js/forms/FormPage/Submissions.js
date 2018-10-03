@@ -3,6 +3,7 @@
 const toastr = window.toastr
 const fetch = window.fetch
 const React = require('react')
+const prettyaml = require('prettyaml')
 
 export default class FormSubmissions extends React.Component {
   constructor(props) {
@@ -47,11 +48,20 @@ export default class FormSubmissions extends React.Component {
                     </td>
                     {form.fields
                       .slice(1 /* the first field is 'date' */)
-                      .map(f => (
-                        <td data-label={f} key={f}>
-                          <pre>{s[f]}</pre>
-                        </td>
-                      ))}
+                      .map(f => {
+                        var value
+                        try {
+                          value = prettyaml.stringify(s[f])
+                        } catch (e) {
+                          value = JSON.stringify(s[f])
+                        }
+
+                        return (
+                          <td data-label={f} key={f}>
+                            <pre>{value}</pre>
+                          </td>
+                        )
+                      })}
                     <td>
                       <button
                         className="no-border"

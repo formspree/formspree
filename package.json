@@ -3,6 +3,7 @@
     "class-set": "^0.0.4",
     "codemirror": "^5.39.2",
     "is-valid-email": "0.0.2",
+    "prettyaml": "^1.3.0",
     "query-string": "^5.1.1",
     "react": "^16.4.2",
     "react-codemirror2": "^5.1.0",
