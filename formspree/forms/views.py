@@ -1,27 +1,22 @@
-import unicodecsv as csv
 import json
-import requests
 import datetime
 import io
-from urllib.parse import urljoin
+
+import requests
+import unicodecsv as csv
 from lxml.html import rewrite_links
 
-from flask import request, url_for, render_template, redirect, \
-                  jsonify, flash, make_response, Response, g, \
+from flask import request, url_for, render_template, \
+                  jsonify, make_response, Response, g, \
                   session, abort, render_template_string
 from flask_login import current_user, login_required
-from flask_cors import cross_origin
-from jinja2.exceptions import TemplateNotFound
 
 from formspree import settings
 from formspree.stuff import DB, TEMPLATES
-from formspree.utils import request_wants_json, jsonerror, IS_VALID_EMAIL, \
-                            url_domain, valid_url, send_email
-from .helpers import http_form_to_dict, ordered_storage, referrer_to_path, \
-                    remove_www, referrer_to_baseurl, sitewide_file_check, \
-                    verify_captcha, temp_store_hostname, get_temp_hostname, \
-                    HASH, assign_ajax, KEYS_EXCLUDED_FROM_EMAIL
-from .models import Form, Submission, EmailTemplate
+from formspree.utils import request_wants_json, jsonerror, \
+                            valid_url, send_email
+from formspree.forms.helpers import verify_captcha, HASH
+from formspree.forms.models import Form, EmailTemplate
 
 
 def thanks():
@@ -29,262 +24,6 @@ def thanks():
         return render_template('error.html',
             title='Invalid URL', text='An invalid URL was supplied'), 400
     return render_template('forms/thanks.html', next=request.args.get('next'))
-
-
-@cross_origin(allow_headers=['Accept', 'Content-Type',
-                             'X-Requested-With', 'Authorization'])
-@ordered_storage
-def send(email_or_string):
-    '''
-    Main endpoint, finds or creates the form row from the database,
-    checks validity and state of the form and sends either form data
-    or verification to email.
-    '''
-
-    g.log = g.log.bind(target=email_or_string)
-
-    if request.method == 'GET':
-        if request_wants_json():
-            return jsonerror(405, {'error': "Please submit POST request."})
-        else:
-            return render_template('info.html',
-                                   title='Form should POST',
-                                   text='Make sure your form has the <span '
-                                        'class="code"><strong>method="POST"'
-                                        '</strong></span> attribute'), 405
-
-    if request.form:
-        received_data, sorted_keys = http_form_to_dict(request.form)
-    else:
-        received_data = request.get_json() or {}
-        sorted_keys = received_data.keys()
-
-    sorted_keys = [k for k in sorted_keys if k not in KEYS_EXCLUDED_FROM_EMAIL]
-
-    # NOTE: host in this function generally refers to the referrer hostname.
-
-    try:
-        # Get stored hostname from redis (from captcha)
-        host, referrer = get_temp_hostname(received_data['_host_nonce'])
-    except KeyError:
-        host, referrer = referrer_to_path(request.referrer), request.referrer
-    except ValueError as err:
-        g.log.error('Invalid hostname stored on Redis.', err=err)
-        return render_template(
-            'error.html',
-            title='Unable to submit form',
-            text='<p>We had a problem identifying to whom we should have submitted this form. Please try submitting again. If it fails once more, please let us know at {email}</p>'.format(
-                email=settings.CONTACT_EMAIL,
-            )
-        ), 500
-
-    if not host:
-        if request_wants_json():
-            return jsonerror(400, {'error': "Invalid \"Referrer\" header"})
-        else:
-            return render_template(
-                'error.html',
-                title='Unable to submit form',
-                text='<p>Make sure you open this page through a web server, Formspree will not work in pages browsed as HTML files. Also make sure that you\'re posting to <b>{host}{path}</b>.</p><p>For geeks: could not find the "Referrer" header.</p>'.format(
-                    host=settings.SERVICE_URL,
-                    path=request.path
-                )
-            ), 400
-
-    g.log = g.log.bind(host=host, wants='json' if request_wants_json() else 'html')
-
-    if not IS_VALID_EMAIL(email_or_string):
-        # in this case it can be a hashid identifying a
-        # form generated from the dashboard
-        hashid = email_or_string
-        form = Form.get_with_hashid(hashid)
-
-        if form:
-            # Check if it has been assigned about using AJAX or not
-            assign_ajax(form, request_wants_json())
-
-            if form.disabled:
-                # owner has disabled the form, so it should not receive any submissions
-                if request_wants_json():
-                    return jsonerror(403, {'error': 'Form not active'})
-                else:
-                    return render_template('error.html',
-                                           title='Form not active',
-                                           text='The owner of this form has disabled this form and it is no longer accepting submissions. Your submissions was not accepted'), 403
-            email = form.email
-
-            if not form.host:
-                # add the host to the form
-                form.host = host
-                DB.session.add(form)
-                DB.session.commit()
-
-                # it is an error when
-                #   form is not sitewide, and submission came from a different host
-                #   form is sitewide, but submission came from a host rooted somewhere else, or
-            elif (not form.sitewide and
-                  # ending slashes can be safely ignored here:
-                  form.host.rstrip('/') != host.rstrip('/')) or \
-                 (form.sitewide and \
-                  # removing www from both sides makes this a neutral operation:
-                  not remove_www(host).startswith(remove_www(form.host))
-                 ):
-                g.log.info('Submission rejected. From a different host than confirmed.')
-                if request_wants_json():
-                    return jsonerror(403, {
-                       'error': "Submission from different host than confirmed",
-                       'submitted': host, 'confirmed': form.host
-                    })
-                else:
-                    return render_template('error.html',
-                                           title='Check form address',
-                                           text='This submission came from "%s" but the form was\
-                                                 confirmed for address "%s"' % (host, form.host)), 403
-        else:
-            # no form row found. it is an error.
-            g.log.info('Submission rejected. No form found for this target.')
-            if request_wants_json():
-                return jsonerror(400, {'error': "Invalid email address"})
-            else:
-                return render_template('error.html',
-                                       title='Check email address',
-                                       text='Email address %s is not formatted correctly' \
-                                            % str(email_or_string)), 400
-    else:
-        # in this case, it is a normal email
-        email = email_or_string.lower()
-
-        # get the form for this request
-        form = Form.query.filter_by(hash=HASH(email, host)).first()
-
-        # or create it if it doesn't exist
-        if not form:
-            if request_wants_json():
-                # Can't create a new ajax form unless from the dashboard
-                ajax_error_str = "To prevent spam, only " + \
-                                 settings.UPGRADED_PLAN_NAME + \
-                                 " accounts may create AJAX forms."
-                return jsonerror(400, {'error': ajax_error_str})
-            elif url_domain(settings.SERVICE_URL) in host:
-                # Bad user is trying to submit a form spoofing formspree.io
-                g.log.info('User attempting to create new form spoofing SERVICE_URL. Ignoring.')
-                return render_template(
-                    'error.html',
-                    title='Unable to submit form',
-                    text='Sorry'), 400
-            else:
-                # all good, create form
-                form = Form(email, host)
-
-        # Check if it has been assigned using AJAX or not
-        assign_ajax(form, request_wants_json())
-
-        if form.disabled:
-            g.log.info('submission rejected. Form is disabled.')
-            if request_wants_json():
-                return jsonerror(403, {'error': 'Form not active'})
-            else:
-                return render_template('error.html',
-                                       title='Form not active',
-                                       text='The owner of this form has disabled this form and it is no longer accepting submissions. Your submissions was not accepted'), 403
-
-    # If form exists and is confirmed, send email
-    # otherwise send a confirmation email
-    if form.confirmed:
-        captcha_verified = verify_captcha(received_data, request)
-        needs_captcha = not (request_wants_json() or
-                             captcha_verified or
-                             settings.TESTING)
-
-        # check if captcha is disabled
-        if form.has_feature('dashboard'):
-            needs_captcha = needs_captcha and not form.captcha_disabled
-
-        if needs_captcha:
-            data_copy = received_data.copy()
-            # Temporarily store hostname in redis while doing captcha
-            nonce = temp_store_hostname(form.host, request.referrer)
-            data_copy['_host_nonce'] = nonce
-            action = urljoin(settings.API_ROOT, email_or_string)
-            try:
-                if '_language' in received_data:
-                    return render_template(
-                        'forms/captcha_lang/{}.html'.format(received_data['_language']),
-                        data=data_copy,
-                        sorted_keys=sorted_keys,
-                        action=action,
-                        lang=received_data['_language']
-                    )
-            except TemplateNotFound:
-                g.log.error('Requested language not found for reCAPTCHA page, defaulting to English', referrer=request.referrer, lang=received_data['_language'])
-                pass
-
-            return render_template('forms/captcha.html',
-                                           data=data_copy,
-                                           sorted_keys=sorted_keys,
-                                           action=action,
-                                           lang=None)
-
-        status = form.send(received_data, sorted_keys, referrer)
-    else:
-        status = form.send_confirmation(store_data=received_data)
-
-    # Respond to the request accordingly to the status code
-    if status['code'] == Form.STATUS_EMAIL_SENT:
-        if request_wants_json():
-            return jsonify({'success': "email sent", 'next': status['next']})
-        else:
-            return redirect(status['next'], code=302)
-    elif status['code'] == Form.STATUS_NO_EMAIL:
-        if request_wants_json():
-            return jsonify({'success': "no email sent, access submission archive on {} dashboard".format(settings.SERVICE_NAME), 'next': status['next']})
-        else:
-            return redirect(status['next'], code=302)
-    elif status['code'] == Form.STATUS_EMAIL_EMPTY:
-        if request_wants_json():
-            return jsonerror(400, {'error': "Can't send an empty form"})
-        else:
-            return render_template(
-                'error.html',
-                title='Can\'t send an empty form',
-                text=u'<p>Make sure you have placed the <a href="http://www.w3schools.com/tags/att_input_name.asp" target="_blank"><code>"name"</code> attribute</a> in all your form elements. Also, to prevent empty form submissions, take a look at the <a href="http://www.w3schools.com/tags/att_input_required.asp" target="_blank"><code>"required"</code> property</a>.</p><p>This error also happens when you have an <code>"enctype"</code> attribute set in your <code>&lt;form&gt;</code>, so make sure you don\'t.</p><p><a href="{}">Return to form</a></p>'.format(referrer)
-            ), 400
-    elif status['code'] == Form.STATUS_CONFIRMATION_SENT or \
-         status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED:
-
-        if request_wants_json():
-            return jsonify({'success': "confirmation email sent"})
-        else:
-            return render_template('forms/confirmation_sent.html',
-                email=email,
-                host=host,
-                resend=status['code'] == Form.STATUS_CONFIRMATION_DUPLICATED
-            )
-    elif status['code'] == Form.STATUS_OVERLIMIT:
-        if request_wants_json():
-            return jsonify({'error': "form over quota"})
-        else:
-            return render_template('error.html', title='Form over quota', text='It looks like this form is getting a lot of submissions and ran out of its quota. Try contacting this website through other means or try submitting again later.'), 402
-
-    elif status['code'] == Form.STATUS_REPLYTO_ERROR:
-        if request_wants_json():
-            return jsonerror(500, {'error': "_replyto or email field has not been sent correctly"})
-        else:
-            return render_template(
-                'error.html',
-                title='Invalid email address',
-                text=u'You entered <span class="code">{address}</span>. That is an invalid email address. Please correct the form and try to submit again <a href="{back}">here</a>.<p style="font-size: small">This could also be a problem with the form. For example, there could be two fields with <span class="code">_replyto</span> or <span class="code">email</span> name attribute. If you suspect the form is broken, please contact the form owner and ask them to investigate</p>'''.format(address=status['address'], back=status['referrer'])
-            ), 400
-
-    # error fallback -- shouldn't happen
-    if request_wants_json():
-        return jsonerror(500, {'error': "Unable to send email"})
-    else:
-        return render_template(
-            'error.html',
-            title='Unable to send email',
-            text=u'Unable to send email. If you can, please send the link to your form and the error information to  <b>{email}</b>. And send them the following: <p><pre><code>{message}</code></pre></p>'.format(message=json.dumps(status), email=settings.CONTACT_EMAIL)
-        ), 500
 
 
 def resend_confirmation(email):
