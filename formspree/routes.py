@@ -1,5 +1,6 @@
 import formspree.forms.views as fv
 import formspree.forms.api as fa
+import formspree.forms.endpoint as fe
 import formspree.users.views as uv
 import formspree.static_pages.views as sv
 
@@ -9,7 +10,7 @@ def configure_routes(app):
     app.add_url_rule('/formspree-verify.txt', view_func=sv.formspree_verify)
 
     # Public forms
-    app.add_url_rule('/<email_or_string>', 'send', view_func=fv.send, methods=['GET', 'POST'])
+    app.add_url_rule('/<email_or_string>', 'send', view_func=fe.send, methods=['GET', 'POST'])
     app.add_url_rule('/unblock/<email>', 'unblock_email', view_func=fv.unblock_email, methods=['GET', 'POST'])
     app.add_url_rule('/resend/<email>', 'resend_confirmation', view_func=fv.resend_confirmation, methods=['POST'])
     app.add_url_rule('/confirm/<nonce>', 'confirm_email', view_func=fv.confirm_email, methods=['GET'])
