@@ -3,6 +3,7 @@ import hashlib
 from datetime import datetime
 
 from flask import url_for, render_template, render_template_string, g
+from sqlalchemy.exc import IntegrityError
 
 from formspree import settings
 from formspree.stuff import DB, TEMPLATES
@@ -97,7 +98,8 @@ class User(DB.Model):
 
     @property
     def features(self):
-        return Plan.plan_features[self.plan]
+        product = Plan.plan_defs[self.plan]['product']
+        return Plan.product_features[product]
 
     def has_feature(self, feature_id):
         return Plan.has_feature(self.plan, feature_id)
@@ -129,6 +131,19 @@ class User(DB.Model):
             return False
         else:
             return True
+
+    @classmethod
+    def register(cls, email, password):
+        try:
+            user = cls(email, password)
+            DB.session.add(user)
+            DB.session.commit()
+        except ValueError as e:
+            DB.session.rollback()
+            raise e
+        except IntegrityError:
+            DB.session.rollback()
+            return cls.query.filter_by(email=email).first()
 
     @classmethod
     def from_password_reset(cls, email, digest):

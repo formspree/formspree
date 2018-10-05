@@ -22,20 +22,13 @@ def register():
     g.log = g.log.bind(email=request.form.get('email'))
 
     try:
-        user = User(request.form['email'], request.form['password'])
-        DB.session.add(user)
-        DB.session.commit()
-        g.log.info('User account created.', ip=request.headers.get('X-Forwarded-For'))
+        user = User.register(request.form['email'], request.form['password'])
+        g.log.info('User created.', ip=request.headers.get('X-Forwarded-For'))
     except ValueError:
-        DB.session.rollback()
         flash(u"{} is not a valid email address.".format(
             request.form['email']), "error")
-        g.log.info('Account creation failed. Invalid address.', ip=request.headers.get('X-Forwarded-For'))
-        return render_template('users/register.html')
-    except IntegrityError:
-        DB.session.rollback()
-        flash(u"An account with this email already exists.", "error")
-        g.log.info('Account creation failed. Address is already registered.', ip=request.headers.get('X-Forwarded-For'))
+        g.log.info('Account creation failed. Invalid address.',
+            ip=request.headers.get('X-Forwarded-For'))
         return render_template('users/register.html')
 
     login_user(user, remember=True)

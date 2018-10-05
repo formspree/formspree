@@ -33,11 +33,6 @@ export default class Dashboard extends React.Component {
   componentDidMount() {
     Promise.all([
       (async () => {
-        if (location.pathname === '/plans') {
-          this.setState({account: {}})
-          return
-        }
-
         var r
         try {
           let resp = await fetch('/api-int/account', {
@@ -50,6 +45,12 @@ export default class Dashboard extends React.Component {
             throw new Error(r.error || '')
           }
         } catch (e) {
+          if (location.pathname === '/plans') {
+            // ignore the fact that no user is registered.
+            this.setState({account: {}})
+            return
+          }
+
           console.error(e)
           this.setState({error: e.message})
           toastr.error(

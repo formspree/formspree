@@ -9,7 +9,7 @@ const {CardElement, Elements, injectStripe} = require('react-stripe-elements')
 import {AccountContext} from '../Dashboard'
 import Modal from '../Modal'
 
-const STEP_DOWNGRADE = -1
+const STEP_CANCEL = -1
 const STEP_NOTHING = 0
 const STEP_REGISTER = 1
 const STEP_PERSONAL = 2
@@ -37,7 +37,9 @@ class Plans extends React.Component {
         name: '',
         address: '',
         country: 'US',
-        zip: ''
+        zip: '',
+        token: null,
+        why: ''
       }
     }
   }
@@ -91,14 +93,19 @@ class Plans extends React.Component {
         </div>
         {user && (
           <Modal
-            title="Downgrade"
-            opened={modalOpened && step === STEP_DOWNGRADE}
+            title="Canceling subscription"
+            opened={modalOpened && step === STEP_CANCEL}
             onClose={this.closeModal}
           >
-            <div>
-              <div>
-                <h1>Do you really want to cancel your {user.product} plan?</h1>
-                <button onClick={this.next}>Yes</button>
+            <div class="container">
+              <h4>Why are you cancelling?</h4>
+              <textarea
+                value={data.why}
+                onChange={this.setData('why')}
+                placeholder="Was it a missing feature? Bad service? Just don't need us anymore?"
+              />
+              <div className="container">
+                <button onClick={this.next}>Cancel subscription</button>
                 <button onClick={this.closeModal}>No, keep my plan!</button>
               </div>
             </div>
@@ -186,9 +193,13 @@ class Plans extends React.Component {
                         src={`/static/img/countries/${data.country.toLowerCase()}.png`}
                       />
                     )}
-                    <select required onChange={this.setData('country')}>
+                    <select
+                      required
+                      value={data.country}
+                      onChange={this.setData('country')}
+                    >
                       {formspree.countries.map(c => (
-                        <option value={c} key={c} selected={c === data.country}>
+                        <option value={c} key={c}>
                           {c}
                         </option>
                       ))}
@@ -245,7 +256,7 @@ class Plans extends React.Component {
         state.data.product = productName
 
         if (productName === 'Free') {
-          state.step = STEP_DOWNGRADE
+          state.step = STEP_CANCEL
         } else if (this.props.user) {
           state.step = STEP_PERSONAL
         } else {
@@ -270,13 +281,16 @@ class Plans extends React.Component {
     }
 
     switch (step) {
-      case STEP_DOWNGRADE:
+      case STEP_CANCEL:
         // downgrade user now
         var r
         try {
-          let resp = await fetch('/cancel', {
+          let resp = await fetch('/api-int/cancel', {
             method: 'POST',
             credentials: 'same-origin',
+            body: JSON.stringify({
+              why: data.why
+            }),
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json'
@@ -288,7 +302,7 @@ class Plans extends React.Component {
             toastr.warning(
               r.error
                 ? `Failed to cancel your subscription: ${r.error}`
-                : 'Failed to cancel youa subscription.'
+                : 'Failed to cancel your subscription.'
             )
             return
           }
@@ -297,12 +311,20 @@ class Plans extends React.Component {
           toastr.error(
             'Unexpected error when cancelling the subscription, see the console for more details.'
           )
+          return
         }
 
         toastr.success('Subscription canceled!')
         setTimeout(() => {
+          toastr.info(
+            `You won't be charged anymore, but your subscription will remain active until ${
+              r.at
+            }.`
+          )
+        }, 2000)
+        setTimeout(() => {
           location.href = '/'
-        }, 4000)
+        }, 8000)
         break
       case STEP_REGISTER:
         ;['email', 'password'].forEach(check)
@@ -327,9 +349,19 @@ class Plans extends React.Component {
         // at this point we should have a stripe token already
         // so we proceed to register/upgrade
         try {
-          let resp = await fetch('/buy', {
+          let payload = {
+            plan: data.plan,
+            token: data.token
+          }
+
+          if (data.email && data.password) {
+            payload.email = data.email
+            payload.password = data.password
+          }
+
+          let resp = await fetch('/api-int/buy', {
             method: 'POST',
-            body: JSON.stringify(data),
+            body: JSON.stringify(payload),
             credentials: 'same-origin',
             headers: {
               Accept: 'application/json',
@@ -351,6 +383,7 @@ class Plans extends React.Component {
           toastr.error(
             'Unexpected error when creating the subscription, see the console for more details.'
           )
+          return
         }
 
         toastr.success('Subscription created!')
@@ -454,7 +487,7 @@ const PaymentForm = injectStripe(
       }
 
       this.props.setData('token')({target: {value: token.id}})
-      this.props.next()
+      this.props.next({preventDefault() {}})
     }
   }
 )

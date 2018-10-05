@@ -10,6 +10,7 @@ from . import settings
 DB = SQLAlchemy()
 redis_store = Redis()
 stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_version = '2018-09-24'
 cdn = CDN()
 celery = Celery(__name__, broker=settings.CELERY_BROKER_URL)
 TEMPLATES = generate_templates()

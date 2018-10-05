@@ -2,10 +2,11 @@ import stripe
 import datetime
 
 from flask import request, jsonify, g
-from flask_login import current_user, login_required
+from flask_login import current_user, login_required, login_user
 
-from .models import Email
-from .helpers import CARD_MAPPINGS
+from formspree.stuff import DB
+from .models import Email, User
+from .helpers import CARD_MAPPINGS, send_downgrade_reason_email
 
 
 @login_required
@@ -26,7 +27,7 @@ def get_account():
                     else None
             invoices = stripe.Invoice.list(customer=customer, limit=12)
 
-            cards = customer.sources.all(object='card').data
+            cards = customer.sources.list(object='card').data
             for card in cards:
                 if customer.default_source == card.id:
                     card.default = True
@@ -88,16 +89,24 @@ def add_email():
         }), 400
 
 
-def upgrade():
-    token = request.form['stripeToken']
+def buy():
+    data = request.get_json()
 
-    g.log = g.log.bind(account=current_user.email)
-    g.log.info('Upgrading account.')
-
-    if not current_user:
-        g.log.info('User is not logged, using email received from Stripe.', email=request.form.get('stripeEmail'))
-        user = User.query.filter_by(email=request.form['stripeEmail']).first()
+    if 'email' in data:
+        try:
+            user = User.register(data['email'], data['password'])
+            g.log.info('User created.', ip=request.headers.get('X-Forwarded-For'))
+        except ValueError:
+            return jsonify({'ok': False, 'error': 'Invalid email address.'}), 400
         login_user(user, remember=True)
+
+    # from now on we have current_user for sure
+    g.log = g.log.bind(account=current_user.email)
+
+    token = data['token']
+    plan = data['plan']
+
+    g.log.info('Upgrading account.', plan=plan)
 
     sub = None
     try:
@@ -109,86 +118,53 @@ def upgrade():
             g.log.info('Will create a new subscription.')
             customer = stripe.Customer.create(
                 email=current_user.email,
-                metadata={'formspree_id': current_user.id},
+                source=token,
+                metadata={'formspree_id': current_user.id}
             )
             current_user.stripe_id = customer.id
 
         if sub:
-            sub.plan = 'gold'
-            sub.source = token
+            sub.plan = plan
             sub.save()
         else:
-            customer.subscriptions.create(
-                plan='gold',
-                source=token
-            )
+            customer.subscriptions.create( plan=plan)
     except stripe.CardError as e:
         g.log.warning("Couldn't charge card.", reason=e.json_body,
                       status=e.http_status)
-        flash(u"Sorry. Your card could not be charged. Please contact us.",
-              "error")
-        return redirect(url_for('dashboard'))
+        return jsonify({'ok': False, 'error': "Couldn't charge card."}), 403
 
-    current_user.plan = Plan.gold
+    current_user.plan = plan
     DB.session.add(current_user)
     DB.session.commit()
-    flash(u"Congratulations! You are now a {SERVICE_NAME} "
-          "{UPGRADED_PLAN_NAME} user!".format(**settings.__dict__),
-          'success')
     g.log.info('Subscription created.')
 
-    return redirect(url_for('dashboard'))
+    return jsonify({'ok': True})
 
 
 @login_required
-def resubscribe():
+def cancel():
+    data = request.get_json()
+
     customer = stripe.Customer.retrieve(current_user.stripe_id)
     sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
 
     if not sub:
-        flash(u"You can't do this. You are not subscribed to any plan.",
-              "warning")
-        return redirect(url_for('account'))
+        return jsonify({
+            'ok': False,
+            'error': "You can't do this. You are not subscribed to any plan."
+        }), 403
 
-    sub.plan = 'gold'
-    sub.save()
-
-    g.log.info('Resubscribed user.', account=current_user.email)
-    at = datetime.datetime.fromtimestamp(sub.current_period_end)
-    flash(u'Glad to have you back! Your subscription will now automatically '
-          'renew on {date}'.format(date=at.strftime('%A, %B %d, %Y')),
-          'success')
-
-    return redirect(url_for('account'))
-
-
-@login_required
-def downgrade():
-    customer = stripe.Customer.retrieve(current_user.stripe_id)
-    sub = customer.subscriptions.data[0] if customer.subscriptions.data else None
-
-    if not sub:
-        flash(u"You can't do this. You are not subscribed to any plan.",
-              "warning")
-        return redirect(url_for('account'))
-
-    reason = request.form.get('why')
+    reason = data.get('why')
     if reason:
         send_downgrade_reason_email.delay(current_user.email, reason)
 
     sub.cancel_at_period_end = True
     sub.save()
-    flash(u"You were unregistered from the {SERVICE_NAME} "
-          "{UPGRADED_PLAN_NAME} plan.".format(**settings.__dict__),
-          'success')
-    at = datetime.datetime.fromtimestamp(sub.current_period_end)
-    flash(u"Your card will not be charged anymore, but your plan will "
-          "remain active until {date}.".format(
-            date=at.strftime('%A, %B %d, %Y')
-          ), 'info')
 
     g.log.info('Subscription canceled from dashboard.', account=current_user.email)
-    return redirect(url_for('account'))
+
+    at = datetime.datetime.fromtimestamp(sub.current_period_end).strftime('%A, %B %d, %Y')
+    return jsonify({'ok': True, 'at': at})
 
 
 @login_required
@@ -209,7 +185,7 @@ def add_card():
 
         # make sure this card doesn't already exist
         new_fingerprint = stripe.Token.retrieve(token).card.fingerprint
-        if new_fingerprint in (card.fingerprint for card in customer.sources.all(object='card').data):
+        if new_fingerprint in (card.fingerprint for card in customer.sources.list(object='card').data):
             return jsonify({'ok': True}), 200
         else:
             customer.sources.create(source=token)
