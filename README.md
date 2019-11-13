@@ -1,7 +1,8 @@
+> **This repository is no longer active**. If you're looking for a simple and powerful hosted form API, please check out [https://formspree.io](https://formspree.io). If you are interested in self-hosting the code in this repository, you may do so while complying with the LICENSE file. However, Formspree can't offer support.
+
+
 FORMSPREE.IO
 ------------
-
-> **This repository is no longer active**. If you're looking for a simple and powerful hosted form API, please check out [https://formspree.io](https://formspree.io). If you are interested in self-hosting the code in this repository, you may do so while complying with the LICENSE file. However, Formspree can't offer support.
 
 Functional HTML forms. Hosted at [https://formspree.io](https://formspree.io).
 
