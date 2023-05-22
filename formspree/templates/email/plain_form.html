@@ -8,6 +8,16 @@
 
 <table border="0" width="100%">
     {% for k in keys %}
+        {% if k == "Attached File" %}
+          <tr>
+            <td align="right" valign="top" width="70" style="padding: 5px 5px 5px 0;"><strong>{{ k }}:</strong> </td>
+            <td align="left" valign="top" width="*" style="padding: 5px 5px 5px;">
+            {% for item in data.get(k) %}
+                <pre style="margin: 0; font-family: inherit; white-space: pre-wrap;"><a href="{{ item }}">{{ item }}</a></pre>
+            {% endfor %}          
+            </td>
+          </tr>
+        {% endif %}
         <tr>
             <td align="right" valign="top" width="70" style="padding: 5px 5px 5px 0;"><strong>{{k}}:</strong> </td>
             <td align="left" valign="top" width="*" style="padding: 5px 5px 5px;">
